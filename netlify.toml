@@ -1,0 +1,19 @@
+[build]
+  # Build command - install dependencies and build
+  command = "npx prisma generate && yarn build"
+  publish = ".next"
+
+# Next.js plugin for Netlify (handles API routes automatically)
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Environment variables for build
+[build.environment]
+  NODE_VERSION = "18"
+  # Use yarn as the package manager
+  NPM_FLAGS = "--version"
+
+# Functions configuration for serverless
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["@prisma/client", ".prisma/client"]
