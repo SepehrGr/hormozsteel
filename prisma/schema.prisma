@@ -1,0 +1,347 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // directUrl برای migrations (اگر development و production URL متفاوت باشه)
+  // directUrl = env("DIRECT_URL")
+}
+
+model ProductCategory {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  slug          String    @unique
+  icon          String?
+  description   String?
+  subcategories String[]
+  products      Product[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("product_categories")
+}
+
+model Product {
+  id              String    @id @default(cuid())
+  name            String
+  slug            String    @unique
+  description     String?
+  brand           String
+  size            String
+  price           Float
+  previousPrice   Float? // قیمت قبلی برای محاسبه نوسانات
+  changeType      String?   @default("stable") // "increase", "decrease", "stable"
+  changeAmount    Float? // مقدار تغییر قیمت
+  lastPriceChange DateTime? // آخرین زمان تغییر قیمت
+  unit            String    @default("kg") // kg, ton, piece
+  weight          Float?    // Weight in kg/ton (stored as DOUBLE PRECISION in database)
+  inStock         Boolean   @default(true)
+  images          String[]
+
+  // Category relationship
+  categoryId  String
+  category    ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  subcategory String
+
+  // Technical specifications
+  thickness   String?
+  diameter    String?
+  grade       String?
+  coating     String?
+  standard    String?
+  length      String?
+  subtype     String?
+  weightType  String?
+  sheetType   String?
+  pipeType    String?
+  wireType    String?
+  height      String?
+  meshSize    String?
+  packageType String?
+
+  // Additional metadata
+  specifications Json?
+  features       String[]
+  applications   String[]
+
+  // Order relationships
+  orderItems OrderItem[]
+
+  // Price history relationship
+  priceHistory PriceHistory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([subcategory])
+  @@index([brand])
+  @@index([inStock])
+  @@index([price])
+  @@map("products")
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?  @unique
+  phone     String   @unique
+  company   String?
+  address   String?
+  city      String?
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("customers")
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique
+  status      OrderStatus @default(PENDING)
+  totalAmount Float
+  notes       String?
+
+  // Customer relationship
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  // Order items
+  items OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String  @id @default(cuid())
+  quantity   Float
+  unitPrice  Float
+  totalPrice Float
+  notes      String?
+
+  // Relationships
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model PriceHistory {
+  id           String   @id @default(cuid())
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  oldPrice     Float
+  newPrice     Float
+  changeType   String // "افزایش" | "کاهش" | "ثابت"
+  changeAmount Float // مقدار تغییر
+  changedAt    DateTime @default(now())
+  notes        String?
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([changedAt])
+  @@index([changeType])
+  @@index([productId, changedAt(sort: Desc)]) // برای دریافت آخرین قیمت
+  @@map("price_history")
+}
+
+model Manufacturer {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  logo        String?
+  website     String?
+  email       String?
+  phone       String?
+  address     String?
+  products    String[] // Product IDs that this manufacturer produces
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("manufacturers")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum Role {
+  ADMIN
+  SUPER_ADMIN
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  name      String
+  role      Role      @default(ADMIN)
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+
+  // Account lockout fields
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+
+  // NextAuth fields
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+
+  // Admin activity tracking
+  adminLogs AdminLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model AdminLog {
+  id           String  @id @default(cuid())
+  userId       String
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action       String // CREATE, UPDATE, DELETE, BULK_UPDATE, BULK_DELETE, LOGIN, LOGOUT
+  resourceType String // PRODUCT, CATEGORY, ORDER, USER, etc.
+  resourceId   String? // ID of the affected resource
+  details      Json? // Additional details about the action
+  ipAddress    String?
+  userAgent    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([resourceType])
+  @@index([createdAt])
+  @@map("admin_logs")
+}
+
+model ContactForm {
+  id        String            @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  message   String            @db.Text
+  status    ContactFormStatus @default(NEW)
+  reply     String?           @db.Text
+  repliedAt DateTime?
+  repliedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("contact_forms")
+}
+
+model QuickOrder {
+  id              String           @id @default(cuid())
+  customerName    String
+  companyName     String?
+  phoneNumber     String
+  city            String
+  productSpecs    String           @db.Text
+  quantity        String
+  deliveryDate    DateTime?
+  deliveryMethod  DeliveryMethod   @default(PICKUP)
+  additionalNotes String?          @db.Text
+  status          QuickOrderStatus @default(PENDING)
+  productName     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([phoneNumber])
+  @@map("quick_orders")
+}
+
+enum ContactFormStatus {
+  NEW
+  READ
+  REPLIED
+}
+
+enum QuickOrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+enum DeliveryMethod {
+  PICKUP
+  DELIVERY
+}
