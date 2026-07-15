@@ -1,94 +1,104 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { mapDirectionToLegacy } from '@/lib/product-dto'
+import { resolveCategoryIcon } from '@/config/category-icons'
 
 export async function GET() {
   try {
-    // دریافت محصولاتی که اخیراً قیمت‌شان تغییر کرده
     const recentPriceChanges = await prisma.priceHistory.findMany({
-      orderBy: {
-        changedAt: 'desc',
-      },
-      take: 50, // تعداد بیشتر برای فیلتر کردن duplicates
+      orderBy: { changedAt: 'desc' },
+      take: 50,
       select: {
         productId: true,
         newPrice: true,
         changedAt: true,
-        changeType: true,
-        changeAmount: true,
+        direction: true,
+        delta: true,
       },
-    });
+    })
 
-    // گرفتن IDs یونیک محصولات
     const uniqueProductIds = Array.from(
-      new Set(recentPriceChanges.map((change) => change.productId))
-    ).slice(0, 12); // فقط 12 محصول اول
+      new Set(recentPriceChanges.map(c => c.productId)),
+    ).slice(0, 12)
 
-    // دریافت اطلاعات کامل محصولات
-    const products = await prisma.product.findMany({
-      where: {
-        id: {
-          in: uniqueProductIds,
-        },
-      },
-      include: {
-        category: {
-          select: {
-            name: true,
-            icon: true,
-          },
-        },
-      },
-    });
+    // Fall back to latest products if little history
+    const products =
+      uniqueProductIds.length > 0
+        ? await prisma.product.findMany({
+            where: { id: { in: uniqueProductIds } },
+            include: {
+              category: { select: { name: true, icon: true } },
+              manufacturer: { select: { name: true } },
+            },
+          })
+        : await prisma.product.findMany({
+            take: 12,
+            orderBy: { updatedAt: 'desc' },
+            include: {
+              category: { select: { name: true, icon: true } },
+              manufacturer: { select: { name: true } },
+            },
+          })
 
-    // ایجاد map برای دسترسی به آخرین تغییر قیمت
-    const priceChangesMap = new Map();
-    recentPriceChanges.forEach((change) => {
+    const priceChangesMap = new Map<
+      string,
+      (typeof recentPriceChanges)[number]
+    >()
+    for (const change of recentPriceChanges) {
       if (!priceChangesMap.has(change.productId)) {
-        priceChangesMap.set(change.productId, change);
+        priceChangesMap.set(change.productId, change)
       }
-    });
+    }
 
-    // فرمت کردن داده‌ها مطابق با نوع Product
-    const formattedProducts = products.map((product) => {
-      const priceChange = priceChangesMap.get(product.id);
+    const formattedProducts = products.map(product => {
+      const priceChange = priceChangesMap.get(product.id)
+      const specs = (product.specs as Record<string, string> | null) ?? {}
 
       return {
         id: product.id,
         name: product.name,
-        brand: product.brand || '',
-        category: product.category?.name || 'متفرقه',
-        categoryIcon: product.category?.icon || 'icon-rebar',
+        brand: product.manufacturer?.name || '',
+        category: product.category?.name || 'Other',
+        categoryIcon: resolveCategoryIcon(
+          product.category?.icon || product.category?.name,
+        ),
         subcategory: product.subcategory || '',
         size: product.size || '',
-        grade: product.grade || '',
+        grade: specs.grade || '',
         price: product.price,
-        unit: product.unit || 'تومان',
+        unit: product.unit || 'KG',
         inStock: product.inStock,
         image:
           product.images && product.images.length > 0 ? product.images[0] : '',
         description: product.description || '',
-        specifications: product.specifications || {},
+        specifications: specs,
         lastUpdated: product.updatedAt.toISOString(),
         priceHistory: priceChange
           ? {
-              changeType: priceChange.changeType,
-              changeAmount: priceChange.changeAmount,
+              changeType: mapDirectionToLegacy(priceChange.direction),
+              changeAmount: priceChange.delta,
               changedAt: priceChange.changedAt.toISOString(),
             }
-          : null,
-      };
-    });
+          : product.priceDirection
+            ? {
+                changeType: mapDirectionToLegacy(product.priceDirection),
+                changeAmount: product.priceDelta ?? 0,
+                changedAt: (product.priceUpdatedAt ?? product.updatedAt).toISOString(),
+              }
+            : null,
+      }
+    })
 
     return NextResponse.json({
       success: true,
       count: formattedProducts.length,
       products: formattedProducts,
-    });
+    })
   } catch (error) {
-    console.error('Error fetching latest prices:', error);
+    console.error('Error fetching latest prices:', error)
     return NextResponse.json(
-      { success: false, error: 'خطا در دریافت اطلاعات' },
-      { status: 500 }
-    );
+      { success: false, error: 'Failed to fetch latest prices' },
+      { status: 500 },
+    )
   }
 }
