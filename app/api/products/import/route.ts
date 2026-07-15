@@ -53,15 +53,19 @@ export async function POST(request: NextRequest) {
 
           if (row.name !== undefined && row.name !== '')
             updateData.name = row.name;
-          if (row.brand !== undefined && row.brand !== '')
-            updateData.brand = row.brand;
           if (row.size !== undefined) updateData.size = row.size;
           if (
             row.weight !== undefined &&
             row.weight !== null &&
             row.weight !== ''
           ) {
-            updateData.weight = Number(row.weight);
+            updateData.weightKg = Number(row.weight);
+          }
+          if (row.weightKg !== undefined && row.weightKg !== null && row.weightKg !== '') {
+            updateData.weightKg = Number(row.weightKg);
+          }
+          if (row.manufacturerId !== undefined && row.manufacturerId !== '') {
+            updateData.manufacturerId = row.manufacturerId;
           }
           if (row.price !== undefined && row.price !== null) {
             updateData.price = Number(row.price);
@@ -74,7 +78,7 @@ export async function POST(request: NextRequest) {
           }
           if (row.categoryId !== undefined && row.categoryId !== '') {
             // Validate category exists
-            const category = await prisma.productCategory.findUnique({
+            const category = await prisma.category.findUnique({
               where: { id: row.categoryId },
             });
             if (!category) {
@@ -127,10 +131,8 @@ export async function POST(request: NextRequest) {
           // Validate required fields
           const required = [
             'name',
-            'brand',
             'price',
             'categoryId',
-            'subcategory',
           ];
           // Note: Price can be 0, so check for undefined/null instead of falsy
           const missing = required.filter((r) => {
@@ -149,7 +151,7 @@ export async function POST(request: NextRequest) {
           }
 
           // Ensure category exists
-          const category = await prisma.productCategory.findUnique({
+          const category = await prisma.category.findUnique({
             where: { id: row.categoryId },
           });
           if (!category) {
@@ -165,12 +167,12 @@ export async function POST(request: NextRequest) {
           await prisma.product.create({
             data: {
               name: row.name,
-              brand: row.brand,
               size: row.size || '',
               price: Number(row.price),
               categoryId: row.categoryId,
-              subcategory: row.subcategory,
-              weight:
+              subcategory: row.subcategory || null,
+              manufacturerId: row.manufacturerId || null,
+              weightKg:
                 row.weight !== undefined &&
                 row.weight !== null &&
                 row.weight !== ''
