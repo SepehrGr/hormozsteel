@@ -7,13 +7,13 @@ import clsx from 'clsx'
 import { Providers } from './providers'
 
 import { siteConfig } from '@/config/site'
-import { IranYekan } from '@/config/fonts'
-import { ConditionalLayout } from '../components/conditional-layout'
+import { geistSans, geistMono } from '@/config/fonts'
+import { ConditionalLayout } from '@/components/layout/conditional-layout'
 
 export const metadata: Metadata = {
   title: {
     default: siteConfig.name,
-    template: `%s - ${siteConfig.name}`,
+    template: `%s · ${siteConfig.name}`,
   },
   description: siteConfig.description,
   icons: {
@@ -23,8 +23,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
+    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
+    { media: '(prefers-color-scheme: dark)', color: '#0c0c0c' },
   ],
 }
 
@@ -34,13 +34,17 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html suppressHydrationWarning lang='en'>
+    <html
+      suppressHydrationWarning
+      lang='en'
+      className={clsx(geistSans.variable, geistMono.variable)}
+    >
       <head />
       <body
         dir='ltr'
         className={clsx(
-          'min-h-screen text-foreground bg-background antialiased',
-          IranYekan.className,
+          'min-h-screen bg-background font-sans text-foreground antialiased',
+          geistSans.className,
         )}
       >
         <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>

@@ -1,13 +1,13 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import SheetWeightCalculator from '@/components/calculators/SheetWeightCalculator';
-import BeamWeightCalculator from '@/components/calculators/BeamWeightCalculator';
-import RebarWeightCalculator from '@/components/calculators/RebarWeightCalculator';
-import BilletWeightCalculator from '@/components/calculators/BilletWeightCalculator';
-import PipeWeightCalculator from '@/components/calculators/PipeWeightCalculator';
-import StudWeightCalculator from '@/components/calculators/StudWeightCalculator';
-import AngleWeightCalculator from '@/components/calculators/AngleWeightCalculator';
-import SquareTubeWeightCalculator from '@/components/calculators/SquareTubeWeightCalculator';
+import SheetWeightCalculator from '@/components/calculators/sheet-weight-calculator';
+import BeamWeightCalculator from '@/components/calculators/beam-weight-calculator';
+import RebarWeightCalculator from '@/components/calculators/rebar-weight-calculator';
+import BilletWeightCalculator from '@/components/calculators/billet-weight-calculator';
+import PipeWeightCalculator from '@/components/calculators/pipe-weight-calculator';
+import StudWeightCalculator from '@/components/calculators/stud-weight-calculator';
+import AngleWeightCalculator from '@/components/calculators/angle-weight-calculator';
+import SquareTubeWeightCalculator from '@/components/calculators/square-tube-weight-calculator';
 import {
   Calculator,
   Star,

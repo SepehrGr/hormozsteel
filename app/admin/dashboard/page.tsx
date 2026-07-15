@@ -23,7 +23,7 @@ async function getDashboardStats() {
     recentOrders,
   ] = await Promise.all([
     prisma.product.count(),
-    prisma.productCategory.count(),
+    prisma.category.count(),
     prisma.manufacturer.count(),
     prisma.order.count(),
     prisma.customer.count(),

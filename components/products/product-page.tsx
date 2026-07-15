@@ -2,10 +2,10 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Product, PriceFilter, PRODUCT_CATEGORIES } from '@/types/products';
-import CategoryTable from '@/components/category-table';
-import AdvancedFilters from '@/components/advanced-filters';
-import WeightCalculatorModal from '@/components/weight-calculator-modal';
-import OrderRequestModal from '@/components/order-request-modal';
+import CategoryTable from '@/components/products/category-table';
+import AdvancedFilters from '@/components/products/advanced-filters';
+import WeightCalculatorModal from '@/components/products/weight-calculator-modal';
+import OrderRequestModal from '@/components/products/order-request-modal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

@@ -18,146 +18,145 @@ import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 
 import { siteConfig } from '@/config/site'
-import { ThemeSwitch } from '@/components/theme-switch'
+import { ThemeSwitch } from '@/components/layout/theme-switch'
 import { SearchIcon, Logo } from '@/components/icons'
 import { Divider } from '@heroui/divider'
-import NavbarPhone from './navbarPhone'
-import NavMenu from './navmenu'
+import NavbarPhone from './navbar-phone'
+import NavMenu from './nav-menu'
 
-// داده‌های محصولات برای منوی موبایل - کامل و مرتب شده
+// Mobile products menu — English demo labels
 const mobileProductsData = [
   {
-    title: 'قیمت میلگرد',
+    title: 'Rebar',
     icon: 'icon-rebar',
     items: [
-      { href: '/products/rebar/milgerd-ajdar', label: 'قیمت میلگرد آجدار' },
-      { href: '/products/rebar/milgerd-sade', label: 'قیمت میلگرد ساده' },
-      { href: '/products/rebar/milgerd-kolaf', label: 'قیمت میلگرد کلاف' },
-      { href: '/products/rebar/milgerd-harati', label: 'قیمت میلگرد حرارتی' },
-      { href: '/products/rebar/milgerd-bastar', label: 'قیمت میلگرد بستر' },
-      { href: '/products/rebar/milgerd-trans', label: 'قیمت میلگرد ترانس' },
-      { href: '/products/rebar/milgerd-steel', label: 'قیمت میلگرد استیل' },
-      { href: '/products/rebar', label: 'همه موارد' },
+      { href: '/products/rebar/milgerd-ajdar', label: 'Ribbed rebar' },
+      { href: '/products/rebar/milgerd-sade', label: 'Plain rebar' },
+      { href: '/products/rebar/milgerd-kolaf', label: 'Coil rebar' },
+      { href: '/products/rebar/milgerd-harati', label: 'Thermal rebar' },
+      { href: '/products/rebar/milgerd-bastar', label: 'Bed rebar' },
+      { href: '/products/rebar/milgerd-trans', label: 'Trans rebar' },
+      { href: '/products/rebar/milgerd-steel', label: 'Stainless rebar' },
+      { href: '/products/rebar', label: 'View all' },
     ],
   },
   {
-    title: 'قیمت تیرآهن',
+    title: 'Beams',
     icon: 'icon-tirahan',
     items: [
-      { href: '/products/beam/tirahan', label: 'تیرآهن' },
-      { href: '/products/beam/hash', label: 'هاش' },
-      { href: '/products/beam/lane-zanbori', label: 'لانه زنبوری' },
-      { href: '/products/beam/rail', label: 'ریل' },
-      { href: '/products/beam/tirahan-sangin', label: 'تیرآهن سنگین' },
-      { href: '/products/beam/tirahan-sabk', label: 'تیرآهن سبک' },
-      { href: '/products/beam', label: 'همه موارد' },
+      { href: '/products/beam/tirahan', label: 'I-beam' },
+      { href: '/products/beam/hash', label: 'H-beam' },
+      { href: '/products/beam/lane-zanbori', label: 'Castellated beam' },
+      { href: '/products/beam/rail', label: 'Rail' },
+      { href: '/products/beam/tirahan-sangin', label: 'Heavy beam' },
+      { href: '/products/beam/tirahan-sabk', label: 'Light beam' },
+      { href: '/products/beam', label: 'View all' },
     ],
   },
   {
-    title: 'قیمت شمش',
+    title: 'Billets',
     icon: 'icon-bullion',
     items: [
-      { href: '/products/shamsh/shamsh-folad', label: 'شمش فولاد' },
-      { href: '/products/shamsh/shamsh-aliaazhi', label: 'شمش آلیاژی' },
-      { href: '/products/shamsh', label: 'همه موارد' },
+      { href: '/products/shamsh/shamsh-folad', label: 'Steel billet' },
+      { href: '/products/shamsh/shamsh-aliaazhi', label: 'Alloy billet' },
+      { href: '/products/shamsh', label: 'View all' },
     ],
   },
   {
-    title: 'قیمت ورق',
+    title: 'Sheets',
     icon: 'icon-varagh',
     items: [
-      { href: '/products/sheet/varagh-siah', label: 'ورق سیاه (ST37)' },
-      { href: '/products/sheet/varagh-garm', label: 'ورق گرم' },
-      { href: '/products/sheet/varagh-sard', label: 'ورق سرد' },
-      { href: '/products/sheet/varagh-galvanize', label: 'ورق گالوانیزه' },
-      { href: '/products/sheet/varagh-rangi', label: 'ورق رنگی' },
-      { href: '/products/sheet/varagh-steel', label: 'ورق استیل' },
-      { href: '/products/sheet/varagh-aluminum', label: 'ورق آلومینیوم' },
-      { href: '/products/sheet/varagh-mes', label: 'ورق مس' },
-      { href: '/products/sheet', label: 'همه موارد' },
+      { href: '/products/sheet/varagh-siah', label: 'Black sheet (ST37)' },
+      { href: '/products/sheet/varagh-garm', label: 'Hot-rolled sheet' },
+      { href: '/products/sheet/varagh-sard', label: 'Cold-rolled sheet' },
+      { href: '/products/sheet/varagh-galvanize', label: 'Galvanized sheet' },
+      { href: '/products/sheet/varagh-rangi', label: 'Color-coated sheet' },
+      { href: '/products/sheet/varagh-steel', label: 'Stainless sheet' },
+      { href: '/products/sheet/varagh-aluminum', label: 'Aluminum sheet' },
+      { href: '/products/sheet/varagh-mes', label: 'Copper sheet' },
+      { href: '/products/sheet', label: 'View all' },
     ],
   },
   {
-    title: 'قیمت لوله',
+    title: 'Pipes',
     icon: 'icon-lole',
     items: [
-      { href: '/products/pipe/lole-darzdar', label: 'لوله درزدار' },
+      { href: '/products/pipe/lole-darzdar', label: 'Seamed pipe' },
       {
         href: '/products/pipe/lole-bedone-darz',
-        label: 'لوله بدون درز (مانیسمان)',
+        label: 'Seamless pipe',
       },
-      { href: '/products/pipe/lole-galvanize', label: 'لوله گالوانیزه (گازی)' },
-      { href: '/products/pipe/lole-steel', label: 'لوله استیل' },
-      { href: '/products/pipe/lole-mes', label: 'لوله مس' },
-      { href: '/products/pipe/lole-aluminum', label: 'لوله آلومینیوم' },
-      { href: '/products/pipe', label: 'همه موارد' },
+      { href: '/products/pipe/lole-galvanize', label: 'Galvanized pipe' },
+      { href: '/products/pipe/lole-steel', label: 'Stainless pipe' },
+      { href: '/products/pipe/lole-mes', label: 'Copper pipe' },
+      { href: '/products/pipe/lole-aluminum', label: 'Aluminum pipe' },
+      { href: '/products/pipe', label: 'View all' },
     ],
   },
   {
-    title: 'قیمت قوطی و پروفیل',
+    title: 'Tubes & profiles',
     icon: 'icon-profil',
     items: [
-      { href: '/products/profile/qooti-sanate', label: 'قوطی صنعتی' },
-      { href: '/products/profile/qooti-sotoni', label: 'قوطی ستونی' },
-      { href: '/products/profile/profile-z', label: 'پروفیل Z (زد)' },
-      { href: '/products/profile/profile-sakhtmani', label: 'پروفیل ساختمانی' },
-      { href: '/products/profile/profile-kongre', label: 'پروفیل کنگره' },
-      { href: '/products/profile/profile-ipe', label: 'پروفیل IPE' },
-      { href: '/products/profile/profile-upe', label: 'پروفیل UPE' },
-      { href: '/products/profile/profile-hea', label: 'پروفیل HEA' },
-      { href: '/products/profile/profile-heb', label: 'پروفیل HEB' },
-      { href: '/products/profile', label: 'همه موارد' },
+      { href: '/products/profile/qooti-sanate', label: 'Industrial tube' },
+      { href: '/products/profile/qooti-sotoni', label: 'Column tube' },
+      { href: '/products/profile/profile-z', label: 'Z profile' },
+      { href: '/products/profile/profile-sakhtmani', label: 'Structural profile' },
+      { href: '/products/profile/profile-kongre', label: 'Corrugated profile' },
+      { href: '/products/profile/profile-ipe', label: 'IPE' },
+      { href: '/products/profile/profile-upe', label: 'UPE' },
+      { href: '/products/profile/profile-hea', label: 'HEA' },
+      { href: '/products/profile/profile-heb', label: 'HEB' },
+      { href: '/products/profile', label: 'View all' },
     ],
   },
   {
-    title: 'قیمت نبشی و ناودانی',
+    title: 'Angles & channels',
     icon: 'icon-nabshi',
     items: [
-      { href: '/products/angle/nabshi', label: 'نبشی' },
-      { href: '/products/angle/navodani', label: 'ناودانی' },
-      { href: '/products/angle/separi', label: 'سپری' },
-      { href: '/products/angle/nabshi-galvanize', label: 'نبشی گالوانیزه' },
-      { href: '/products/angle', label: 'همه موارد' },
+      { href: '/products/angle/nabshi', label: 'Angle bar' },
+      { href: '/products/angle/navodani', label: 'Channel' },
+      { href: '/products/angle/separi', label: 'T-bar' },
+      { href: '/products/angle/nabshi-galvanize', label: 'Galvanized angle' },
+      { href: '/products/angle', label: 'View all' },
     ],
   },
   {
-    title: 'محصولات مفتولی',
+    title: 'Wire products',
     icon: 'icon-wire',
     items: [
-      { href: '/products/maftoli/sim-maftooli-siah', label: 'سیم مفتولی سیاه' },
+      { href: '/products/maftoli/sim-maftooli-siah', label: 'Black wire' },
       {
         href: '/products/maftoli/sim-maftooli-galvanize',
-        label: 'سیم مفتولی گالوانیزه',
+        label: 'Galvanized wire',
       },
-      { href: '/products/maftoli/toori-hesari', label: 'توری حصاری' },
-      { href: '/products/maftoli/mesh-ajdar', label: 'مش آجدار' },
-      { href: '/products/maftoli', label: 'همه موارد' },
+      { href: '/products/maftoli/toori-hesari', label: 'Fence mesh' },
+      { href: '/products/maftoli/mesh-ajdar', label: 'Ribbed mesh' },
+      { href: '/products/maftoli', label: 'View all' },
     ],
   },
   {
-    title: 'مواد اولیه',
+    title: 'Raw materials',
     icon: 'icon-stainless-steel',
     items: [
       {
         href: '/products/raw-materials/ahan-esfonji',
-        label: 'قیمت آهن اسفنجی',
+        label: 'Sponge iron',
       },
-      { href: '/products/raw-materials/foro-aliazh', label: 'قیمت فروآلیاژ' },
-      { href: '/products/raw-materials', label: 'همه موارد' },
+      { href: '/products/raw-materials/foro-aliazh', label: 'Ferroalloy' },
+      { href: '/products/raw-materials', label: 'View all' },
     ],
   },
 ]
 
-// داده‌های وزن آهن آلات
 const weightData = [
-  { href: '/weight/beam', label: 'وزن تیرآهن' },
-  { href: '/weight/rebar', label: 'وزن میلگرد' },
-  { href: '/weight/billet', label: 'وزن شمش فولادی' },
-  { href: '/weight/pipe', label: 'وزن لوله فولادی' },
-  { href: '/weight/stud', label: 'وزن ناودانی' },
-  { href: '/weight/angle', label: 'وزن نبشی' },
-  { href: '/weight/square-tube', label: 'وزن قوطی' },
-  { href: '/weight/sheet', label: 'وزن ورق' },
+  { href: '/weight/beam', label: 'Beam weight' },
+  { href: '/weight/rebar', label: 'Rebar weight' },
+  { href: '/weight/billet', label: 'Billet weight' },
+  { href: '/weight/pipe', label: 'Pipe weight' },
+  { href: '/weight/stud', label: 'Channel weight' },
+  { href: '/weight/angle', label: 'Angle weight' },
+  { href: '/weight/square-tube', label: 'Square tube weight' },
+  { href: '/weight/sheet', label: 'Sheet weight' },
 ]
 
 // کامپوننت منوی محصولات موبایل
@@ -170,7 +169,7 @@ const MobileProductsMenu = () => {
         onClick={() => setIsOpen(!isOpen)}
         className='flex items-center justify-between w-full px-4 py-3.5 rounded-xl transition-all duration-300 hover:bg-primary/10 text-foreground font-semibold'
       >
-        <span className='flex items-center gap-3 text-base'>قیمت محصولات</span>
+        <span className='flex items-center gap-3 text-base'>Products</span>
         <ChevronDown
           className={`w-5 h-5 transition-transform duration-300 text-primary ${
             isOpen ? 'rotate-180' : ''
@@ -200,7 +199,7 @@ const MobileWeightMenu = () => {
         className='flex items-center justify-between w-full px-4 py-3.5 rounded-xl transition-all duration-300 hover:bg-primary/10 text-foreground font-semibold'
       >
         <span className='flex items-center gap-3 text-base'>
-          محاسبه وزن آهن آلات
+          Weight calculators
         </span>
         <ChevronDown
           className={`w-5 h-5 transition-transform duration-300 text-primary ${
@@ -257,7 +256,7 @@ const MobileCategoryAccordion = ({
       </button>
 
       {isOpen && (
-        <div className='mt-1 mr-7 space-y-0.5'>
+        <div className='mt-1 ml-7 space-y-0.5'>
           {category.items.map((item, index) => (
             <Link
               key={index}
@@ -286,7 +285,7 @@ export const Navbar = () => {
         <SearchIcon className='flex-shrink-0 text-base pointer-events-none text-default-400' />
       }
       type='search'
-      placeholder='جستجو در محصولات...'
+      placeholder='Search products...'
     />
   )
 
@@ -295,24 +294,23 @@ export const Navbar = () => {
       maxWidth='2xl'
       position='sticky'
       isBordered
-      className='z-40 px-2 py-2 border-b shadow-sm backdrop-blur-md sm:py-3 sm:px-4 bg-background/80 border-divider/50'
+      className='z-40 border-b border-border/60 bg-background/80 px-2 py-2 shadow-sm backdrop-blur-md sm:px-4 sm:py-3'
     >
       <NavbarContent className='basis-1/5 sm:basis-full' justify='start'>
-        <NavbarBrand as='li' className='gap-4 max-w-fit'>
+        <NavbarBrand as='li' className='max-w-fit gap-4'>
           <NextLink
-            className='flex items-center justify-start gap-3 transition-all duration-300 group'
+            className='group flex items-center justify-start gap-3 transition-all duration-300'
             href='/'
           >
             <div className='relative'>
-              <Logo className='w-12 h-12 transition-all duration-300 lg:w-16 lg:h-16 group-hover:drop-shadow-lg' />
-              <div className='absolute inset-0 transition-opacity duration-300 rounded-full opacity-0 bg-gradient-to-br blur-xl from-primary/20 to-primary/5 group-hover:opacity-100'></div>
+              <Logo className='h-10 w-10 transition-all duration-300 lg:h-12 lg:w-12' />
             </div>
             <div className='flex flex-col'>
-              <p className='text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r sm:text-xl lg:text-2xl from-foreground to-foreground/80'>
-                آهن هرمز
+              <p className='text-lg font-semibold tracking-tight text-foreground sm:text-xl'>
+                Hormoz Steel
               </p>
               <p className='hidden text-xs font-medium text-default-500 sm:block'>
-                قیمت روز آهن آلات
+                Steel pricing catalog
               </p>
             </div>
           </NextLink>
@@ -356,7 +354,7 @@ export const Navbar = () => {
           <ThemeSwitch />
           <NavbarMenuToggle
             className='min-w-0 p-2 transition-colors rounded-lg text-default-600 hover:text-primary focus:outline-none'
-            aria-label='منوی موبایل'
+            aria-label='Open menu'
             data-testid='mobile-menu-toggle'
           />
         </div>
@@ -364,31 +362,27 @@ export const Navbar = () => {
 
       <NavbarMenu className='z-50 border-t backdrop-blur-xl bg-background/95 border-divider/50 max-h-[calc(100vh-64px)] overflow-y-auto pb-safe'>
         <div className='flex flex-col gap-1 px-2 pb-6 mt-3'>
-          {/* لینک صفحه اصلی */}
           <NavbarMenuItem>
             <Link
               color={'foreground'}
               href='/'
               size='lg'
-              className='block px-4 py-3.5 w-full rounded-xl transition-all duration-300 hover:bg-primary/10 font-semibold text-base'
+              className='block w-full rounded-xl px-4 py-3.5 text-base font-semibold transition-all duration-300 hover:bg-primary/10'
             >
-              صفحه اصلی
+              Home
             </Link>
           </NavbarMenuItem>
 
-          {/* منوی محصولات با Accordion */}
           <NavbarMenuItem>
             <MobileProductsMenu />
           </NavbarMenuItem>
 
-          {/* منوی وزن آهن آلات */}
           <NavbarMenuItem>
             <MobileWeightMenu />
           </NavbarMenuItem>
 
-          <div className='h-px my-2 bg-divider/30'></div>
+          <div className='my-2 h-px bg-divider/30'></div>
 
-          {/* قیمت لحظه‌ای */}
           <NavbarMenuItem>
             <Link
               color={'foreground'}
@@ -396,45 +390,33 @@ export const Navbar = () => {
               size='lg'
               className='block px-4 py-3.5 w-full rounded-xl transition-all duration-300 hover:bg-primary/10 font-semibold text-base'
             >
-              قیمت لحظه‌ای
+              Live prices
             </Link>
           </NavbarMenuItem>
 
-          <div className='h-px my-2 bg-divider/30'></div>
+          <div className='my-2 h-px bg-divider/30'></div>
 
-          {/* درباره ما */}
           <NavbarMenuItem>
             <Link
               color={'foreground'}
               href='/about'
               size='lg'
-              className='block px-4 py-3.5 w-full rounded-xl transition-all duration-300 hover:bg-primary/10 font-semibold text-base'
+              className='block w-full rounded-xl px-4 py-3.5 text-base font-semibold transition-all duration-300 hover:bg-primary/10'
             >
-              درباره ما
+              About
             </Link>
           </NavbarMenuItem>
 
-          {/* تماس با ما */}
           <NavbarMenuItem>
             <Link
               color={'foreground'}
               href='/contact'
               size='lg'
-              className='block px-4 py-3.5 w-full rounded-xl transition-all duration-300 hover:bg-primary/10 font-semibold text-base'
+              className='block w-full rounded-xl px-4 py-3.5 text-base font-semibold transition-all duration-300 hover:bg-primary/10'
             >
-              تماس با ما
+              Contact
             </Link>
           </NavbarMenuItem>
-
-          {/* اطلاعات تماس */}
-          <div className='pt-4 mt-4 border-t border-divider/30'>
-            <div className='px-2'>
-              <p className='px-2 mb-3 text-xs font-medium text-default-500'>
-                تماس با ما
-              </p>
-              <NavbarPhone />
-            </div>
-          </div>
         </div>
       </NavbarMenu>
     </HeroUINavbar>

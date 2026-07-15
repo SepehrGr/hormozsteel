@@ -4,14 +4,14 @@ import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import RebarWeightCalculator from '@/components/calculators/RebarWeightCalculator';
-import SheetWeightCalculator from '@/components/calculators/SheetWeightCalculator';
-import BeamWeightCalculator from '@/components/calculators/BeamWeightCalculator';
-import PipeWeightCalculator from '@/components/calculators/PipeWeightCalculator';
-import AngleWeightCalculator from '@/components/calculators/AngleWeightCalculator';
-import StudWeightCalculator from '@/components/calculators/StudWeightCalculator';
-import BilletWeightCalculator from '@/components/calculators/BilletWeightCalculator';
-import SquareTubeWeightCalculator from '@/components/calculators/SquareTubeWeightCalculator';
+import RebarWeightCalculator from '@/components/calculators/rebar-weight-calculator';
+import SheetWeightCalculator from '@/components/calculators/sheet-weight-calculator';
+import BeamWeightCalculator from '@/components/calculators/beam-weight-calculator';
+import PipeWeightCalculator from '@/components/calculators/pipe-weight-calculator';
+import AngleWeightCalculator from '@/components/calculators/angle-weight-calculator';
+import StudWeightCalculator from '@/components/calculators/stud-weight-calculator';
+import BilletWeightCalculator from '@/components/calculators/billet-weight-calculator';
+import SquareTubeWeightCalculator from '@/components/calculators/square-tube-weight-calculator';
 
 interface WeightCalculatorModalProps {
   isOpen: boolean;

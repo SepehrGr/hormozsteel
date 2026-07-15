@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import UnifiedProductPage from '@/components/unified-product-page';
+import UnifiedProductPage from '@/components/products/unified-product-page';
 import { PRODUCT_ROUTES, PRODUCT_CATEGORIES } from '@/types/products';
 
 interface ProductPageProps {

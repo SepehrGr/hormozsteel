@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import OrderRequestModal from '@/components/order-request-modal';
+import OrderRequestModal from '@/components/products/order-request-modal';
 import { Phone, Zap, ArrowLeft } from 'lucide-react';
 
 export default function FloatingOrderButton() {

@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { BlogPostCard, BlogPost } from '@/components/blog-post'
+import { BlogPostCard, BlogPost } from '@/components/content/blog-post'
 import { Factory } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 

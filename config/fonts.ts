@@ -1,34 +1,21 @@
-import localFont from 'next/font/local'
+import { Geist, Geist_Mono } from 'next/font/google'
 
-export const IranYekan = localFont({
-  src: [
-    {
-      path: '../public/fonts/IRANYekanXFaNum-Thin.woff2',
-      weight: '200',
-    },
-    {
-      path: '../public/fonts/IRANYekanXFaNum-Light.woff2',
-      weight: '300',
-    },
-    {
-      path: '../public/fonts/IRANYekanXFaNum-Regular.woff2',
-      weight: '400',
-    },
-    {
-      path: '../public/fonts/IRANYekanXFaNum-Medium.woff2',
-      weight: '500',
-    },
-    {
-      path: '../public/fonts/IRANYekanXFaNum-DemiBold.woff2',
-      weight: '600',
-    },
-    {
-      path: '../public/fonts/IRANYekanXFaNum-Bold.woff2',
-      weight: '700',
-    },
-    {
-      path: '../public/fonts/IRANYekanXFaNum-ExtraBold.woff2',
-      weight: '800',
-    },
-  ],
+/** Primary UI font for the English portfolio demo (LTR). */
+export const geistSans = Geist({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-sans',
 })
+
+/** Monospace companion (optional use via font-mono). */
+export const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-mono',
+})
+
+/** @deprecated Prefer `geistSans` — alias for leftover imports. */
+export const inter = geistSans
+
+/** @deprecated Prefer `geistSans` — alias for leftover imports. */
+export const IranYekan = geistSans
