@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Product, ProductCategory } from '@/types/products';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import OrderRequestModal from '@/components/order-request-modal';
+import OrderRequestModal from '@/components/products/order-request-modal';
 import {
   Calculator,
   Phone,

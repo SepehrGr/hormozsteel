@@ -1,6 +1,6 @@
 'use client';
 
-import ProductPage from '@/components/product-page';
+import ProductPage from '@/components/products/product-page';
 
 interface UnifiedProductPageProps {
   category: string;

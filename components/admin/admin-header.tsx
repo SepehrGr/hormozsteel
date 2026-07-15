@@ -21,7 +21,7 @@ import {
   ChevronDown,
   Package,
 } from 'lucide-react'
-import { ThemeSwitch } from '@/components/theme-switch'
+import { ThemeSwitch } from '@/components/layout/theme-switch'
 
 interface Notification {
   id: string

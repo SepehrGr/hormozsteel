@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import CategoryTable from '@/components/category-table';
+import CategoryTable from '@/components/products/category-table';
 import { Product, ProductCategory } from '@/types/products';
 
 interface SheetsProduct {

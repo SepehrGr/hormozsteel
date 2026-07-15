@@ -16,14 +16,18 @@ const iconColors = {
 }
 
 interface TraitItemProps {
-  iconName: keyof typeof iconMap
+  icon: keyof typeof iconMap
   title: string
   description: string
 }
 
-export default function TraitItem({ title, iconName, description }: TraitItemProps) {
-  const IconComponent = iconMap[iconName]
-  const iconGradient = iconColors[iconName]
+export default function TraitItem({
+  title,
+  icon,
+  description,
+}: TraitItemProps) {
+  const IconComponent = iconMap[icon]
+  const iconGradient = iconColors[icon]
 
   return (
     <div className='relative h-full group'>
@@ -43,11 +47,11 @@ export default function TraitItem({ title, iconName, description }: TraitItemPro
 
         {/* Content */}
         <div className='relative z-10 flex flex-col flex-1 space-y-4'>
-          <h3 className='text-lg font-bold leading-tight transition-colors duration-300 text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400'>
+          <h3 className='text-xl font-semibold leading-tight transition-colors duration-300 text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400'>
             {title}
           </h3>
 
-          <p className='flex-1 text-sm leading-relaxed text-slate-600 dark:text-slate-300'>
+          <p className='flex-1 text-sm leading-relaxed text-slate-600/90 dark:text-slate-300/80'>
             {description}
           </p>
         </div>

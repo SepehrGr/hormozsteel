@@ -18,19 +18,19 @@ import { Select, SelectItem } from '@heroui/select'
 import { useDisclosure } from '@heroui/modal'
 import { addToast } from '@heroui/toast'
 import { Package, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useProducts, useCategories } from '@/hooks/useApi'
+import { useProducts, useCategories } from '@/hooks/use-api'
 import { PRODUCT_CATEGORIES } from '@/types/products'
-import { useProductExcel } from '@/hooks/useProductExcel'
-import HeaderActions from '@/components/admin/products/HeaderActions'
-import StatsCards from '@/components/admin/products/StatsCards'
-import Filters from '@/components/admin/products/Filters'
+import { useProductExcel } from '@/hooks/use-product-excel'
+import HeaderActions from '@/components/admin/products/header-actions'
+import StatsCards from '@/components/admin/products/stats-cards'
+import Filters from '@/components/admin/products/filters'
 import {
   BulkUpdateModal,
   BulkDeleteModal,
   DeleteSingleModal,
   EditProductModal,
   AddProductModal,
-} from '@/components/admin/products/Modals'
+} from '@/components/admin/products/modals'
 
 interface Product {
   id: string

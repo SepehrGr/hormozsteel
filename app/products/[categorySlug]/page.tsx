@@ -1,7 +1,7 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
-import CategoryProducts from '@/components/category-products';
-import ProductsSidebar from '@/components/products-sidebar';
+import CategoryProducts from '@/components/products/category-products';
+import ProductsSidebar from '@/components/products/products-sidebar';
 import { PRODUCT_CATEGORIES } from '@/types/products';
 
 interface PageProps {

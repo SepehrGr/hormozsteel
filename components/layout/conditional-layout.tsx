@@ -1,11 +1,11 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Navbar } from '@/components/navbar';
-import Footer from '@/components/footer';
+import { Navbar } from '@/components/layout/navbar';
+import Footer from '@/components/layout/footer';
 // FloatingOrderButton is temporarily disabled site-wide.
 // To re-enable, uncomment the import below and the <FloatingOrderButton /> JSX at the bottom of this file.
-// import FloatingOrderButton from '@/components/floating-order-button';
+// import FloatingOrderButton from '@/components/layout/floating-order-button';
 
 interface ConditionalLayoutProps {
   children: React.ReactNode;

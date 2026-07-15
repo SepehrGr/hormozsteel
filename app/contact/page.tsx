@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Clock, MapPin, Mail, Phone, Instagram } from 'lucide-react'
-import Map from '@/components/map'
+import Map from '@/components/content/map'
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
