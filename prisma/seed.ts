@@ -1,350 +1,607 @@
-import { PrismaClient } from '@prisma/client';
-import dotenv from 'dotenv';
-import bcrypt from 'bcryptjs';
+/**
+ * English portfolio seed for ahanhormoz_demo.
+ * Run: yarn db:seed  (requires DATABASE_URL → ahanhormoz_demo)
+ */
+import {
+  PrismaClient,
+  PriceDirection,
+  ProductUnit,
+  Role,
+} from '@prisma/client'
+import dotenv from 'dotenv'
+import bcrypt from 'bcryptjs'
 
-// Load environment variables from .env.local
-dotenv.config({ path: '.env.local' });
+dotenv.config({ path: '.env.local' })
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
+
+type Specs = Record<string, string | number>
+
+function slugify(parts: string[]) {
+  return parts
+    .join('-')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+function pickDirection(i: number): {
+  priceDirection: PriceDirection
+  previousPrice: number
+  priceDelta: number
+} {
+  const mod = i % 5
+  if (mod === 0) {
+    return {
+      priceDirection: PriceDirection.UP,
+      previousPrice: 0, // filled after base price known
+      priceDelta: 0,
+    }
+  }
+  if (mod === 1) {
+    return {
+      priceDirection: PriceDirection.DOWN,
+      previousPrice: 0,
+      priceDelta: 0,
+    }
+  }
+  return {
+    priceDirection: PriceDirection.STABLE,
+    previousPrice: 0,
+    priceDelta: 0,
+  }
+}
+
+function withPriceMotion(base: number, i: number) {
+  const motion = pickDirection(i)
+  if (motion.priceDirection === PriceDirection.UP) {
+    const prev = Math.round(base * 0.97)
+    return {
+      price: base,
+      previousPrice: prev,
+      priceDirection: PriceDirection.UP,
+      priceDelta: base - prev,
+      priceUpdatedAt: new Date(),
+    }
+  }
+  if (motion.priceDirection === PriceDirection.DOWN) {
+    const prev = Math.round(base * 1.03)
+    return {
+      price: base,
+      previousPrice: prev,
+      priceDirection: PriceDirection.DOWN,
+      priceDelta: prev - base,
+      priceUpdatedAt: new Date(),
+    }
+  }
+  return {
+    price: base,
+    previousPrice: base,
+    priceDirection: PriceDirection.STABLE,
+    priceDelta: 0,
+    priceUpdatedAt: new Date(),
+  }
+}
 
 async function main() {
-  console.log('🌱 Starting database seed...');
+  const dbUrl = process.env.DATABASE_URL ?? ''
+  if (!dbUrl.includes('ahanhormoz_demo')) {
+    throw new Error(
+      `Refusing to seed: DATABASE_URL must target ahanhormoz_demo (got: ${dbUrl.replace(/:[^:@/]+@/, ':***@')})`,
+    )
+  }
 
-  // Create admin users
-  console.log('Creating admin users...');
+  console.log('🌱 Seeding English demo database…')
 
-  const adminPassword = await bcrypt.hash('admin123', 12);
-  const superAdminPassword = await bcrypt.hash('superadmin123', 12);
+  // Wipe catalog tables for a clean re-seed (demo DB only)
+  await prisma.priceHistory.deleteMany()
+  await prisma.orderItem.deleteMany()
+  await prisma.order.deleteMany()
+  await prisma.quickOrder.deleteMany()
+  await prisma.contactForm.deleteMany()
+  await prisma.product.deleteMany()
+  await prisma.category.deleteMany()
+  await prisma.manufacturer.deleteMany()
+  await prisma.customer.deleteMany()
+  // Keep users if re-running? wipe demo users too for idempotency
+  await prisma.adminLog.deleteMany()
+  await prisma.session.deleteMany()
+  await prisma.account.deleteMany()
+  await prisma.user.deleteMany()
 
-  await prisma.user.upsert({
-    where: { email: 'admin@ahanhormoz.com' },
-    update: {},
-    create: {
-      email: 'admin@ahanhormoz.com',
-      password: adminPassword,
-      name: 'Admin User',
-      role: 'ADMIN',
+  const passwordHash = await bcrypt.hash('admin123', 12)
+
+  await prisma.user.create({
+    data: {
+      email: 'admin@hormozsteel.demo',
+      password: passwordHash,
+      name: 'Demo Admin',
+      role: Role.ADMIN,
     },
-  });
-
-  await prisma.user.upsert({
-    where: { email: 'superadmin@ahanhormoz.com' },
-    update: {},
-    create: {
-      email: 'superadmin@ahanhormoz.com',
-      password: superAdminPassword,
-      name: 'Super Admin',
-      role: 'SUPER_ADMIN',
+  })
+  await prisma.user.create({
+    data: {
+      email: 'superadmin@hormozsteel.demo',
+      password: await bcrypt.hash('superadmin123', 12),
+      name: 'Demo Super Admin',
+      role: Role.SUPER_ADMIN,
     },
-  });
+  })
+  console.log('✅ Users (admin@hormozsteel.demo / admin123)')
 
-  console.log('✅ Admin users created');
+  const manufacturers = await Promise.all(
+    [
+      {
+        name: 'Caspian Steel Mills',
+        slug: 'caspian-steel',
+        description: 'Structural steel and rebar producer',
+        website: 'https://example.com/caspian',
+      },
+      {
+        name: 'Hormoz Rolling Co.',
+        slug: 'hormoz-rolling',
+        description: 'Hot-rolled sheets and sections',
+        website: 'https://example.com/hormoz',
+      },
+      {
+        name: 'Alborz Metal Works',
+        slug: 'alborz-metal',
+        description: 'Pipes, tubes, and wire products',
+        website: 'https://example.com/alborz',
+      },
+      {
+        name: 'Persian Gulf Steel',
+        slug: 'persian-gulf-steel',
+        description: 'Heavy beams and industrial profiles',
+        website: 'https://example.com/pgs',
+      },
+      {
+        name: 'Zagros Alloy',
+        slug: 'zagros-alloy',
+        description: 'Stainless and coated products',
+        website: 'https://example.com/zagros',
+      },
+    ].map(m => prisma.manufacturer.create({ data: m })),
+  )
+  console.log(`✅ ${manufacturers.length} manufacturers`)
 
-  // Create categories - Complete categories from PRODUCT_CATEGORIES
-  const categories = [
+  // Icons = icomoon class names from styles/icomoon.css (never emoji)
+  const categoryDefs = [
     {
-      name: 'میلگرد',
+      name: 'Rebar',
       slug: 'rebar',
-      description: 'انواع میلگرد آجدار، ساده، کلاف و حرارتی',
-      icon: '🔩',
-      subcategories: [
-        'آجدار',
-        'ساده',
-        'کلاف',
-        'حرارتی',
-        'بستر',
-        'ترانس',
-        'استیل',
-      ],
+      description: 'Ribbed and plain reinforcing bar',
+      icon: 'icon-rebar',
+      sortOrder: 1,
+      subcategories: ['Ribbed', 'Plain', 'Coil', 'Stainless'],
     },
     {
-      name: 'پروفیل',
-      slug: 'profile',
-      description: 'انواع پروفیل ساختمانی، کنگره و صنعتی',
-      icon: '📐',
-      subcategories: [
-        'ساختمانی',
-        'کنگره',
-        'صنعتی',
-        'Z',
-        'گالوانیزه',
-        'سبک',
-        'استیل',
-        'آلومینیوم',
-        'UPE',
-        'IPE',
-        'HEA',
-        'HEB',
-      ],
-    },
-    {
-      name: 'ورق',
-      slug: 'sheet',
-      description: 'انواع ورق گرم، سرد، گالوانیزه و رنگی',
-      icon: '📋',
-      subcategories: [
-        'گرم',
-        'سیاه',
-        'سرد',
-        'گالوانیزه',
-        'رنگی',
-        'استیل',
-        'آلومینیوم',
-        'مس',
-      ],
-    },
-    {
-      name: 'نبشی و ناودانی',
-      slug: 'angle',
-      description: 'انواع نبشی و ناودانی فولادی',
-      icon: '📏',
-      subcategories: ['نبشی', 'ناودانی', 'سپری', 'گالوانیزه'],
-    },
-    {
-      name: 'تیرآهن',
+      name: 'Beams',
       slug: 'beam',
-      description: 'انواع تیرآهن سبک و سنگین',
-      icon: '🏗️',
-      subcategories: ['تیرآهن', 'هاش', 'لانه زنبوری', 'ریل', 'سنگین', 'سبک'],
+      description: 'I-beams, H-beams, and specialty sections',
+      icon: 'icon-girder',
+      sortOrder: 2,
+      subcategories: ['I-beam', 'H-beam', 'Castellated', 'Rail'],
     },
     {
-      name: 'لوله',
+      name: 'Sheets',
+      slug: 'sheet',
+      description: 'Hot-rolled, cold-rolled, and coated sheet',
+      icon: 'icon-sheet',
+      sortOrder: 3,
+      subcategories: ['Hot-rolled', 'Cold-rolled', 'Galvanized', 'Color-coated', 'Stainless'],
+    },
+    {
+      name: 'Profiles',
+      slug: 'profile',
+      description: 'Structural and industrial profiles',
+      icon: 'icon-profile',
+      sortOrder: 4,
+      subcategories: ['Structural', 'Industrial', 'IPE', 'HEA', 'HEB', 'UPE'],
+    },
+    {
+      name: 'Angles & channels',
+      slug: 'angle',
+      description: 'Angle bars, channels, and T-sections',
+      icon: 'icon-Corners',
+      sortOrder: 5,
+      subcategories: ['Angle', 'Channel', 'T-bar', 'Galvanized'],
+    },
+    {
+      name: 'Pipes',
       slug: 'pipe',
-      description: 'انواع لوله درزدار، بدون درز و گالوانیزه',
-      icon: '�',
-      subcategories: [
-        'درزدار',
-        'بدون درز',
-        'گالوانیزه',
-        'استیل',
-        'مس',
-        'آلومینیوم',
-        'پلی‌اتیلن',
-        'PVC',
-      ],
+      description: 'Seamed, seamless, and specialty pipe',
+      icon: 'icon-pipe',
+      sortOrder: 6,
+      subcategories: ['Seamed', 'Seamless', 'Galvanized', 'Stainless'],
     },
     {
-      name: 'سیم',
+      name: 'Wire',
       slug: 'wire',
-      description: 'انواع سیم سیاه، گالوانیزه و خاردار',
-      icon: '🧵',
-      subcategories: ['سیم سیاه', 'سیم گالوانیزه', 'سیم خاردار', 'کابل'],
+      description: 'Black, galvanized, and barbed wire',
+      icon: 'icon-Wire-products',
+      sortOrder: 7,
+      subcategories: ['Black', 'Galvanized', 'Barbed', 'Cable'],
     },
     {
-      name: 'توری',
+      name: 'Mesh',
       slug: 'mesh',
-      description: 'انواع توری حصاری، جوشی و پلاستیکی',
-      icon: '�️',
-      subcategories: [
-        'توری حصاری',
-        'توری جوشی',
-        'توری گالوانیزه',
-        'توری پلاستیکی',
-      ],
+      description: 'Fence and welded mesh',
+      icon: 'icon-grating',
+      sortOrder: 8,
+      subcategories: ['Fence', 'Welded', 'Galvanized'],
     },
     {
-      name: 'شمش',
+      name: 'Billets',
       slug: 'shamsh',
-      description: 'انواع شمش فولادی و آلیاژی',
-      icon: '🧱',
-      subcategories: ['فولاد', 'آلیاژی'],
+      description: 'Steel and alloy billets',
+      icon: 'icon-bullion',
+      sortOrder: 9,
+      subcategories: ['Carbon', 'Alloy'],
     },
     {
-      name: 'قوطی',
+      name: 'Tubes',
       slug: 'qooti',
-      description: 'انواع قوطی صنعتی و ستونی',
-      icon: '📦',
-      subcategories: ['صنعتی', 'ستونی'],
+      description: 'Square and rectangular hollow sections',
+      icon: 'icon-profil',
+      sortOrder: 10,
+      subcategories: ['Industrial', 'Column'],
     },
-    {
-      name: 'محصولات مفتولی',
-      slug: 'maftoli',
-      description: 'انواع سیم مفتولی و توری حصاری',
-      icon: '🔗',
-      subcategories: [
-        'سیم مفتولی سیاه',
-        'سیم مفتولی گالوانیزه',
-        'توری حصاری',
-        'مش آجدار',
-      ],
-    },
-    {
-      name: 'مواد اولیه',
-      slug: 'raw-materials',
-      description: 'آهن اسفنجی و فروآلیاژ',
-      icon: '⚗️',
-      subcategories: ['آهن اسفنجی', 'فروآلیاژ'],
-    },
-  ];
+  ]
 
-  for (const category of categories) {
-    await prisma.productCategory.upsert({
-      where: { slug: category.slug },
-      update: {},
-      create: category,
-    });
+  const categories = []
+  for (const def of categoryDefs) {
+    categories.push(await prisma.category.create({ data: def }))
+  }
+  console.log(`✅ ${categories.length} categories`)
+
+  const bySlug = Object.fromEntries(categories.map(c => [c.slug, c]))
+  const m = (i: number) => manufacturers[i % manufacturers.length]
+
+  type ProductInput = {
+    name: string
+    slug: string
+    description: string
+    size: string
+    unit: ProductUnit
+    basePrice: number
+    weightKg?: number
+    inStock: boolean
+    subcategory: string
+    categorySlug: string
+    manufacturerIndex: number
+    specs: Specs
+    features: string[]
+    applications: string[]
   }
 
-  console.log('✅ Categories created');
+  const catalog: ProductInput[] = []
 
-  // Create manufacturers
-  const manufacturers = [
-    {
-      name: 'فولاد مبارکه اصفهان',
-      slug: 'foolad-mobarakeh',
-      description: 'بزرگترین تولیدکننده فولاد ایران',
-      website: 'https://msc.ir',
-      email: 'info@msc.ir',
-      phone: '031-52618000',
-      address: 'اصفهان، شهرک صنعتی',
-    },
-    {
-      name: 'ذوب آهن اصفهان',
-      slug: 'zob-ahan',
-      description: 'اولین تولیدکننده فولاد ایران',
-      website: 'https://www.isco.ir',
-      email: 'info@isco.ir',
-      phone: '031-52901000',
-      address: 'اصفهان، ذوب آهن',
-    },
-    {
-      name: 'فولاد خوزستان',
-      slug: 'foolad-khuzestan',
-      description: 'تولیدکننده شمش فولادی',
-      website: 'https://ksc.ir',
-      email: 'info@ksc.ir',
-      phone: '061-34440000',
-      address: 'اهواز، فولاد شهر',
-    },
-  ];
-
-  for (const manufacturer of manufacturers) {
-    await prisma.manufacturer.upsert({
-      where: { slug: manufacturer.slug },
-      update: {},
-      create: manufacturer,
-    });
+  // Rebar ladder
+  for (const [idx, dia] of [8, 10, 12, 14, 16, 18, 20, 22, 25, 28, 32].entries()) {
+    catalog.push({
+      name: `Ribbed rebar ${dia}mm`,
+      slug: slugify(['rebar', 'ribbed', `${dia}mm`]),
+      description: `Grade A3 ribbed rebar, ${dia}mm diameter, 12m stock length.`,
+      size: `${dia}mm`,
+      unit: ProductUnit.KG,
+      basePrice: 42000 + dia * 180,
+      weightKg: (dia * dia * 0.00617),
+      inStock: dia !== 28,
+      subcategory: 'Ribbed',
+      categorySlug: 'rebar',
+      manufacturerIndex: idx % 5,
+      specs: {
+        diameter: `${dia}mm`,
+        grade: 'A3',
+        length: '12m',
+        standard: 'ISIRI 3132',
+      },
+      features: ['High bond', 'Consistent rib pattern'],
+      applications: ['Reinforced concrete', 'Foundations', 'Slabs'],
+    })
   }
 
-  console.log('✅ Manufacturers created');
-
-  // Get created categories and manufacturers
-  const createdCategories = await prisma.productCategory.findMany();
-  const createdManufacturers = await prisma.manufacturer.findMany();
-
-  // Create sample products
-  const sampleProducts = [
-    {
-      name: 'میلگرد صاف 12 میلیمتر',
-      slug: 'milgerd-sade-12mm',
-      description: 'میلگرد صاف 12 میلیمتر مناسب برای ساختمان‌سازی',
-      categoryId: createdCategories.find((c: any) => c.slug === 'rebar')?.id!,
-      subcategory: 'ساده',
-      brand: 'فولاد مبارکه',
-      size: '12mm',
-      price: 45000,
-      unit: 'kg',
-      weight: 0.888,
+  // Plain rebar sample
+  for (const dia of [10, 12, 16]) {
+    catalog.push({
+      name: `Plain rebar ${dia}mm`,
+      slug: slugify(['rebar', 'plain', `${dia}mm`]),
+      description: `Plain round bar ${dia}mm for light fabrication.`,
+      size: `${dia}mm`,
+      unit: ProductUnit.KG,
+      basePrice: 40000 + dia * 150,
+      weightKg: dia * dia * 0.00617,
       inStock: true,
-      images: ['/images/products/milgerd-12mm.jpg'],
-      grade: 'A3',
-      diameter: '12mm',
-      length: '12m',
-      standard: 'ISIRI 6906',
-      specifications: {
-        'حد تسلیم': '300 مگاپاسکال',
-        'حد کشش': '500 مگاپاسکال',
-        'ازدیاد طول': '14%',
-      },
-      features: ['مقاومت بالا', 'قابلیت خمش خوب', 'سطح صاف'],
-      applications: ['ساختمان‌سازی', 'بتن آرمه', 'تقویت سازه'],
-    },
-    {
-      name: 'میلگرد آجدار 16 میلیمتر',
-      slug: 'milgerd-ajdar-16mm',
-      description: 'میلگرد آجدار 16 میلیمتر با چسبندگی بالا',
-      categoryId: createdCategories.find((c: any) => c.slug === 'rebar')?.id!,
-      subcategory: 'آجدار',
-      brand: 'ذوب آهن',
-      size: '16mm',
-      price: 47000,
-      unit: 'kg',
-      weight: 1.578,
-      inStock: true,
-      images: ['/images/products/milgerd-ajdar-16mm.jpg'],
-      grade: 'A3',
-      diameter: '16mm',
-      length: '12m',
-      standard: 'ISIRI 6906',
-      specifications: {
-        'حد تسلیم': '400 مگاپاسکال',
-        'حد کشش': '600 مگاپاسکال',
-        'ازدیاد طول': '12%',
-      },
-      features: ['سطح آجدار', 'چسبندگی عالی', 'مقاومت بالا'],
-      applications: ['بتن آرمه', 'سازه‌های مهم', 'پل‌سازی'],
-    },
-    {
-      name: 'تیرآهن IPE 120',
-      slug: 'tirahenn-ipe-120',
-      description: 'تیرآهن IPE 120 استاندارد اروپایی',
-      categoryId: createdCategories.find((c: any) => c.slug === 'beam')?.id!,
-      subcategory: 'تیرآهن',
-      brand: 'فولاد مبارکه',
-      size: 'IPE 120',
-      price: 52000,
-      unit: 'kg',
-      weight: 10.4,
-      inStock: true,
-      images: ['/images/products/ipe-120.jpg'],
-      height: '120mm',
-      length: '12m',
-      standard: 'EN 10025',
-      specifications: {
-        ارتفاع: '120 میلیمتر',
-        'عرض بال': '64 میلیمتر',
-        'ضخامت جان': '4.4 میلیمتر',
-        'ضخامت بال': '6.3 میلیمتر',
-      },
-      features: ['وزن کم', 'مقاومت بالا', 'نصب آسان'],
-      applications: ['سازه فلزی', 'سقف کاذب', 'اسکلت ساختمان'],
-    },
-  ];
-
-  for (const product of sampleProducts) {
-    await prisma.product.upsert({
-      where: { slug: product.slug },
-      update: {},
-      create: product,
-    });
+      subcategory: 'Plain',
+      categorySlug: 'rebar',
+      manufacturerIndex: 1,
+      specs: { diameter: `${dia}mm`, grade: 'A1', length: '12m' },
+      features: ['Smooth surface'],
+      applications: ['Ties', 'Light frames'],
+    })
   }
 
-  console.log('✅ Sample products created');
+  // Beams
+  for (const [idx, size] of ['IPE 80', 'IPE 100', 'IPE 120', 'IPE 140', 'IPE 160', 'IPE 180', 'IPE 200', 'HEA 100', 'HEA 140', 'HEB 120'].entries()) {
+    catalog.push({
+      name: `Beam ${size}`,
+      slug: slugify(['beam', size]),
+      description: `Structural beam ${size}, standard mill lengths.`,
+      size,
+      unit: ProductUnit.KG,
+      basePrice: 48000 + idx * 400,
+      weightKg: 6 + idx * 2.2,
+      inStock: true,
+      subcategory: size.startsWith('HE') ? 'H-beam' : 'I-beam',
+      categorySlug: 'beam',
+      manufacturerIndex: idx % 5,
+      specs: { section: size, standard: 'EN 10025', length: '12m' },
+      features: ['Predictable section modulus'],
+      applications: ['Steel frames', 'Mezzanines', 'Industrial halls'],
+    })
+  }
 
-  // Create a sample customer
-  const customer = await prisma.customer.upsert({
-    where: { phone: '09123456789' },
-    update: {},
-    create: {
-      name: 'احمد محمدی',
-      email: 'ahmad@example.com',
-      phone: '09123456789',
-      company: 'شرکت ساختمانی نمونه',
-      address: 'تهران، خیابان ولیعصر',
-      city: 'تهران',
+  // Sheets
+  const sheets = [
+    { sub: 'Hot-rolled', thick: ['2mm', '3mm', '4mm', '6mm', '8mm', '10mm'] },
+    { sub: 'Cold-rolled', thick: ['0.5mm', '0.8mm', '1mm', '1.5mm'] },
+    { sub: 'Galvanized', thick: ['0.5mm', '0.7mm', '1mm'] },
+    { sub: 'Stainless', thick: ['1mm', '2mm'] },
+  ]
+  let sheetI = 0
+  for (const group of sheets) {
+    for (const t of group.thick) {
+      catalog.push({
+        name: `${group.sub} sheet ${t}`,
+        slug: slugify(['sheet', group.sub, t]),
+        description: `${group.sub} steel sheet, thickness ${t}.`,
+        size: t,
+        unit: ProductUnit.KG,
+        basePrice: 45000 + sheetI * 350,
+        inStock: sheetI % 7 !== 0,
+        subcategory: group.sub,
+        categorySlug: 'sheet',
+        manufacturerIndex: sheetI % 5,
+        specs: {
+          thickness: t,
+          coating: group.sub === 'Galvanized' ? 'Z275' : 'None',
+          standard: 'EN 10025',
+        },
+        features: ['Mill edge available'],
+        applications: ['Fabrication', 'Cladding', 'Ducting'],
+      })
+      sheetI++
+    }
+  }
+
+  // Profiles
+  for (const [idx, p] of ['IPE 80', 'IPE 100', 'HEA 120', 'UPE 120', 'Structural 40x40', 'Industrial 60x40'].entries()) {
+    catalog.push({
+      name: `Profile ${p}`,
+      slug: slugify(['profile', p]),
+      description: `Steel profile ${p}.`,
+      size: p,
+      unit: ProductUnit.KG,
+      basePrice: 47000 + idx * 500,
+      inStock: true,
+      subcategory: p.includes('IPE') || p.includes('HE') || p.includes('UPE') ? p.split(' ')[0] : 'Structural',
+      categorySlug: 'profile',
+      manufacturerIndex: idx % 5,
+      specs: { section: p, length: '6m' },
+      features: ['Straightness controlled'],
+      applications: ['Frames', 'Supports'],
+    })
+  }
+
+  // Angles
+  for (const [idx, a] of ['30x30x3', '40x40x4', '50x50x5', '60x60x6', '80x80x8', 'Channel 80', 'Channel 100'].entries()) {
+    catalog.push({
+      name: a.startsWith('Channel') ? a : `Angle ${a}`,
+      slug: slugify(['angle', a]),
+      description: `Angle / channel section ${a}.`,
+      size: a,
+      unit: ProductUnit.KG,
+      basePrice: 46000 + idx * 300,
+      inStock: true,
+      subcategory: a.startsWith('Channel') ? 'Channel' : 'Angle',
+      categorySlug: 'angle',
+      manufacturerIndex: idx % 5,
+      specs: { section: a, length: '6m' },
+      features: ['Equal leg available'],
+      applications: ['Bracing', 'Frames', 'Racking'],
+    })
+  }
+
+  // Pipes
+  for (const [idx, d] of ['1/2"', '3/4"', '1"', '1.5"', '2"', '3"', '4"'].entries()) {
+    catalog.push({
+      name: `Seamed pipe ${d}`,
+      slug: slugify(['pipe', 'seamed', d]),
+      description: `ERW seamed pipe ${d}.`,
+      size: d,
+      unit: ProductUnit.METER,
+      basePrice: 120000 + idx * 8000,
+      inStock: true,
+      subcategory: 'Seamed',
+      categorySlug: 'pipe',
+      manufacturerIndex: idx % 5,
+      specs: { nominal: d, type: 'ERW', standard: 'ASTM A53' },
+      features: ['Pressure rated variants'],
+      applications: ['Scaffold', 'Water lines', 'Structures'],
+    })
+  }
+  for (const d of ['1"', '2"', '3"']) {
+    catalog.push({
+      name: `Seamless pipe ${d}`,
+      slug: slugify(['pipe', 'seamless', d]),
+      description: `Seamless pipe ${d} for higher duty.`,
+      size: d,
+      unit: ProductUnit.METER,
+      basePrice: 180000,
+      inStock: true,
+      subcategory: 'Seamless',
+      categorySlug: 'pipe',
+      manufacturerIndex: 2,
+      specs: { nominal: d, type: 'Seamless' },
+      features: ['No weld seam'],
+      applications: ['Process piping'],
+    })
+  }
+
+  // Wire
+  for (const [idx, g] of ['1.5mm', '2mm', '2.5mm', '3mm', '4mm'].entries()) {
+    catalog.push({
+      name: `Black wire ${g}`,
+      slug: slugify(['wire', 'black', g]),
+      description: `Annealed black wire ${g}.`,
+      size: g,
+      unit: ProductUnit.KG,
+      basePrice: 52000 + idx * 400,
+      inStock: true,
+      subcategory: 'Black',
+      categorySlug: 'wire',
+      manufacturerIndex: 2,
+      specs: { diameter: g, finish: 'Black annealed' },
+      features: ['Soft drawn'],
+      applications: ['Binding', 'Fencing'],
+    })
+  }
+
+  // Mesh
+  for (const [idx, mesh] of ['50x50', '100x100', '25x25'].entries()) {
+    catalog.push({
+      name: `Welded mesh ${mesh}`,
+      slug: slugify(['mesh', 'welded', mesh]),
+      description: `Welded wire mesh ${mesh} aperture.`,
+      size: mesh,
+      unit: ProductUnit.PIECE,
+      basePrice: 850000 + idx * 50000,
+      inStock: true,
+      subcategory: 'Welded',
+      categorySlug: 'mesh',
+      manufacturerIndex: 3,
+      specs: { aperture: mesh, panel: '2x3m' },
+      features: ['Factory welded'],
+      applications: ['Slabs', 'Security panels'],
+    })
+  }
+
+  // Billets
+  for (const [idx, s] of ['120x120', '130x130', '150x150'].entries()) {
+    catalog.push({
+      name: `Carbon billet ${s}`,
+      slug: slugify(['billet', 'carbon', s]),
+      description: `Carbon steel billet ${s}.`,
+      size: s,
+      unit: ProductUnit.TON,
+      basePrice: 38000000 + idx * 200000,
+      inStock: true,
+      subcategory: 'Carbon',
+      categorySlug: 'shamsh',
+      manufacturerIndex: 0,
+      specs: { section: s, grade: '3SP' },
+      features: ['Mill certified'],
+      applications: ['Rerolling'],
+    })
+  }
+
+  // Tubes
+  for (const [idx, t] of ['40x40x2', '50x50x2', '60x60x3', '80x40x2', '100x50x3'].entries()) {
+    catalog.push({
+      name: `SHS/RHS ${t}`,
+      slug: slugify(['tube', t]),
+      description: `Hollow section ${t}.`,
+      size: t,
+      unit: ProductUnit.KG,
+      basePrice: 49000 + idx * 450,
+      inStock: true,
+      subcategory: idx < 3 ? 'Industrial' : 'Column',
+      categorySlug: 'qooti',
+      manufacturerIndex: idx % 5,
+      specs: { section: t, length: '6m' },
+      features: ['Closed section'],
+      applications: ['Frames', 'Furniture', 'Structures'],
+    })
+  }
+
+  let created = 0
+  for (const [i, item] of catalog.entries()) {
+    const category = bySlug[item.categorySlug]
+    if (!category) continue
+    const priceFields = withPriceMotion(item.basePrice, i)
+    const manufacturer = m(item.manufacturerIndex)
+
+    const product = await prisma.product.create({
+      data: {
+        name: item.name,
+        slug: item.slug,
+        description: item.description,
+        size: item.size,
+        unit: item.unit,
+        ...priceFields,
+        weightKg: item.weightKg,
+        inStock: item.inStock,
+        images: [],
+        subcategory: item.subcategory,
+        specs: item.specs,
+        features: item.features,
+        applications: item.applications,
+        categoryId: category.id,
+        manufacturerId: manufacturer.id,
+      },
+    })
+
+    if (priceFields.priceDirection !== PriceDirection.STABLE && priceFields.previousPrice) {
+      await prisma.priceHistory.create({
+        data: {
+          productId: product.id,
+          oldPrice: priceFields.previousPrice,
+          newPrice: priceFields.price,
+          direction: priceFields.priceDirection,
+          delta: priceFields.priceDelta,
+          note: 'Seed demo movement',
+        },
+      })
+    }
+    created++
+  }
+
+  console.log(`✅ ${created} products`)
+
+  await prisma.customer.create({
+    data: {
+      name: 'Alex Mercer',
+      email: 'alex@example-build.com',
+      phone: '+15550100',
+      company: 'Example Build Co.',
+      address: '100 Market Street',
+      city: 'Berlin',
     },
-  });
+  })
 
-  console.log('✅ Sample customer created');
+  await prisma.quickOrder.create({
+    data: {
+      customerName: 'Alex Mercer',
+      companyName: 'Example Build Co.',
+      phoneNumber: '+15550100',
+      city: 'Berlin',
+      productSpecs: 'Ribbed rebar 16mm, 12m, ~20 tons',
+      quantity: '20 tons',
+      productName: 'Ribbed rebar 16mm',
+    },
+  })
 
-  console.log('🎉 Database seeded successfully!');
+  console.log('🎉 Seed complete.')
+  console.log('   Admin: admin@hormozsteel.demo / admin123')
+  console.log(`   Products: ${created}`)
 }
 
 main()
-  .catch((e) => {
-    console.error('❌ Error seeding database:', e);
-    process.exit(1);
+  .catch(e => {
+    console.error('❌ Seed failed:', e)
+    process.exit(1)
   })
   .finally(async () => {
-    await prisma.$disconnect();
-  });
+    await prisma.$disconnect()
+  })
