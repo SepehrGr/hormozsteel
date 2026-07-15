@@ -1,128 +1,83 @@
-import { prisma } from './prisma'
+import { PriceDirection } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
+
+function directionFromDelta(delta: number): PriceDirection {
+  if (delta > 0) return PriceDirection.UP
+  if (delta < 0) return PriceDirection.DOWN
+  return PriceDirection.STABLE
+}
 
 /**
- * تابع برای آپدیت قیمت محصول و ثبت تاریخچه تغییرات
- * از Transaction استفاده می‌کند تا عملیات atomic باشد
- * @param productId - شناسه محصول
- * @param newPrice - قیمت جدید
- * @param notes - یادداشت اختیاری
- * @returns نتیجه عملیات
+ * Update a product's price and append a price-history row.
  */
 export async function updateProductPrice(
   productId: string,
   newPrice: number,
-  notes?: string
-) {
+  note?: string,
+): Promise<{ success: true; data: unknown } | { success: false; error: string }> {
   try {
-    // استفاده از Transaction برای atomic operation
-    const result = await prisma.$transaction(async (tx) => {
-      // 1. دریافت اطلاعات فعلی محصول
-      const product = await tx.product.findUnique({
-        where: { id: productId },
-      })
-
+    const updated = await prisma.$transaction(async tx => {
+      const product = await tx.product.findUnique({ where: { id: productId } })
       if (!product) {
-        throw new Error('محصول یافت نشد')
+        throw new Error(`Product not found: ${productId}`)
       }
 
       const oldPrice = product.price
+      const delta = newPrice - oldPrice
+      const direction = directionFromDelta(delta)
 
-      // محاسبه تغییرات
-      const changeAmount = Math.abs(newPrice - oldPrice)
-      let changeType = 'ثابت'
+      const row = await tx.product.update({
+        where: { id: productId },
+        data: {
+          previousPrice: oldPrice,
+          price: newPrice,
+          priceDirection: direction,
+          priceDelta: Math.abs(delta),
+          priceUpdatedAt:
+            direction === PriceDirection.STABLE
+              ? product.priceUpdatedAt
+              : new Date(),
+        },
+      })
 
-      if (newPrice > oldPrice) {
-        changeType = 'افزایش'
-      } else if (newPrice < oldPrice) {
-        changeType = 'کاهش'
-      }
-
-      // 2. ثبت در تاریخچه تغییرات قیمت
       await tx.priceHistory.create({
         data: {
           productId,
           oldPrice,
           newPrice,
-          changeType,
-          changeAmount,
-          notes,
-          changedAt: new Date(),
+          direction,
+          delta: Math.abs(delta),
+          note,
         },
       })
 
-      // 3. آپدیت اطلاعات محصول
-      const updatedProduct = await tx.product.update({
-        where: { id: productId },
-        data: {
-          price: newPrice,
-          previousPrice: oldPrice,
-          changeType:
-            changeType === 'ثابت'
-              ? 'stable'
-              : changeType === 'افزایش'
-                ? 'increase'
-                : 'decrease',
-          changeAmount,
-          lastPriceChange:
-            changeType !== 'ثابت' ? new Date() : product.lastPriceChange,
-        },
-      })
-
-      return {
-        product: updatedProduct,
-        change: {
-          oldPrice,
-          newPrice,
-          changeType,
-          changeAmount,
-        },
-      }
+      return row
     })
 
-    return {
-      success: true,
-      ...result,
-    }
-  } catch (error) {
-    console.error('Error updating product price:', error)
+    return { success: true, data: updated }
+  } catch (e) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'خطا در بروزرسانی قیمت',
+      error: e instanceof Error ? e.message : 'Failed to update price',
     }
   }
 }
 
-/**
- * تابع برای آپدیت دسته‌ای قیمت محصولات
- * از Transaction استفاده می‌کند برای عملیات atomic
- * @param updates - آرایه‌ای از آپدیت‌ها شامل productId و newPrice
- * @returns نتیجه عملیات
- */
-export async function bulkUpdateProductPrices(
-  updates: Array<{ productId: string; newPrice: number; notes?: string }>
-) {
-  const results = {
-    success: 0,
-    failed: 0,
-    errors: [] as string[],
-  }
-
-  // Process each update sequentially (for better error handling)
-  // Alternative: use Promise.allSettled for parallel processing
-  for (const update of updates) {
-    const result = await updateProductPrice(
-      update.productId,
-      update.newPrice,
-      update.notes
-    )
-
-    if (result.success) {
-      results.success++
-    } else {
-      results.failed++
-      results.errors.push(`محصول ${update.productId}: ${result.error}`)
-    }
-  }
-
-  return results
+export async function getRecentPriceChanges(limit = 20) {
+  return prisma.priceHistory.findMany({
+    take: limit,
+    orderBy: { changedAt: 'desc' },
+    include: {
+      product: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          size: true,
+          price: true,
+          manufacturer: { select: { name: true } },
+        },
+      },
+    },
+  })
 }

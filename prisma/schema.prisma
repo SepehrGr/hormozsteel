@@ -1,5 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Hormoz Steel demo — clean catalog schema for portfolio use.
+// Domain: categories → products (+ manufacturer) → price history
+//          auth (NextAuth) · light CRM (contact / quick order)
 
 generator client {
   provider = "prisma-client-js"
@@ -8,93 +9,180 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  // directUrl برای migrations (اگر development و production URL متفاوت باشه)
-  // directUrl = env("DIRECT_URL")
 }
 
-model ProductCategory {
-  id            String    @id @default(cuid())
-  name          String    @unique
-  slug          String    @unique
-  icon          String?
-  description   String?
-  subcategories String[]
-  products      Product[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+// ─── Enums ───────────────────────────────────────────────────────────────────
 
-  @@map("product_categories")
+enum Role {
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum ProductUnit {
+  KG
+  TON
+  PIECE
+  METER
+}
+
+/// Latest price movement on a product (also used in price history rows).
+enum PriceDirection {
+  UP
+  DOWN
+  STABLE
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum ContactFormStatus {
+  NEW
+  READ
+  REPLIED
+}
+
+enum QuickOrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+enum DeliveryMethod {
+  PICKUP
+  DELIVERY
+}
+
+// ─── Catalog ─────────────────────────────────────────────────────────────────
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  /// Icomoon CSS class name, e.g. "icon-rebar" (see styles/icomoon.css). Not emoji.
+  icon        String?
+  sortOrder   Int       @default(0)
+  /// Free-form subcategory labels used in UI (English).
+  subcategories String[]
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model Manufacturer {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  slug        String  @unique
+  description String?
+  logo        String?
+  website     String?
+  email       String?
+  phone       String?
+  address     String?
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("manufacturers")
 }
 
 model Product {
-  id              String    @id @default(cuid())
-  name            String
-  slug            String    @unique
-  description     String?
-  brand           String
-  size            String
-  price           Float
-  previousPrice   Float? // قیمت قبلی برای محاسبه نوسانات
-  changeType      String?   @default("stable") // "increase", "decrease", "stable"
-  changeAmount    Float? // مقدار تغییر قیمت
-  lastPriceChange DateTime? // آخرین زمان تغییر قیمت
-  unit            String    @default("kg") // kg, ton, piece
-  weight          Float?    // Weight in kg/ton (stored as DOUBLE PRECISION in database)
-  inStock         Boolean   @default(true)
-  images          String[]
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
 
-  // Category relationship
-  categoryId  String
-  category    ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  subcategory String
+  /// Display size label, e.g. "16mm", "IPE 200".
+  size String
+  unit ProductUnit @default(KG)
 
-  // Technical specifications
-  thickness   String?
-  diameter    String?
-  grade       String?
-  coating     String?
-  standard    String?
-  length      String?
-  subtype     String?
-  weightType  String?
-  sheetType   String?
-  pipeType    String?
-  wireType    String?
-  height      String?
-  meshSize    String?
-  packageType String?
+  /// Unit price (demo uses Float for simple JSON serialization).
+  price         Float
+  previousPrice Float?
+  priceDirection PriceDirection @default(STABLE)
+  priceDelta    Float?
+  priceUpdatedAt DateTime?
 
-  // Additional metadata
-  specifications Json?
-  features       String[]
-  applications   String[]
+  weightKg Float?
+  inStock  Boolean  @default(true)
+  images   String[]
 
-  // Order relationships
-  orderItems OrderItem[]
+  /// Label within the parent category, e.g. "Ribbed", "Hot-rolled".
+  subcategory String?
 
-  // Price history relationship
+  /// Type-specific attributes: diameter, grade, coating, standard, etc.
+  specs        Json?
+  features     String[]
+  applications String[]
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  manufacturerId String?
+  manufacturer   Manufacturer? @relation(fields: [manufacturerId], references: [id], onDelete: SetNull)
+
   priceHistory PriceHistory[]
+  orderItems   OrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([categoryId])
+  @@index([manufacturerId])
   @@index([subcategory])
-  @@index([brand])
   @@index([inStock])
   @@index([price])
   @@map("products")
 }
 
+model PriceHistory {
+  id        String         @id @default(cuid())
+  productId String
+  product   Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  oldPrice  Float
+  newPrice  Float
+  direction PriceDirection
+  delta     Float
+  note      String?
+  changedAt DateTime       @default(now())
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([changedAt])
+  @@index([direction])
+  @@index([productId, changedAt(sort: Desc)])
+  @@map("price_history")
+}
+
+// ─── Orders (lightweight demo CRM) ───────────────────────────────────────────
+
 model Customer {
-  id        String   @id @default(cuid())
-  name      String
-  email     String?  @unique
-  phone     String   @unique
-  company   String?
-  address   String?
-  city      String?
-  orders    Order[]
+  id      String  @id @default(cuid())
+  name    String
+  email   String? @unique
+  phone   String  @unique
+  company String?
+  address String?
+  city    String?
+
+  orders Order[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -108,11 +196,9 @@ model Order {
   totalAmount Float
   notes       String?
 
-  // Customer relationship
   customerId String
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
-  // Order items
   items OrderItem[]
 
   createdAt DateTime @default(now())
@@ -125,13 +211,12 @@ model Order {
 }
 
 model OrderItem {
-  id         String  @id @default(cuid())
+  id         String @id @default(cuid())
   quantity   Float
   unitPrice  Float
   totalPrice Float
   notes      String?
 
-  // Relationships
   orderId String
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -146,78 +231,24 @@ model OrderItem {
   @@map("order_items")
 }
 
-model PriceHistory {
-  id           String   @id @default(cuid())
-  productId    String
-  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  oldPrice     Float
-  newPrice     Float
-  changeType   String // "افزایش" | "کاهش" | "ثابت"
-  changeAmount Float // مقدار تغییر
-  changedAt    DateTime @default(now())
-  notes        String?
-
-  createdAt DateTime @default(now())
-
-  @@index([productId])
-  @@index([changedAt])
-  @@index([changeType])
-  @@index([productId, changedAt(sort: Desc)]) // برای دریافت آخرین قیمت
-  @@map("price_history")
-}
-
-model Manufacturer {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String   @unique
-  description String?
-  logo        String?
-  website     String?
-  email       String?
-  phone       String?
-  address     String?
-  products    String[] // Product IDs that this manufacturer produces
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("manufacturers")
-}
-
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-}
-
-enum Role {
-  ADMIN
-  SUPER_ADMIN
-}
+// ─── Auth (NextAuth) ─────────────────────────────────────────────────────────
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  password  String
-  name      String
-  role      Role      @default(ADMIN)
-  isActive  Boolean   @default(true)
-  lastLogin DateTime?
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  role          Role      @default(ADMIN)
+  isActive      Boolean   @default(true)
+  lastLogin     DateTime?
+  emailVerified DateTime?
+  image         String?
 
-  // Account lockout fields
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
 
-  // NextAuth fields
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-
-  // Admin activity tracking
+  accounts  Account[]
+  sessions  Session[]
   adminLogs AdminLog[]
 
   createdAt DateTime @default(now())
@@ -269,10 +300,10 @@ model AdminLog {
   id           String  @id @default(cuid())
   userId       String
   user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  action       String // CREATE, UPDATE, DELETE, BULK_UPDATE, BULK_DELETE, LOGIN, LOGOUT
-  resourceType String // PRODUCT, CATEGORY, ORDER, USER, etc.
-  resourceId   String? // ID of the affected resource
-  details      Json? // Additional details about the action
+  action       String
+  resourceType String
+  resourceId   String?
+  details      Json?
   ipAddress    String?
   userAgent    String?
 
@@ -284,6 +315,8 @@ model AdminLog {
   @@index([createdAt])
   @@map("admin_logs")
 }
+
+// ─── Inbound leads ───────────────────────────────────────────────────────────
 
 model ContactForm {
   id        String            @id @default(cuid())
@@ -325,23 +358,4 @@ model QuickOrder {
   @@index([createdAt])
   @@index([phoneNumber])
   @@map("quick_orders")
-}
-
-enum ContactFormStatus {
-  NEW
-  READ
-  REPLIED
-}
-
-enum QuickOrderStatus {
-  PENDING
-  CONFIRMED
-  PROCESSING
-  COMPLETED
-  CANCELLED
-}
-
-enum DeliveryMethod {
-  PICKUP
-  DELIVERY
 }
