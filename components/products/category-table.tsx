@@ -65,7 +65,12 @@ export default function CategoryTable({
   const formatPrice =
     customFormatPrice ||
     ((price: number) => {
-      return new Intl.NumberFormat('fa-IR').format(price);
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(price);
     });
 
   return (

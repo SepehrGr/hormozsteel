@@ -25,7 +25,12 @@ export default function ProductCard({
   onCalculate,
 }: ProductCardProps) {
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US').format(price)
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(price)
   }
 
   const formatUpdateTime = (value?: string | null) => {
