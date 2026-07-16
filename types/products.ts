@@ -170,9 +170,44 @@ export const PRODUCT_CATEGORIES: Array<{
   },
 ]
 
+/** URL-safe slug for a subcategory label (e.g. "Hot-rolled" → "hot-rolled"). */
+export function subcategorySlug(label: string) {
+  return label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+export function productCategoryHref(categorySlug: string) {
+  return `/products/${categorySlug}`
+}
+
+export function productSubcategoryHref(
+  categorySlug: string,
+  subcategory: string,
+) {
+  return `/products/${categorySlug}/${subcategorySlug(subcategory)}`
+}
+
+/** Category index links for nav / sitemaps. */
 export const PRODUCT_ROUTES = PRODUCT_CATEGORIES.map(c => ({
-  href: `/products/${c.slug}`,
+  href: productCategoryHref(c.slug),
   label: c.name,
+}))
+
+/**
+ * Full product nav tree aligned with catalog routes:
+ * `/products/{slug}` and `/products/{slug}/{subcategory-slug}`.
+ */
+export const PRODUCT_NAV = PRODUCT_CATEGORIES.map(c => ({
+  name: c.slug,
+  label: c.name,
+  href: productCategoryHref(c.slug),
+  icon: c.icon ?? 'icon-rebar',
+  items: c.subcategories.map(sub => ({
+    label: sub,
+    href: productSubcategoryHref(c.slug, sub),
+  })),
 }))
 
 export const BRANDS = [
