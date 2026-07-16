@@ -1,37 +1,60 @@
 import Link from 'next/link'
 import { productCategoryHref } from '@/types/products'
 
+/**
+ * Category index cell — market-board style (not a marketing card).
+ * Uses semantic theme tokens so light/dark stay consistent.
+ */
 export default function HeroItem({
   label,
   icon,
   categoryId,
+  lineCount,
 }: {
   label: string
   icon: string
   categoryId: string
+  lineCount?: number
 }) {
+  const code = categoryId.toUpperCase()
+
   return (
     <Link
       href={productCategoryHref(categoryId)}
-      className='block transition-all duration-300 transform group hover:-translate-y-1'
+      className='group relative flex h-full min-h-[7.5rem] flex-col justify-between overflow-hidden bg-card px-4 py-4 text-left transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-[8.5rem] sm:px-5 sm:py-5'
     >
-      <div className="relative flex flex-col items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 hover:shadow-xl hover:shadow-blue-500/10 dark:hover:shadow-blue-400/5 group-hover:border-blue-300 dark:group-hover:border-blue-600 transition-all duration-500 h-[180px] w-[160px] sm:h-[220px] sm:w-[220px] overflow-hidden">
-        {/* Icon container with enhanced styling */}
-        <div className="relative flex items-center justify-center w-16 h-16 mb-4 transition-all duration-500 shadow-lg sm:w-24 sm:h-24 sm:mb-8 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-400 dark:to-blue-500 rounded-2xl group-hover:shadow-blue-500/50 dark:group-hover:shadow-blue-400/30 group-hover:scale-105 ">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
-          <i
-            className={`${icon} text-4xl sm:text-[3.5rem] text-white relative z-10 group-hover:scale-105 transition-transform duration-300`}
-          ></i>
-        </div>
+      {/* Soft watermark icon — functional identity, not a gradient badge */}
+      <i
+        className={`${icon} pointer-events-none absolute -right-1 bottom-1 text-[4.5rem] leading-none text-foreground/[0.04] transition-colors duration-200 ease-out group-hover:text-foreground/[0.07] dark:text-foreground/[0.06] dark:group-hover:text-foreground/[0.1]`}
+        aria-hidden
+      />
 
-        {/* Title with enhanced typography */}
-        <h3 className="relative text-sm font-bold leading-tight text-center transition-all duration-300 sm:text-base text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+      <div className='relative z-[1] flex items-start justify-between gap-2'>
+        <span className='font-mono text-[10px] font-medium tracking-[0.16em] text-muted-foreground transition-colors duration-200 ease-out group-hover:text-amber-800 dark:group-hover:text-amber-500'>
+          {code}
+        </span>
+        <span
+          className='mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-border transition-colors duration-200 ease-out group-hover:bg-amber-700 dark:group-hover:bg-amber-500'
+          aria-hidden
+        />
+      </div>
+
+      <div className='relative z-[1] mt-auto'>
+        <span className='block text-base font-semibold tracking-tight text-foreground sm:text-lg'>
           {label}
-        </h3>
-
-        {/* Subtle bottom accent */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 transition-transform duration-500 origin-left transform scale-x-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 group-hover:scale-x-100"></div>
+        </span>
+        <span className='mt-1 flex items-center gap-1.5 text-xs text-muted-foreground'>
+          <span className='tabular-nums'>
+            {lineCount != null ? `${lineCount} sub-lines` : 'Open board'}
+          </span>
+          <span
+            className='translate-x-0 opacity-0 transition-[opacity,transform] duration-200 ease-out group-hover:translate-x-0.5 group-hover:opacity-100'
+            aria-hidden
+          >
+            →
+          </span>
+        </span>
       </div>
     </Link>
-  );
+  )
 }
