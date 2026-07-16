@@ -170,6 +170,9 @@ export const PRODUCT_CATEGORIES: Array<{
   },
 ]
 
+/** Static catalog category entry (matches PRODUCT_CATEGORIES items). */
+export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number]
+
 /** URL-safe slug for a subcategory label (e.g. "Hot-rolled" → "hot-rolled"). */
 export function subcategorySlug(label: string) {
   return label
