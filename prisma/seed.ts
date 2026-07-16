@@ -25,58 +25,48 @@ function slugify(parts: string[]) {
     .replace(/(^-|-$)/g, '')
 }
 
-function pickDirection(i: number): {
-  priceDirection: PriceDirection
-  previousPrice: number
-  priceDelta: number
-} {
-  const mod = i % 5
-  if (mod === 0) {
-    return {
-      priceDirection: PriceDirection.UP,
-      previousPrice: 0, // filled after base price known
-      priceDelta: 0,
-    }
-  }
-  if (mod === 1) {
-    return {
-      priceDirection: PriceDirection.DOWN,
-      previousPrice: 0,
-      priceDelta: 0,
-    }
-  }
-  return {
-    priceDirection: PriceDirection.STABLE,
-    previousPrice: 0,
-    priceDelta: 0,
-  }
+/** Round to 2 decimal places (USD). */
+function usd(n: number) {
+  return Math.round(n * 100) / 100
 }
 
+function pickDirection(i: number): PriceDirection {
+  const mod = i % 5
+  if (mod === 0) return PriceDirection.UP
+  if (mod === 1) return PriceDirection.DOWN
+  return PriceDirection.STABLE
+}
+
+/**
+ * Apply a small demo price movement around a USD base price.
+ * Prices are unit prices in USD (per KG / TON / METER / PIECE as set on the product).
+ */
 function withPriceMotion(base: number, i: number) {
-  const motion = pickDirection(i)
-  if (motion.priceDirection === PriceDirection.UP) {
-    const prev = Math.round(base * 0.97)
+  const price = usd(base)
+  const direction = pickDirection(i)
+  if (direction === PriceDirection.UP) {
+    const prev = usd(price * 0.97)
     return {
-      price: base,
+      price,
       previousPrice: prev,
       priceDirection: PriceDirection.UP,
-      priceDelta: base - prev,
+      priceDelta: usd(price - prev),
       priceUpdatedAt: new Date(),
     }
   }
-  if (motion.priceDirection === PriceDirection.DOWN) {
-    const prev = Math.round(base * 1.03)
+  if (direction === PriceDirection.DOWN) {
+    const prev = usd(price * 1.03)
     return {
-      price: base,
+      price,
       previousPrice: prev,
       priceDirection: PriceDirection.DOWN,
-      priceDelta: prev - base,
+      priceDelta: usd(prev - price),
       priceUpdatedAt: new Date(),
     }
   }
   return {
-    price: base,
-    previousPrice: base,
+    price,
+    previousPrice: price,
     priceDirection: PriceDirection.STABLE,
     priceDelta: 0,
     priceUpdatedAt: new Date(),
@@ -277,7 +267,10 @@ async function main() {
 
   const catalog: ProductInput[] = []
 
-  // Rebar ladder
+  // Prices are USD unit prices (per KG / METER / PIECE / TON as set on each product).
+  // Rough industrial ballparks for a portfolio demo — not live market data.
+
+  // Rebar ladder (~$0.55–0.78 / kg)
   for (const [idx, dia] of [8, 10, 12, 14, 16, 18, 20, 22, 25, 28, 32].entries()) {
     catalog.push({
       name: `Ribbed rebar ${dia}mm`,
@@ -285,8 +278,8 @@ async function main() {
       description: `Grade A3 ribbed rebar, ${dia}mm diameter, 12m stock length.`,
       size: `${dia}mm`,
       unit: ProductUnit.KG,
-      basePrice: 42000 + dia * 180,
-      weightKg: (dia * dia * 0.00617),
+      basePrice: usd(0.52 + dia * 0.008),
+      weightKg: dia * dia * 0.00617,
       inStock: dia !== 28,
       subcategory: 'Ribbed',
       categorySlug: 'rebar',
@@ -302,7 +295,7 @@ async function main() {
     })
   }
 
-  // Plain rebar sample
+  // Plain rebar sample (~$0.50–0.60 / kg)
   for (const dia of [10, 12, 16]) {
     catalog.push({
       name: `Plain rebar ${dia}mm`,
@@ -310,7 +303,7 @@ async function main() {
       description: `Plain round bar ${dia}mm for light fabrication.`,
       size: `${dia}mm`,
       unit: ProductUnit.KG,
-      basePrice: 40000 + dia * 150,
+      basePrice: usd(0.48 + dia * 0.007),
       weightKg: dia * dia * 0.00617,
       inStock: true,
       subcategory: 'Plain',
@@ -322,7 +315,7 @@ async function main() {
     })
   }
 
-  // Beams
+  // Beams (~$0.72–0.90 / kg)
   for (const [idx, size] of ['IPE 80', 'IPE 100', 'IPE 120', 'IPE 140', 'IPE 160', 'IPE 180', 'IPE 200', 'HEA 100', 'HEA 140', 'HEB 120'].entries()) {
     catalog.push({
       name: `Beam ${size}`,
@@ -330,7 +323,7 @@ async function main() {
       description: `Structural beam ${size}, standard mill lengths.`,
       size,
       unit: ProductUnit.KG,
-      basePrice: 48000 + idx * 400,
+      basePrice: usd(0.72 + idx * 0.018),
       weightKg: 6 + idx * 2.2,
       inStock: true,
       subcategory: size.startsWith('HE') ? 'H-beam' : 'I-beam',
@@ -342,23 +335,23 @@ async function main() {
     })
   }
 
-  // Sheets
-  const sheets = [
-    { sub: 'Hot-rolled', thick: ['2mm', '3mm', '4mm', '6mm', '8mm', '10mm'] },
-    { sub: 'Cold-rolled', thick: ['0.5mm', '0.8mm', '1mm', '1.5mm'] },
-    { sub: 'Galvanized', thick: ['0.5mm', '0.7mm', '1mm'] },
-    { sub: 'Stainless', thick: ['1mm', '2mm'] },
+  // Sheets — base by finish (~$0.62–2.50 / kg)
+  const sheets: { sub: string; thick: string[]; base: number; step: number }[] = [
+    { sub: 'Hot-rolled', thick: ['2mm', '3mm', '4mm', '6mm', '8mm', '10mm'], base: 0.62, step: 0.02 },
+    { sub: 'Cold-rolled', thick: ['0.5mm', '0.8mm', '1mm', '1.5mm'], base: 0.78, step: 0.03 },
+    { sub: 'Galvanized', thick: ['0.5mm', '0.7mm', '1mm'], base: 0.88, step: 0.04 },
+    { sub: 'Stainless', thick: ['1mm', '2mm'], base: 2.35, step: 0.12 },
   ]
   let sheetI = 0
   for (const group of sheets) {
-    for (const t of group.thick) {
+    for (const [tIdx, t] of group.thick.entries()) {
       catalog.push({
         name: `${group.sub} sheet ${t}`,
         slug: slugify(['sheet', group.sub, t]),
         description: `${group.sub} steel sheet, thickness ${t}.`,
         size: t,
         unit: ProductUnit.KG,
-        basePrice: 45000 + sheetI * 350,
+        basePrice: usd(group.base + tIdx * group.step),
         inStock: sheetI % 7 !== 0,
         subcategory: group.sub,
         categorySlug: 'sheet',
@@ -375,7 +368,7 @@ async function main() {
     }
   }
 
-  // Profiles
+  // Profiles (~$0.70–0.85 / kg)
   for (const [idx, p] of ['IPE 80', 'IPE 100', 'HEA 120', 'UPE 120', 'Structural 40x40', 'Industrial 60x40'].entries()) {
     catalog.push({
       name: `Profile ${p}`,
@@ -383,7 +376,7 @@ async function main() {
       description: `Steel profile ${p}.`,
       size: p,
       unit: ProductUnit.KG,
-      basePrice: 47000 + idx * 500,
+      basePrice: usd(0.7 + idx * 0.025),
       inStock: true,
       subcategory: p.includes('IPE') || p.includes('HE') || p.includes('UPE') ? p.split(' ')[0] : 'Structural',
       categorySlug: 'profile',
@@ -394,7 +387,7 @@ async function main() {
     })
   }
 
-  // Angles
+  // Angles (~$0.66–0.82 / kg)
   for (const [idx, a] of ['30x30x3', '40x40x4', '50x50x5', '60x60x6', '80x80x8', 'Channel 80', 'Channel 100'].entries()) {
     catalog.push({
       name: a.startsWith('Channel') ? a : `Angle ${a}`,
@@ -402,7 +395,7 @@ async function main() {
       description: `Angle / channel section ${a}.`,
       size: a,
       unit: ProductUnit.KG,
-      basePrice: 46000 + idx * 300,
+      basePrice: usd(0.66 + idx * 0.022),
       inStock: true,
       subcategory: a.startsWith('Channel') ? 'Channel' : 'Angle',
       categorySlug: 'angle',
@@ -413,7 +406,7 @@ async function main() {
     })
   }
 
-  // Pipes
+  // Pipes (~$3.50–14 / m seamed; seamless higher)
   for (const [idx, d] of ['1/2"', '3/4"', '1"', '1.5"', '2"', '3"', '4"'].entries()) {
     catalog.push({
       name: `Seamed pipe ${d}`,
@@ -421,7 +414,7 @@ async function main() {
       description: `ERW seamed pipe ${d}.`,
       size: d,
       unit: ProductUnit.METER,
-      basePrice: 120000 + idx * 8000,
+      basePrice: usd(3.5 + idx * 1.6),
       inStock: true,
       subcategory: 'Seamed',
       categorySlug: 'pipe',
@@ -431,14 +424,14 @@ async function main() {
       applications: ['Scaffold', 'Water lines', 'Structures'],
     })
   }
-  for (const d of ['1"', '2"', '3"']) {
+  for (const [idx, d] of ['1"', '2"', '3"'].entries()) {
     catalog.push({
       name: `Seamless pipe ${d}`,
       slug: slugify(['pipe', 'seamless', d]),
       description: `Seamless pipe ${d} for higher duty.`,
       size: d,
       unit: ProductUnit.METER,
-      basePrice: 180000,
+      basePrice: usd(8.5 + idx * 4.5),
       inStock: true,
       subcategory: 'Seamless',
       categorySlug: 'pipe',
@@ -449,7 +442,7 @@ async function main() {
     })
   }
 
-  // Wire
+  // Wire (~$0.85–1.05 / kg)
   for (const [idx, g] of ['1.5mm', '2mm', '2.5mm', '3mm', '4mm'].entries()) {
     catalog.push({
       name: `Black wire ${g}`,
@@ -457,7 +450,7 @@ async function main() {
       description: `Annealed black wire ${g}.`,
       size: g,
       unit: ProductUnit.KG,
-      basePrice: 52000 + idx * 400,
+      basePrice: usd(0.85 + idx * 0.04),
       inStock: true,
       subcategory: 'Black',
       categorySlug: 'wire',
@@ -468,7 +461,7 @@ async function main() {
     })
   }
 
-  // Mesh
+  // Mesh panels (~$22–42 / piece)
   for (const [idx, mesh] of ['50x50', '100x100', '25x25'].entries()) {
     catalog.push({
       name: `Welded mesh ${mesh}`,
@@ -476,7 +469,7 @@ async function main() {
       description: `Welded wire mesh ${mesh} aperture.`,
       size: mesh,
       unit: ProductUnit.PIECE,
-      basePrice: 850000 + idx * 50000,
+      basePrice: usd(28 + idx * 7),
       inStock: true,
       subcategory: 'Welded',
       categorySlug: 'mesh',
@@ -487,7 +480,7 @@ async function main() {
     })
   }
 
-  // Billets
+  // Billets (~$510–560 / ton)
   for (const [idx, s] of ['120x120', '130x130', '150x150'].entries()) {
     catalog.push({
       name: `Carbon billet ${s}`,
@@ -495,7 +488,7 @@ async function main() {
       description: `Carbon steel billet ${s}.`,
       size: s,
       unit: ProductUnit.TON,
-      basePrice: 38000000 + idx * 200000,
+      basePrice: usd(510 + idx * 18),
       inStock: true,
       subcategory: 'Carbon',
       categorySlug: 'shamsh',
@@ -506,7 +499,7 @@ async function main() {
     })
   }
 
-  // Tubes
+  // Tubes (~$0.74–0.90 / kg)
   for (const [idx, t] of ['40x40x2', '50x50x2', '60x60x3', '80x40x2', '100x50x3'].entries()) {
     catalog.push({
       name: `SHS/RHS ${t}`,
@@ -514,7 +507,7 @@ async function main() {
       description: `Hollow section ${t}.`,
       size: t,
       unit: ProductUnit.KG,
-      basePrice: 49000 + idx * 450,
+      basePrice: usd(0.74 + idx * 0.03),
       inStock: true,
       subcategory: idx < 3 ? 'Industrial' : 'Column',
       categorySlug: 'qooti',
