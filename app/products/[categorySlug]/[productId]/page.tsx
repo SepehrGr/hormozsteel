@@ -1,20 +1,12 @@
 import { notFound } from 'next/navigation'
 import UnifiedProductPage from '@/components/products/unified-product-page'
-import { PRODUCT_CATEGORIES } from '@/types/products'
+import { PRODUCT_CATEGORIES, subcategorySlug } from '@/types/products'
 
 interface ProductPageProps {
   params: Promise<{
     categorySlug: string
     productId: string
   }>
-}
-
-/** URL-safe slug for a subcategory label (e.g. "Hot-rolled" → "hot-rolled"). */
-function subcategorySlug(label: string) {
-  return label
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
 }
 
 function findCategory(categorySlug: string) {
