@@ -1,218 +1,111 @@
-import { notFound } from 'next/navigation';
-import UnifiedProductPage from '@/components/products/unified-product-page';
-import { PRODUCT_ROUTES, PRODUCT_CATEGORIES } from '@/types/products';
+import { notFound } from 'next/navigation'
+import UnifiedProductPage from '@/components/products/unified-product-page'
+import { PRODUCT_CATEGORIES } from '@/types/products'
 
 interface ProductPageProps {
   params: Promise<{
-    categorySlug: string;
-    productId: string;
-  }>;
+    categorySlug: string
+    productId: string
+  }>
 }
 
-// Generate static params for all products within their categories
+/** URL-safe slug for a subcategory label (e.g. "Hot-rolled" → "hot-rolled"). */
+function subcategorySlug(label: string) {
+  return label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+function findCategory(categorySlug: string) {
+  return PRODUCT_CATEGORIES.find(
+    c => c.slug === categorySlug || c.id === categorySlug,
+  )
+}
+
+function findSubcategory(
+  category: (typeof PRODUCT_CATEGORIES)[number],
+  productId: string,
+) {
+  return category.subcategories.find(
+    sub => subcategorySlug(sub) === productId.toLowerCase(),
+  )
+}
+
+/**
+ * Pre-render category × subcategory pairs for the catalog.
+ * `productId` is the subcategory slug (e.g. /products/rebar/ribbed).
+ */
 export async function generateStaticParams() {
-  const params: { categorySlug: string; productId: string }[] = [];
-
-  // برای هر محصول در PRODUCT_ROUTES، یک param تولید کن
-  Object.entries(PRODUCT_ROUTES).forEach(([productId, productData]) => {
-    params.push({
-      categorySlug: productData.category,
-      productId: productId,
-    });
-  });
-
-  return params;
+  return PRODUCT_CATEGORIES.flatMap(category =>
+    category.subcategories.map(sub => ({
+      categorySlug: category.slug,
+      productId: subcategorySlug(sub),
+    })),
+  )
 }
 
-// Generate metadata for each product
+/** Allow DB product slugs or new subcategories at runtime without rebuild. */
+export const dynamicParams = true
+
 export async function generateMetadata({ params }: ProductPageProps) {
-  const { categorySlug, productId } = await params;
-
-  const productData = PRODUCT_ROUTES[productId as keyof typeof PRODUCT_ROUTES];
-
-  // Validate that product exists and belongs to the category
-  if (!productData || productData.category !== categorySlug) {
-    return {
-      title: 'محصول یافت نشد',
-    };
+  const { categorySlug, productId } = await params
+  const category = findCategory(categorySlug)
+  if (!category) {
+    return { title: 'Product not found' }
   }
 
+  const subcategory = findSubcategory(category, productId)
+  const title = subcategory
+    ? `${subcategory} ${category.name}`
+    : category.name
+
   return {
-    title: `${productData.name} | آهن هرمز`,
-    description: `اطلاعات کامل قیمت و مشخصات ${productData.name} در آهن هرمز`,
-    openGraph: {
-      title: `${productData.name} | آهن هرمز`,
-      description: `اطلاعات کامل قیمت و مشخصات ${productData.name} در آهن هرمز`,
-    },
-  };
+    title: `${title} | Hormoz Steel`,
+    description:
+      category.description ||
+      `Live catalog pricing for ${title}. Unit prices in USD.`,
+  }
 }
 
 export default async function DynamicProductPage({ params }: ProductPageProps) {
-  const { categorySlug, productId } = await params;
+  const { categorySlug, productId } = await params
 
-  const productData = PRODUCT_ROUTES[productId as keyof typeof PRODUCT_ROUTES];
-
-  // Validate that product exists and belongs to the correct category
-  if (!productData || productData.category !== categorySlug) {
-    notFound();
+  const category = findCategory(categorySlug)
+  if (!category) {
+    notFound()
   }
 
-  // Product-specific configurations
-  const getProductConfig = (productId: string) => {
-    const configs: Record<string, any> = {
-      'milgerd-sade': {
-        features: [
-          'سطح صاف و یکنواخت',
-          'مقاومت بالا در برابر کشش',
-          'قابلیت خمش و شکل‌دهی آسان',
-          'قیمت اقتصادی و مقرون به صرفه',
-          'تولید مطابق استانداردهای ملی',
-          'دسترسی آسان در بازار',
-          'کیفیت یکنواخت در تمام سایزها',
-          'مناسب برای پروژه‌های مختلف',
-        ],
-        applications: [
-          'آرماتوربندی دال‌های بتنی',
-          'ساخت ستون‌های بتن آرمه',
-          'تقویت دیوارهای بتنی',
-          'ساخت تیرهای بتن آرمه',
-          'پروژه‌های مسکونی و تجاری',
-          'زیرسازی راه‌ها و پل‌ها',
-          'سازه‌های صنعتی سبک',
-          'کاربردهای عمومی ساختمان',
-        ],
-        specifications: {
-          'استاندارد تولید': 'ISIRI 6906',
-          'حد تسلیم': '300-400 مگاپاسکال',
-          'حد کشش': '500-600 مگاپاسکال',
-          'سایزهای موجود': '8, 10, 12, 14, 16, 18, 20, 22, 25, 28, 32',
-          'طول استاندارد': '12 متر',
-          'نوع سطح': 'صاف',
-          'کاربرد اصلی': 'بتن آرمه',
-          'مقاومت در برابر زنگ': 'متوسط',
-        },
-      },
-      'milgerd-ajdar': {
-        features: [
-          'سطح آجدار برای چسبندگی بهتر',
-          'مقاومت کششی فوق‌العاده',
-          'باند قوی با بتن',
-          'تولید با کیفیت بالا',
-          'مطابق استانداردهای بین‌المللی',
-          'دوام بالا در محیط‌های مختلف',
-          'قابلیت جوشکاری مناسب',
-          'عملکرد عالی در سازه‌های مهم',
-        ],
-        applications: [
-          'سازه‌های بتن آرمه مهم',
-          'ساختمان‌های بلندمرتبه',
-          'پل‌ها و سازه‌های راهی',
-          'تونل‌ها و زیرگذرها',
-          'سدها و سازه‌های آبی',
-          'ساختمان‌های صنعتی سنگین',
-          'پایه‌های تجهیزات سنگین',
-          'مناطق زلزله‌خیز',
-        ],
-        specifications: {
-          'استاندارد تولید': 'ISIRI 6906',
-          'حد تسلیم': '400-500 مگاپاسکال',
-          'حد کشش': '600-700 مگاپاسکال',
-          'سایزهای موجود': '10, 12, 14, 16, 18, 20, 22, 25, 28, 32',
-          'طول استاندارد': '12 متر',
-          'نوع سطح': 'آجدار',
-          'کاربرد اصلی': 'بتن آرمه پیش‌تنیده',
-          'مقاومت در برابر زنگ': 'بالا',
-        },
-      },
-      'shamsh-folad': {
-        features: [
-          'کیفیت بالا و استاندارد',
-          'مناسب برای تولید انواع فولاد',
-          'قیمت مناسب و رقابتی',
-          'موجود در ابعاد مختلف',
-          'خلوص بالای مواد اولیه',
-          'قابلیت ذوب مجدد عالی',
-        ],
-        applications: [
-          'تولید ورق فولادی',
-          'ساخت قطعات خودرو',
-          'صنایع ساختمانی',
-          'تولید لوله و پروفیل',
-          'صنایع ماشین‌سازی',
-          'تولید ابزار فولادی',
-        ],
-        specifications: {
-          'درجه کیفیت': 'A36, A283',
-          'ابعاد استاندارد': '100x100mm تا 300x300mm',
-          'وزن واحد': '100-500 کیلوگرم',
-          پوشش: 'بدون پوشش',
-          'درصد کربن': '0.15-0.25%',
-          'درصد منگنز': '0.60-0.90%',
-        },
-      },
-      'qooti-sanate': {
-        features: [
-          'مقاومت بالا در برابر فشار',
-          'جوشکاری آسان',
-          'ابعاد دقیق و استاندارد',
-          'کیفیت مطابق استاندارد ملی',
-          'سطح یکنواخت',
-          'قابلیت شکل‌دهی مناسب',
-        ],
-        applications: [
-          'ساخت سازه های صنعتی',
-          'تیرهای ساختمانی',
-          'قاب بندی',
-          'ساخت دکل و برج',
-          'سازه‌های فلزی سبک',
-          'قفسه‌بندی صنعتی',
-        ],
-        specifications: {
-          جنس: 'فولاد St37',
-          ابعاد: '20x20mm تا 200x200mm',
-          ضخامت: '1.5mm تا 12mm',
-          'طول استاندارد': '6 و 12 متر',
-          'نوع ساخت': 'نورد سرد',
-          'کیفیت سطح': 'صاف',
-        },
-      },
-    };
+  const subcategory = findSubcategory(category, productId)
+  if (!subcategory) {
+    notFound()
+  }
 
-    return (
-      configs[productId] || {
-        features: [
-          'کیفیت مطابق استانداردهای ملی',
-          'قیمت رقابتی',
-          'دسترسی آسان',
-          'کاربرد در صنایع مختلف',
-        ],
-        applications: [
-          'صنعت ساختمان',
-          'صنایع فولادی',
-          'پروژه‌های عمرانی',
-          'کاربردهای صنعتی',
-        ],
-        specifications: {
-          کیفیت: 'استاندارد',
-          تولید: 'داخلی',
-          موجودی: 'در انبار',
-        },
-      }
-    );
-  };
-
-  const config = getProductConfig(productId);
+  const title = `${subcategory} ${category.name}`
 
   return (
     <UnifiedProductPage
-      category={productData.category}
-      subcategory={productData.subcategory}
-      title={productData.name}
-      description={`اطلاعات کامل قیمت و مشخصات ${productData.name}`}
-      features={config.features}
-      applications={config.applications}
-      specifications={config.specifications}
+      category={category.slug}
+      subcategory={subcategory}
+      title={title}
+      description={`${category.description} — ${subcategory} line items with unit pricing in USD.`}
+      features={[
+        'Catalog unit prices updated from the demo seed',
+        'Filter by size, brand, and stock on the pricing table',
+        'Weight calculators available for common mill products',
+      ]}
+      applications={[
+        'Procurement and bid estimates',
+        'Job-site material takeoff',
+        'Mill / merchant stock comparison',
+      ]}
+      specifications={{
+        Category: category.name,
+        Subcategory: subcategory,
+        Currency: 'USD',
+        Units: 'KG / TON / METER / PIECE (per product)',
+      }}
       productId={productId}
     />
-  );
+  )
 }
