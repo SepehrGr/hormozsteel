@@ -27,7 +27,7 @@ export async function GET() {
         ? await prisma.product.findMany({
             where: { id: { in: uniqueProductIds } },
             include: {
-              category: { select: { name: true, icon: true } },
+              category: { select: { name: true, icon: true, slug: true } },
               manufacturer: { select: { name: true } },
             },
           })
@@ -35,7 +35,7 @@ export async function GET() {
             take: 12,
             orderBy: { updatedAt: 'desc' },
             include: {
-              category: { select: { name: true, icon: true } },
+              category: { select: { name: true, icon: true, slug: true } },
               manufacturer: { select: { name: true } },
             },
           })
@@ -59,8 +59,9 @@ export async function GET() {
         name: product.name,
         brand: product.manufacturer?.name || '',
         category: product.category?.name || 'Other',
+        categorySlug: product.category?.slug || '',
         categoryIcon: resolveCategoryIcon(
-          product.category?.icon || product.category?.name,
+          product.category?.icon || product.category?.slug || product.category?.name,
         ),
         subcategory: product.subcategory || '',
         size: product.size || '',
