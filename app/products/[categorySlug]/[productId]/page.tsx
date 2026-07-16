@@ -25,8 +25,8 @@ function findSubcategory(
 }
 
 /**
- * Pre-render category × subcategory pairs for the catalog.
- * `productId` is the subcategory slug (e.g. /products/rebar/ribbed).
+ * Pre-render category × subcategory pairs.
+ * Route shape: /products/{categorySlug}/{subcategory-slug}
  */
 export async function generateStaticParams() {
   return PRODUCT_CATEGORIES.flatMap(category =>
@@ -37,14 +37,13 @@ export async function generateStaticParams() {
   )
 }
 
-/** Allow DB product slugs or new subcategories at runtime without rebuild. */
 export const dynamicParams = true
 
 export async function generateMetadata({ params }: ProductPageProps) {
   const { categorySlug, productId } = await params
   const category = findCategory(categorySlug)
   if (!category) {
-    return { title: 'Product not found' }
+    return { title: 'Product not found · Hormoz Steel' }
   }
 
   const subcategory = findSubcategory(category, productId)
@@ -53,10 +52,8 @@ export async function generateMetadata({ params }: ProductPageProps) {
     : category.name
 
   return {
-    title: `${title} | Hormoz Steel`,
-    description:
-      category.description ||
-      `Live catalog pricing for ${title}. Unit prices in USD.`,
+    title: `${title} prices · Hormoz Steel`,
+    description: `USD unit prices for ${title}. ${category.description}`,
   }
 }
 
@@ -64,14 +61,10 @@ export default async function DynamicProductPage({ params }: ProductPageProps) {
   const { categorySlug, productId } = await params
 
   const category = findCategory(categorySlug)
-  if (!category) {
-    notFound()
-  }
+  if (!category) notFound()
 
   const subcategory = findSubcategory(category, productId)
-  if (!subcategory) {
-    notFound()
-  }
+  if (!subcategory) notFound()
 
   const title = `${subcategory} ${category.name}`
 
@@ -80,11 +73,11 @@ export default async function DynamicProductPage({ params }: ProductPageProps) {
       category={category.slug}
       subcategory={subcategory}
       title={title}
-      description={`${category.description} — ${subcategory} line items with unit pricing in USD.`}
+      description={`${category.description} Filtered to the ${subcategory} line. Unit prices in USD.`}
       features={[
-        'Catalog unit prices updated from the demo seed',
-        'Filter by size, brand, and stock on the pricing table',
-        'Weight calculators available for common mill products',
+        'Unit prices from the demo catalog seed (not live market feeds)',
+        'Filter by mill brand, size, stock, and price range',
+        'Row actions for quote requests and weight estimation',
       ]}
       applications={[
         'Procurement and bid estimates',
@@ -95,7 +88,8 @@ export default async function DynamicProductPage({ params }: ProductPageProps) {
         Category: category.name,
         Subcategory: subcategory,
         Currency: 'USD',
-        Units: 'KG / TON / METER / PIECE (per product)',
+        'Quote basis': 'Ex-works style demo rates',
+        Units: 'Per product (kg / ton / meter / piece)',
       }}
       productId={productId}
     />
