@@ -387,9 +387,12 @@ export default function ProductSheetsPage({
 
   // فرمت کردن قیمت
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fa-IR').format(
-      Math.round(calculatePrice(price))
-    );
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(calculatePrice(price));
   };
 
   // پیدا کردن category object
