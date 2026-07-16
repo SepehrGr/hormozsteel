@@ -5,8 +5,8 @@ export type SiteConfig = typeof siteConfig
 export const siteConfig = {
   name: 'Hormoz Steel',
   description:
-    'Live steel and metal pricing catalog — rebar, beams, sheets, profiles, and more. Built as an English portfolio demo.',
-  tagline: 'Clear prices. Fast quotes. Industrial products.',
+    'Steel and metal unit pricing — rebar, beams, sheets, profiles, pipe, and billets. Catalog rates in USD for industrial procurement.',
+  tagline: 'Mill products. Clear unit prices. Ready to quote.',
   navItems: [
     {
       label: 'About',
