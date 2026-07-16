@@ -18,135 +18,22 @@ import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 
 import { siteConfig } from '@/config/site'
+import { PRODUCT_NAV } from '@/types/products'
 import { ThemeSwitch } from '@/components/layout/theme-switch'
 import { SearchIcon, Logo } from '@/components/icons'
 import { Divider } from '@heroui/divider'
 import NavbarPhone from './navbar-phone'
 import NavMenu from './nav-menu'
 
-// Mobile products menu — English demo labels
-const mobileProductsData = [
-  {
-    title: 'Rebar',
-    icon: 'icon-rebar',
-    items: [
-      { href: '/products/rebar/milgerd-ajdar', label: 'Ribbed rebar' },
-      { href: '/products/rebar/milgerd-sade', label: 'Plain rebar' },
-      { href: '/products/rebar/milgerd-kolaf', label: 'Coil rebar' },
-      { href: '/products/rebar/milgerd-harati', label: 'Thermal rebar' },
-      { href: '/products/rebar/milgerd-bastar', label: 'Bed rebar' },
-      { href: '/products/rebar/milgerd-trans', label: 'Trans rebar' },
-      { href: '/products/rebar/milgerd-steel', label: 'Stainless rebar' },
-      { href: '/products/rebar', label: 'View all' },
-    ],
-  },
-  {
-    title: 'Beams',
-    icon: 'icon-tirahan',
-    items: [
-      { href: '/products/beam/tirahan', label: 'I-beam' },
-      { href: '/products/beam/hash', label: 'H-beam' },
-      { href: '/products/beam/lane-zanbori', label: 'Castellated beam' },
-      { href: '/products/beam/rail', label: 'Rail' },
-      { href: '/products/beam/tirahan-sangin', label: 'Heavy beam' },
-      { href: '/products/beam/tirahan-sabk', label: 'Light beam' },
-      { href: '/products/beam', label: 'View all' },
-    ],
-  },
-  {
-    title: 'Billets',
-    icon: 'icon-bullion',
-    items: [
-      { href: '/products/shamsh/shamsh-folad', label: 'Steel billet' },
-      { href: '/products/shamsh/shamsh-aliaazhi', label: 'Alloy billet' },
-      { href: '/products/shamsh', label: 'View all' },
-    ],
-  },
-  {
-    title: 'Sheets',
-    icon: 'icon-varagh',
-    items: [
-      { href: '/products/sheet/varagh-siah', label: 'Black sheet (ST37)' },
-      { href: '/products/sheet/varagh-garm', label: 'Hot-rolled sheet' },
-      { href: '/products/sheet/varagh-sard', label: 'Cold-rolled sheet' },
-      { href: '/products/sheet/varagh-galvanize', label: 'Galvanized sheet' },
-      { href: '/products/sheet/varagh-rangi', label: 'Color-coated sheet' },
-      { href: '/products/sheet/varagh-steel', label: 'Stainless sheet' },
-      { href: '/products/sheet/varagh-aluminum', label: 'Aluminum sheet' },
-      { href: '/products/sheet/varagh-mes', label: 'Copper sheet' },
-      { href: '/products/sheet', label: 'View all' },
-    ],
-  },
-  {
-    title: 'Pipes',
-    icon: 'icon-lole',
-    items: [
-      { href: '/products/pipe/lole-darzdar', label: 'Seamed pipe' },
-      {
-        href: '/products/pipe/lole-bedone-darz',
-        label: 'Seamless pipe',
-      },
-      { href: '/products/pipe/lole-galvanize', label: 'Galvanized pipe' },
-      { href: '/products/pipe/lole-steel', label: 'Stainless pipe' },
-      { href: '/products/pipe/lole-mes', label: 'Copper pipe' },
-      { href: '/products/pipe/lole-aluminum', label: 'Aluminum pipe' },
-      { href: '/products/pipe', label: 'View all' },
-    ],
-  },
-  {
-    title: 'Tubes & profiles',
-    icon: 'icon-profil',
-    items: [
-      { href: '/products/profile/qooti-sanate', label: 'Industrial tube' },
-      { href: '/products/profile/qooti-sotoni', label: 'Column tube' },
-      { href: '/products/profile/profile-z', label: 'Z profile' },
-      { href: '/products/profile/profile-sakhtmani', label: 'Structural profile' },
-      { href: '/products/profile/profile-kongre', label: 'Corrugated profile' },
-      { href: '/products/profile/profile-ipe', label: 'IPE' },
-      { href: '/products/profile/profile-upe', label: 'UPE' },
-      { href: '/products/profile/profile-hea', label: 'HEA' },
-      { href: '/products/profile/profile-heb', label: 'HEB' },
-      { href: '/products/profile', label: 'View all' },
-    ],
-  },
-  {
-    title: 'Angles & channels',
-    icon: 'icon-nabshi',
-    items: [
-      { href: '/products/angle/nabshi', label: 'Angle bar' },
-      { href: '/products/angle/navodani', label: 'Channel' },
-      { href: '/products/angle/separi', label: 'T-bar' },
-      { href: '/products/angle/nabshi-galvanize', label: 'Galvanized angle' },
-      { href: '/products/angle', label: 'View all' },
-    ],
-  },
-  {
-    title: 'Wire products',
-    icon: 'icon-wire',
-    items: [
-      { href: '/products/maftoli/sim-maftooli-siah', label: 'Black wire' },
-      {
-        href: '/products/maftoli/sim-maftooli-galvanize',
-        label: 'Galvanized wire',
-      },
-      { href: '/products/maftoli/toori-hesari', label: 'Fence mesh' },
-      { href: '/products/maftoli/mesh-ajdar', label: 'Ribbed mesh' },
-      { href: '/products/maftoli', label: 'View all' },
-    ],
-  },
-  {
-    title: 'Raw materials',
-    icon: 'icon-stainless-steel',
-    items: [
-      {
-        href: '/products/raw-materials/ahan-esfonji',
-        label: 'Sponge iron',
-      },
-      { href: '/products/raw-materials/foro-aliazh', label: 'Ferroalloy' },
-      { href: '/products/raw-materials', label: 'View all' },
-    ],
-  },
-]
+/** Mobile products menu — same slugs as PRODUCT_NAV / catalog. */
+const mobileProductsData = PRODUCT_NAV.map(group => ({
+  title: group.label,
+  icon: group.icon,
+  items: [
+    ...group.items.map(item => ({ href: item.href, label: item.label })),
+    { href: group.href, label: 'View all' },
+  ],
+}))
 
 const weightData = [
   { href: '/weight/beam', label: 'Beam weight' },

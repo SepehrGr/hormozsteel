@@ -1,5 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { PRODUCT_ROUTES } from '@/types/products'
+
+const footerCategories = PRODUCT_ROUTES.slice(0, 6)
 
 export default function Footer() {
   return (
@@ -62,38 +65,16 @@ export default function Footer() {
               Categories
             </h3>
             <ul className='space-y-2'>
-              <li>
-                <Link
-                  href='/products/rebar'
-                  className='text-sm text-muted-foreground transition hover:text-foreground'
-                >
-                  Rebar
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/products/sheet'
-                  className='text-sm text-muted-foreground transition hover:text-foreground'
-                >
-                  Sheets
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/products/profile'
-                  className='text-sm text-muted-foreground transition hover:text-foreground'
-                >
-                  Profiles
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/products/beam'
-                  className='text-sm text-muted-foreground transition hover:text-foreground'
-                >
-                  Beams
-                </Link>
-              </li>
+              {footerCategories.map(cat => (
+                <li key={cat.href}>
+                  <Link
+                    href={cat.href}
+                    className='text-sm text-muted-foreground transition hover:text-foreground'
+                  >
+                    {cat.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

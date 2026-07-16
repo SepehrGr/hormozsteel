@@ -1,33 +1,19 @@
-import Link from 'next/link';
+import Link from 'next/link'
+import { productCategoryHref } from '@/types/products'
 
 export default function HeroItem({
   label,
   icon,
   categoryId,
 }: {
-  label: string;
-  icon: string;
-  categoryId: string;
+  label: string
+  icon: string
+  categoryId: string
 }) {
-  // Map category IDs to category pages
-  const getCategoryLink = (id: string) => {
-    const links: { [key: string]: string } = {
-      rebar: '/products/rebar',
-      profile: '/products/profile',
-      sheet: '/products/sheet',
-      angle: '/products/angle',
-      beam: '/products/beam',
-      pipe: '/products/pipe',
-      wire: '/products/wire',
-      mesh: '/products/mesh',
-    };
-    return links[id] || '/products';
-  };
-
   return (
     <Link
-      href={getCategoryLink(categoryId)}
-      className="block transition-all duration-300 transform group hover:-translate-y-1"
+      href={productCategoryHref(categoryId)}
+      className='block transition-all duration-300 transform group hover:-translate-y-1'
     >
       <div className="relative flex flex-col items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 hover:shadow-xl hover:shadow-blue-500/10 dark:hover:shadow-blue-400/5 group-hover:border-blue-300 dark:group-hover:border-blue-600 transition-all duration-500 h-[180px] w-[160px] sm:h-[220px] sm:w-[220px] overflow-hidden">
         {/* Icon container with enhanced styling */}
