@@ -1,10 +1,6 @@
 import Link from 'next/link'
 import { productCategoryHref } from '@/types/products'
 
-/**
- * Category index cell — market-board style (not a marketing card).
- * Uses semantic theme tokens so light/dark stay consistent.
- */
 export default function HeroItem({
   label,
   icon,
@@ -25,7 +21,7 @@ export default function HeroItem({
     >
       {/* Soft watermark icon — functional identity, not a gradient badge */}
       <i
-        className={`${icon} pointer-events-none absolute -right-1 bottom-1 text-[4.5rem] leading-none text-foreground/[0.04] transition-colors duration-200 ease-out group-hover:text-foreground/[0.07] dark:text-foreground/[0.06] dark:group-hover:text-foreground/[0.1]`}
+        className={`${icon} pointer-events-none absolute -right-1 bottom-1 text-[4.5rem] leading-none text-foreground/15 transition-colors duration-200 ease-out group-hover:text-foreground/15 dark:text-foreground/10 dark:group-hover:text-foreground/15`}
         aria-hidden
       />
 
