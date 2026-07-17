@@ -13,30 +13,27 @@ const officeHours = [
 const channels = [
   {
     label: 'Sales desk',
-    value: '+98 912 585 8047',
-    href: 'tel:+989125858047',
-    note: 'Primary',
+    value: '+98 910 123 4567',
+    href: 'tel:+989101234567',
+    note: 'Mrs. Hosseini',
   },
   {
     label: 'Sales desk',
-    value: '+98 917 028 2820',
-    href: 'tel:+989170282820',
-    note: 'Secondary',
+    value: '+98 912 111 0000',
+    href: 'tel:+989121110000',
+    note: 'Mr. Rahmani',
   },
   {
     label: 'Instagram',
     value: '@ahanhormoz',
     href: 'https://instagram.com/ahanhormoz',
-    note: 'Updates',
+    note: '',
   },
 ]
 
 const fieldClass =
   'w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground disabled:cursor-not-allowed disabled:opacity-50'
 
-/**
- * Contact — industrial board layout, theme tokens, English UX.
- */
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',
@@ -67,8 +64,7 @@ export default function ContactPage() {
         setSubmitStatus({
           type: 'success',
           message:
-            data.message ||
-            'Message received. Sales will follow up shortly.',
+            data.message || 'Message received. Sales will follow up shortly.',
         })
         setFormData({ name: '', phone: '', email: '', message: '' })
       } else {
@@ -95,9 +91,9 @@ export default function ContactPage() {
   }
 
   return (
-    <div className='w-full'>
+    <div className='w-full '>
       {/* Header strip */}
-      <header className='border-b border-border bg-background'>
+      <header className='bg-muted/40'>
         <div className='mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14'>
           <p className='mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
             Sales &amp; procurement
@@ -119,7 +115,7 @@ export default function ContactPage() {
                   Response
                 </dt>
                 <dd className='text-sm font-medium text-foreground'>
-                  Same business day
+                  Next business day
                 </dd>
               </div>
               <div className='border border-border bg-card px-3 py-2.5'>
@@ -135,10 +131,10 @@ export default function ContactPage() {
         </div>
       </header>
 
-      <div className='border-b border-border bg-muted/40'>
-        <div className='mx-auto grid max-w-7xl gap-px overflow-hidden border-x border-border bg-border lg:grid-cols-12'>
+      <div className='border border-border lg:my-20'>
+        <div className='mx-auto grid gap-px overflow-hidden border-x border-border lg:grid-cols-12'>
           {/* Desk info */}
-          <aside className='bg-card lg:col-span-5'>
+          <aside className='lg:col-span-5'>
             <div className='border-b border-border px-5 py-3 md:px-6'>
               <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
                 Desk details
@@ -175,23 +171,25 @@ export default function ContactPage() {
                       <a
                         href={ch.href}
                         className='group flex flex-col gap-0.5 transition-colors duration-200 ease-out hover:text-foreground'
-                        target={ch.href.startsWith('http') ? '_blank' : undefined}
+                        target={
+                          ch.href.startsWith('http') ? '_blank' : undefined
+                        }
                         rel={
                           ch.href.startsWith('http')
                             ? 'noopener noreferrer'
                             : undefined
                         }
                       >
-                        <span className='flex items-center justify-between gap-2'>
-                          <span className='text-xs text-muted-foreground'>
-                            {ch.label}
+                        <span className='text-xs text-muted-foreground'>
+                          {ch.label}
+                        </span>
+                        <span className='flex items-center justify-between'>
+                          <span className='text-sm font-medium text-foreground group-hover:underline group-hover:underline-offset-4'>
+                            {ch.value}
                           </span>
                           <span className='font-mono text-[10px] uppercase tracking-wide text-muted-foreground'>
                             {ch.note}
                           </span>
-                        </span>
-                        <span className='text-sm font-medium text-foreground group-hover:underline group-hover:underline-offset-4'>
-                          {ch.value}
                         </span>
                       </a>
                     </li>
@@ -216,7 +214,7 @@ export default function ContactPage() {
           </aside>
 
           {/* Form board */}
-          <div className='bg-card lg:col-span-7'>
+          <div className='lg:col-span-7 lg:border-l'>
             <div className='flex items-center justify-between border-b border-border px-5 py-3 md:px-6'>
               <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
                 Quote request
