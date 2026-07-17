@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 
 const steps = [
   {
@@ -24,7 +23,6 @@ export default function AboutSection() {
     <section className='w-full border-b border-border bg-muted/30'>
       <div className='mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-15'>
         <div className='grid gap-10 lg:grid-cols-12 lg:gap-12 lg:items-start'>
-          {/* Editorial column */}
           <div className='lg:col-span-5'>
             <p className='mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
               Why Hormoz Steel
@@ -43,7 +41,6 @@ export default function AboutSection() {
             </p>
           </div>
 
-          {/* Process board */}
           <div className='lg:col-span-7'>
             <div className='overflow-hidden border border-border bg-border shadow-sm dark:shadow-none'>
               <div className='flex items-center justify-between border-b border-border bg-card px-4 py-3'>
@@ -62,7 +59,7 @@ export default function AboutSection() {
                     <span className='font-mono text-sm font-semibold tabular-nums text-amber-800 dark:text-amber-500'>
                       {step.code}
                     </span>
-                    <div className='min-w-0'>
+                    <div className='min-w-0 max-w-[50ch]'>
                       <h4 className='text-sm font-semibold tracking-tight text-foreground sm:text-base'>
                         {step.title}
                       </h4>
