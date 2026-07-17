@@ -29,6 +29,8 @@ export interface ProductDTO {
     slug?: string
     icon?: string | null
   }
+  /** Denormalized from API (e.g. latest-prices) for board links. */
+  categorySlug?: string
   manufacturer?: {
     id: string
     name: string
