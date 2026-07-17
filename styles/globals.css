@@ -265,7 +265,9 @@
   }
   body {
     @apply bg-background font-sans text-foreground;
-    font-feature-settings: 'rlig' 1, 'calt' 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
   }
 }
 
@@ -345,4 +347,20 @@
     position: relative !important;
     margin-top: 1rem !important;
   }
+}
+
+/* Leaflet map: colorful Voyager basemap + Google-like dark (not greyscale) */
+.map-tiles-light {
+  filter: none;
+}
+
+.map-tiles-dark {
+  filter: invert(0.9) hue-rotate(0deg) brightness(0.95) contrast(1)
+    saturate(0.5);
+}
+
+.leaflet-marker-pane,
+.leaflet-popup-pane,
+.leaflet-control-container {
+  filter: none;
 }
