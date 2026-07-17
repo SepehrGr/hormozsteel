@@ -1,21 +1,17 @@
-import { Phone } from 'lucide-react'
 import Link from 'next/link'
 
 export default function NavbarPhone() {
   return (
-    <div className='group flex items-center gap-3'>
-      <div className='rounded-full border border-border bg-muted/50 p-2.5'>
-        <Phone size={18} className='text-muted-foreground' />
-      </div>
-      <div className='flex flex-col'>
-        <Link
-          href='/contact'
-          className='flex flex-col items-start transition-colors hover:text-primary'
-        >
-          <p className='text-xs font-medium text-muted-foreground'>Sales</p>
-          <p className='text-sm font-semibold text-foreground'>Contact us</p>
-        </Link>
-      </div>
-    </div>
+    <Link
+      href='/contact'
+      className='hidden items-center gap-3 border-l border-border pl-4 transition-colors duration-200 ease-out hover:text-foreground xl:flex'
+    >
+      <span className='flex flex-col items-start leading-tight'>
+        <span className='font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground'>
+          Sales
+        </span>
+        <span className='text-sm font-medium text-foreground'>Request a quote</span>
+      </span>
+    </Link>
   )
 }
