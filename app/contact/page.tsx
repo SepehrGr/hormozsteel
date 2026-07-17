@@ -1,9 +1,42 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, MapPin, Mail, Phone, Instagram } from 'lucide-react'
+import Link from 'next/link'
 import Map from '@/components/content/map'
 
+const officeHours = [
+  { day: 'Saturday – Wednesday', hours: '08:00 – 17:00' },
+  { day: 'Thursday', hours: '08:00 – 12:00' },
+  { day: 'Friday', hours: 'Closed' },
+]
+
+const channels = [
+  {
+    label: 'Sales desk',
+    value: '+98 912 585 8047',
+    href: 'tel:+989125858047',
+    note: 'Primary',
+  },
+  {
+    label: 'Sales desk',
+    value: '+98 917 028 2820',
+    href: 'tel:+989170282820',
+    note: 'Secondary',
+  },
+  {
+    label: 'Instagram',
+    value: '@ahanhormoz',
+    href: 'https://instagram.com/ahanhormoz',
+    note: 'Updates',
+  },
+]
+
+const fieldClass =
+  'w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground disabled:cursor-not-allowed disabled:opacity-50'
+
+/**
+ * Contact — industrial board layout, theme tokens, English UX.
+ */
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',
@@ -25,36 +58,29 @@ export default function ContactPage() {
     try {
       const response = await fetch('/api/contact', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       })
-
       const data = await response.json()
 
       if (data.success) {
         setSubmitStatus({
           type: 'success',
-          message: data.message,
+          message:
+            data.message ||
+            'Message received. Sales will follow up shortly.',
         })
-        // Reset form
-        setFormData({
-          name: '',
-          phone: '',
-          email: '',
-          message: '',
-        })
+        setFormData({ name: '', phone: '', email: '', message: '' })
       } else {
         setSubmitStatus({
           type: 'error',
-          message: data.error || 'خطا در ارسال پیام',
+          message: data.error || 'Could not send message. Try again.',
         })
       }
-    } catch (error) {
+    } catch {
       setSubmitStatus({
         type: 'error',
-        message: 'خطا در ارسال پیام. لطفاً دوباره تلاش کنید.',
+        message: 'Network error. Check your connection and try again.',
       })
     } finally {
       setIsSubmitting(false)
@@ -65,333 +91,268 @@ export default function ContactPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }))
+    setFormData(prev => ({ ...prev, [name]: value }))
   }
 
   return (
-    <main className='relative'>
-      {/* Hero Section */}
-      <div className='relative overflow-hidden text-white bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-600'>
-        <div className='absolute inset-0 bg-black/10'></div>
-        <div className='absolute top-0 right-0 translate-x-20 -translate-y-20 rounded-full w-96 h-96 bg-white/5'></div>
-        <div className='absolute bottom-0 left-0 w-64 h-64 -translate-x-20 translate-y-20 rounded-full bg-white/5'></div>
-
-        <div className='relative px-6 py-16 mx-auto max-w-7xl'>
-          <div className='text-center'>
-            <div className='inline-flex items-center justify-center w-20 h-20 mb-6 border-2 rounded-full shadow-2xl bg-white/20 backdrop-blur-md border-white/30'>
-              <Phone className='w-8 h-8 text-white drop-shadow-lg' />
+    <div className='w-full'>
+      {/* Header strip */}
+      <header className='border-b border-border bg-background'>
+        <div className='mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14'>
+          <p className='mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+            Sales &amp; procurement
+          </p>
+          <div className='grid gap-8 lg:grid-cols-12 lg:items-end'>
+            <div className='lg:col-span-7'>
+              <h1 className='max-w-xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl'>
+                Request a quote or speak with sales
+              </h1>
+              <p className='mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base'>
+                Share tonnage, grade, and delivery window. We reply with firm
+                pricing against the catalog board — rebar, sheet, sections,
+                pipe, and billets.
+              </p>
             </div>
-            <h1 className='mb-6 text-5xl font-bold text-white drop-shadow-2xl'>
-              تماس با آهن هرمز
-            </h1>
-            <p className='max-w-3xl mx-auto text-xl font-medium leading-relaxed text-white/95 drop-shadow-lg'>
-              همکاران ما در بخش پشتیبانی آماده پاسخگویی به شما هستند
-            </p>
-            <div className='flex items-center justify-center gap-6 mt-8 text-sm'>
-              <div className='flex items-center gap-2 px-3 py-2 border rounded-full bg-white/10 backdrop-blur-sm border-white/20'>
-                <Clock className='w-4 h-4 text-white drop-shadow-md' />
-                <span className='font-medium text-white drop-shadow-sm'>
-                  پاسخگویی ۲۴ ساعته
-                </span>
+            <dl className='grid grid-cols-2 gap-3 lg:col-span-5 lg:border-l lg:border-border lg:pl-8'>
+              <div className='border border-border bg-card px-3 py-2.5'>
+                <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
+                  Response
+                </dt>
+                <dd className='text-sm font-medium text-foreground'>
+                  Same business day
+                </dd>
               </div>
-              <div className='flex items-center gap-2 px-3 py-2 border rounded-full bg-white/10 backdrop-blur-sm border-white/20'>
-                <Phone className='w-4 h-4 text-white drop-shadow-md' />
-                <span className='font-medium text-white drop-shadow-sm'>
-                  مشاوره رایگان
-                </span>
+              <div className='border border-border bg-card px-3 py-2.5'>
+                <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
+                  Quote basis
+                </dt>
+                <dd className='text-sm font-medium text-foreground'>
+                  USD · ex-works
+                </dd>
               </div>
-              <div className='flex items-center gap-2 px-3 py-2 border rounded-full bg-white/10 backdrop-blur-sm border-white/20'>
-                <MapPin className='w-4 h-4 text-white drop-shadow-md' />
-                <span className='font-medium text-white drop-shadow-sm'>
-                  بندرعباس
-                </span>
-              </div>
-            </div>
+            </dl>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Contact Info & Form Section */}
-      <div className='container px-6 py-16 mx-auto'>
-        <div className='relative z-20 grid grid-cols-1 gap-12 -mt-24 lg:grid-cols-2'>
-          {/* Contact Info Cards */}
-          <div className='space-y-6'>
-            {/* Hours Card */}
-            <div className='relative p-8 overflow-hidden border shadow-2xl bg-white/80 dark:bg-slate-900/80 border-gray-200/60 dark:border-gray-700/50 rounded-3xl backdrop-blur-md'>
-              <div className='relative flex items-start gap-4'>
-                <div className='flex items-center justify-center w-16 h-16 mt-5 transition-all duration-300 bg-white border-2 border-gray-300 rounded-full shadow-lg dark:bg-slate-900 group shrink-0'>
-                  <Clock className='w-8 h-8 text-black transition-colors duration-300 dark:text-white' />
-                </div>
-                <div>
-                  <h3 className='mb-3 mr-4 text-xl font-bold text-blue-900 dark:text-blue-100'>
-                    ساعات کاری
-                  </h3>
-                  <div className='space-y-2 font-bold text-gray-900 dark:text-gray-100'>
-                    <p className='flex items-center gap-2'>
-                      <span className='w-2 h-2 text-gray-900 dark:text-gray-100'></span>
-                      شنبه تا چهارشنبه: ۸:۰۰ الی ۱۷:۰۰
-                    </p>
-                    <p className='flex items-center gap-2'>
-                      <span className='w-2 h-2 text-gray-900 dark:text-gray-100'></span>
-                      پنجشنبه: ۸:۰۰ الی ۱۲:۰۰
-                    </p>
-                  </div>
-                </div>
-              </div>
+      <div className='border-b border-border bg-muted/40'>
+        <div className='mx-auto grid max-w-7xl gap-px overflow-hidden border-x border-border bg-border lg:grid-cols-12'>
+          {/* Desk info */}
+          <aside className='bg-card lg:col-span-5'>
+            <div className='border-b border-border px-5 py-3 md:px-6'>
+              <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                Desk details
+              </h2>
             </div>
 
-            {/* Contact Cards */}
-            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-              {/* Phone Card */}
-              <div className='relative p-8 overflow-hidden border shadow-2xl bg-white/80 dark:bg-slate-900/80 border-gray-200/60 dark:border-gray-700/50 rounded-3xl backdrop-blur-md'>
-                <div className='relative flex items-center h-full gap-8'>
-                  <div className='flex items-center justify-center w-16 h-16 transition-all duration-300 bg-white border-2 border-gray-300 rounded-full shadow-lg dark:bg-slate-900 hover:border-blue-400 hover:shadow-2xl group shrink-0'>
-                    <Phone className='w-8 h-8 text-black transition-colors duration-300 dark:text-white group-hover:text-blue-500' />
-                  </div>
-                  <div className='w-full'>
-                    <h3 className='mb-2 text-xl font-bold text-gray-900 dark:text-gray-100'>
-                      تلفن تماس
-                    </h3>
-                    <p className='font-medium text-gray-700 dark:text-gray-200'>
-                      09125858047 <br /> 09170282820
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Email Card */}
-              <div className='relative p-8 overflow-hidden border shadow-2xl bg-white/80 dark:bg-slate-900/80 border-gray-200/60 dark:border-gray-700/50 rounded-3xl backdrop-blur-md'>
-                <div className='relative flex items-center h-full gap-8'>
-                  <div className='flex items-center justify-center w-16 h-16 transition-all duration-300 bg-white border-2 border-gray-300 rounded-full shadow-lg dark:bg-slate-900 hover:border-blue-400 hover:shadow-2xl group shrink-0'>
-                    <Instagram className='w-8 h-8 text-black transition-colors duration-300 dark:text-white group-hover:text-blue-500' />
-                  </div>
-                  <div>
-                    <h3 className='mb-2 text-xl font-bold text-gray-900 dark:text-gray-100'>
-                      اینستاگرام
-                    </h3>
-                    <p className='font-medium text-gray-700 dark:text-gray-200'>
-                      ahanhromoz@
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Map Card */}
-            <div className='relative p-8 overflow-hidden border shadow-2xl bg-white/80 dark:bg-slate-900/80 border-gray-200/60 dark:border-gray-700/50 rounded-3xl backdrop-blur-md'>
-              <div className='relative flex items-start gap-4 mb-6'>
-                <div className='flex items-center justify-center w-16 h-16 transition-all duration-300 bg-white border-2 border-gray-300 rounded-full shadow-lg dark:bg-slate-900 hover:border-blue-400 hover:shadow-2xl group shrink-0'>
-                  <MapPin className='w-8 h-8 text-black transition-colors duration-300 dark:text-white group-hover:text-blue-500' />
-                </div>
-                <div>
-                  <h3 className='mb-2 text-xl font-bold text-gray-900 dark:text-gray-100'>
-                    آدرس ما
-                  </h3>
-                  <p className='font-medium text-gray-700 dark:text-gray-200'>
-                    بندرعباس، شهرک اندیشه، پشت کتابخانه ایت الله خامنه ای، بالای
-                    دفتر پیشخوان، شرکت بازرگانی و ساختمانی بتن پیام هرمز
-                  </p>
-                </div>
-              </div>
-              <div className='relative'>
-                <Map />
-              </div>
-            </div>
-          </div>
-
-          {/* Contact Form */}
-          <div className='relative p-8 overflow-hidden border shadow-2xl bg-white/80 dark:bg-slate-900/80 border-gray-200/60 dark:border-gray-700/50 rounded-3xl backdrop-blur-md'>
-            <div className='relative mb-6 text-center'>
-              <div className='inline-flex items-center gap-3 px-4 py-2 mb-4 border rounded-full bg-white/60 dark:bg-slate-800/60 border-gray-200/50 dark:border-gray-700/50'>
-                <Mail className='w-5 h-5 text-cyan-600 dark:text-cyan-400' />
-                <span className='text-sm font-medium text-cyan-800 dark:text-cyan-200'>
-                  فرم تماس
-                </span>
-              </div>
-            </div>
-
-            <form className='space-y-6' onSubmit={handleSubmit}>
-              <div>
-                <label
-                  htmlFor='name'
-                  className='block mb-2 text-sm font-medium text-slate-600 dark:text-slate-400'
-                >
-                  نام و نام خانوادگی *
-                </label>
-                <input
-                  type='text'
-                  id='name'
-                  name='name'
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                  disabled={isSubmitting}
-                  className='w-full px-4 py-2 border rounded-lg border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed'
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor='phone'
-                  className='block mb-2 text-sm font-medium text-slate-600 dark:text-slate-400'
-                >
-                  شماره تماس *
-                </label>
-                <input
-                  type='tel'
-                  id='phone'
-                  name='phone'
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  required
-                  disabled={isSubmitting}
-                  className='w-full px-4 py-2 border rounded-lg border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed'
-                  dir='ltr'
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor='email'
-                  className='block mb-2 text-sm font-medium text-slate-600 dark:text-slate-400'
-                >
-                  ایمیل (اختیاری)
-                </label>
-                <input
-                  type='email'
-                  id='email'
-                  name='email'
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  disabled={isSubmitting}
-                  className='w-full px-4 py-2 border rounded-lg border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed'
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor='message'
-                  className='block mb-2 text-sm font-medium text-slate-600 dark:text-slate-400'
-                >
-                  پیام شما *
-                </label>
-                <textarea
-                  id='message'
-                  name='message'
-                  rows={16}
-                  value={formData.message}
-                  onChange={handleInputChange}
-                  required
-                  disabled={isSubmitting}
-                  className='w-full px-4 py-2 border rounded-lg border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed'
-                ></textarea>
-              </div>
-              <button
-                type='submit'
-                disabled={isSubmitting}
-                className='flex items-center justify-center w-full gap-2 px-6 py-3 font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
-              >
-                {isSubmitting ? (
-                  <>
-                    <svg
-                      className='w-5 h-5 animate-spin'
-                      xmlns='http://www.w3.org/2000/svg'
-                      fill='none'
-                      viewBox='0 0 24 24'
+            <div className='divide-y divide-border'>
+              <section className='px-5 py-5 md:px-6'>
+                <h3 className='text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                  Hours (local)
+                </h3>
+                <ul className='mt-3 space-y-2'>
+                  {officeHours.map(row => (
+                    <li
+                      key={row.day}
+                      className='flex items-baseline justify-between gap-4 text-sm'
                     >
-                      <circle
-                        className='opacity-25'
-                        cx='12'
-                        cy='12'
-                        r='10'
-                        stroke='currentColor'
-                        strokeWidth='4'
-                      ></circle>
-                      <path
-                        className='opacity-75'
-                        fill='currentColor'
-                        d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-                      ></path>
-                    </svg>
-                    در حال ارسال...
-                  </>
-                ) : (
-                  'ارسال پیام'
-                )}
-              </button>
+                      <span className='text-muted-foreground'>{row.day}</span>
+                      <span className='font-mono tabular-nums text-foreground'>
+                        {row.hours}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
 
-              {/* Success/Error Messages - Below Form */}
-              {submitStatus.type && (
-                <div
-                  className={`p-5 rounded-xl border-2 ${
-                    submitStatus.type === 'success'
-                      ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-300 dark:border-green-700'
-                      : 'bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border-red-300 dark:border-red-700'
-                  } transition-all duration-300 animate-in fade-in slide-in-from-bottom-4`}
-                >
-                  <div className='flex items-start gap-3'>
-                    {submitStatus.type === 'success' ? (
-                      <div className='flex items-center justify-center w-8 h-8 bg-green-500 rounded-full dark:bg-green-600 shrink-0'>
-                        <svg
-                          className='w-5 h-5 text-white'
-                          fill='none'
-                          stroke='currentColor'
-                          viewBox='0 0 24 24'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M5 13l4 4L19 7'
-                          />
-                        </svg>
-                      </div>
-                    ) : (
-                      <div className='flex items-center justify-center w-8 h-8 bg-red-500 rounded-full dark:bg-red-600 shrink-0'>
-                        <svg
-                          className='w-5 h-5 text-white'
-                          fill='none'
-                          stroke='currentColor'
-                          viewBox='0 0 24 24'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M6 18L18 6M6 6l12 12'
-                          />
-                        </svg>
-                      </div>
-                    )}
-                    <div className='flex-1'>
-                      <p
-                        className={`font-semibold mb-1 ${
-                          submitStatus.type === 'success'
-                            ? 'text-green-800 dark:text-green-200'
-                            : 'text-red-800 dark:text-red-200'
-                        }`}
+              <section className='px-5 py-5 md:px-6'>
+                <h3 className='text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                  Channels
+                </h3>
+                <ul className='mt-3 space-y-3'>
+                  {channels.map(ch => (
+                    <li key={ch.value + ch.note}>
+                      <a
+                        href={ch.href}
+                        className='group flex flex-col gap-0.5 transition-colors duration-200 ease-out hover:text-foreground'
+                        target={ch.href.startsWith('http') ? '_blank' : undefined}
+                        rel={
+                          ch.href.startsWith('http')
+                            ? 'noopener noreferrer'
+                            : undefined
+                        }
                       >
-                        {submitStatus.type === 'success'
-                          ? 'موفقیت‌آمیز!'
-                          : 'خطا!'}
-                      </p>
-                      <p
-                        className={`text-sm ${
-                          submitStatus.type === 'success'
-                            ? 'text-green-700 dark:text-green-300'
-                            : 'text-red-700 dark:text-red-300'
-                        }`}
-                      >
-                        {submitStatus.message}
-                      </p>
-                    </div>
-                  </div>
+                        <span className='flex items-center justify-between gap-2'>
+                          <span className='text-xs text-muted-foreground'>
+                            {ch.label}
+                          </span>
+                          <span className='font-mono text-[10px] uppercase tracking-wide text-muted-foreground'>
+                            {ch.note}
+                          </span>
+                        </span>
+                        <span className='text-sm font-medium text-foreground group-hover:underline group-hover:underline-offset-4'>
+                          {ch.value}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              <section className='px-5 py-5 md:px-6'>
+                <h3 className='text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                  Address
+                </h3>
+                <p className='mt-3 text-sm leading-relaxed text-foreground'>
+                  Bandar Abbas, Andisheh Township — behind Ayatollah Khamenei
+                  Library, above the public services office. Beton Payam Hormoz
+                  Trading &amp; Construction Co.
+                </p>
+                <div className='mt-4 border border-border'>
+                  <Map />
                 </div>
-              )}
+              </section>
+            </div>
+          </aside>
+
+          {/* Form board */}
+          <div className='bg-card lg:col-span-7'>
+            <div className='flex items-center justify-between border-b border-border px-5 py-3 md:px-6'>
+              <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                Quote request
+              </h2>
+              <span className='text-xs text-muted-foreground'>
+                * Required fields
+              </span>
+            </div>
+
+            <form
+              onSubmit={handleSubmit}
+              className='space-y-5 px-5 py-6 md:px-6 md:py-8'
+            >
+              <div className='grid gap-5 sm:grid-cols-2'>
+                <div className='sm:col-span-2'>
+                  <label
+                    htmlFor='name'
+                    className='mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
+                  >
+                    Full name *
+                  </label>
+                  <input
+                    type='text'
+                    id='name'
+                    name='name'
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    disabled={isSubmitting}
+                    autoComplete='name'
+                    className={fieldClass}
+                    placeholder='Name for the quote file'
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor='phone'
+                    className='mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
+                  >
+                    Phone *
+                  </label>
+                  <input
+                    type='tel'
+                    id='phone'
+                    name='phone'
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    required
+                    disabled={isSubmitting}
+                    autoComplete='tel'
+                    dir='ltr'
+                    className={fieldClass}
+                    placeholder='+98 …'
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor='email'
+                    className='mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
+                  >
+                    Email
+                  </label>
+                  <input
+                    type='email'
+                    id='email'
+                    name='email'
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    disabled={isSubmitting}
+                    autoComplete='email'
+                    dir='ltr'
+                    className={fieldClass}
+                    placeholder='optional'
+                  />
+                </div>
+                <div className='sm:col-span-2'>
+                  <label
+                    htmlFor='message'
+                    className='mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
+                  >
+                    Specs &amp; volume *
+                  </label>
+                  <textarea
+                    id='message'
+                    name='message'
+                    rows={8}
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    required
+                    disabled={isSubmitting}
+                    className={`${fieldClass} min-h-[10rem] resize-y`}
+                    placeholder='Product, size/grade, tonnage, delivery city, timing…'
+                  />
+                </div>
+              </div>
+
+              <div className='flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between'>
+                <p className='text-xs text-muted-foreground'>
+                  Prefer the catalog first?{' '}
+                  <Link
+                    href='/products'
+                    className='font-medium text-foreground underline-offset-4 hover:underline'
+                  >
+                    Browse unit prices
+                  </Link>
+                </p>
+                <button
+                  type='submit'
+                  disabled={isSubmitting}
+                  className='inline-flex items-center justify-center bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'
+                >
+                  {isSubmitting ? 'Sending…' : 'Send request'}
+                </button>
+              </div>
+
+              {submitStatus.type ? (
+                <div
+                  role='status'
+                  className={`border px-4 py-3 text-sm ${
+                    submitStatus.type === 'success'
+                      ? 'border-emerald-600/40 bg-emerald-50 text-emerald-900 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-100'
+                      : 'border-red-600/40 bg-red-50 text-red-900 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-100'
+                  }`}
+                >
+                  <p className='font-medium'>
+                    {submitStatus.type === 'success'
+                      ? 'Request received'
+                      : 'Could not send'}
+                  </p>
+                  <p className='mt-1 opacity-90'>{submitStatus.message}</p>
+                </div>
+              ) : null}
             </form>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 }
