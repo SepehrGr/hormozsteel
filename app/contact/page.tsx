@@ -6,7 +6,7 @@ import Map from '@/components/content/map'
 
 const officeHours = [
   { day: 'Saturday – Wednesday', hours: '08:00 – 17:00' },
-  { day: 'Thursday', hours: '08:00 – 12:00' },
+  { day: 'Thursday', hours: '08:00 – 12:30' },
   { day: 'Friday', hours: 'Closed' },
 ]
 
