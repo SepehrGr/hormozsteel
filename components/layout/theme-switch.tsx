@@ -59,9 +59,8 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({
               'flex h-8 w-8 items-center justify-center',
               'border border-border bg-card',
               'rounded-none',
-              'text-muted-foreground',
               'group-data-[selected=true]:bg-card',
-              'hover:bg-muted hover:text-foreground',
+              'hover:!bg-muted',
               'transition-colors duration-200 ease-out',
             ],
             classNames?.wrapper,
@@ -69,9 +68,9 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({
         })}
       >
         {!isSelected || isSSR ? (
-          <SunFilledIcon size={16} />
+          <SunFilledIcon size={16} className='text-foreground' />
         ) : (
-          <MoonFilledIcon size={16} />
+          <MoonFilledIcon size={16} className='text-foreground' />
         )}
       </div>
     </Component>
