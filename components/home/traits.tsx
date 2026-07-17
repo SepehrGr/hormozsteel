@@ -1,9 +1,6 @@
 import TraitItem from './trait-item'
 import { traitItems } from '@/config/trait-items'
 
-/**
- * Commitments strip — same board chrome as product index / about.
- */
 export default function Traits() {
   return (
     <section className='w-full bg-background'>
@@ -21,9 +18,6 @@ export default function Traits() {
               estimates and shipments stay aligned with the job.
             </p>
           </div>
-          <p className='shrink-0 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground'>
-            {traitItems.length} commitments
-          </p>
         </div>
 
         <div className='overflow-hidden border border-border bg-border shadow-sm dark:shadow-none'>
