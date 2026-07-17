@@ -93,8 +93,8 @@ export default function ContactPage() {
   return (
     <div className='w-full '>
       {/* Header strip */}
-      <header className='bg-muted/40'>
-        <div className='mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14'>
+      <header className='border-b border-border'>
+        <div className='mx-auto max-w-7xl px-4 py-10 md:px-0 md:py-14'>
           <p className='mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
             Sales &amp; procurement
           </p>
@@ -131,8 +131,8 @@ export default function ContactPage() {
         </div>
       </header>
 
-      <div className='border border-border lg:my-20'>
-        <div className='mx-auto grid gap-px overflow-hidden border-x border-border lg:grid-cols-12'>
+      <div className=' lg:my-20'>
+        <div className='mx-auto grid gap-px max-w-7xl overflow-hidden border border-border lg:grid-cols-12'>
           {/* Desk info */}
           <aside className='lg:col-span-5'>
             <div className='border-b border-border px-5 py-3 md:px-6'>
