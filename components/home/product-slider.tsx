@@ -2,15 +2,15 @@
 
 import { useRef, useEffect, useState } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { Navigation, Pagination, Autoplay } from 'swiper/modules'
+import { Navigation } from 'swiper/modules'
 import type { Swiper as SwiperType } from 'swiper'
 import 'swiper/css'
 import 'swiper/css/navigation'
-import 'swiper/css/pagination'
 
 import ProductCard from '@/components/products/product-card'
 import { SAMPLE_PRODUCTS, Product } from '@/types/products'
 import { ChevronRight, ChevronLeft, Loader2 } from 'lucide-react'
+import Link from 'next/link'
 
 interface ProductSliderProps {
   products?: Product[]
@@ -22,9 +22,7 @@ interface ProductSliderProps {
 
 export default function ProductSlider({
   products: initialProducts,
-  onOrder = () => {},
-  onCalculate = () => {},
-  title = 'محصولات پیشنهادی',
+  title = 'Latest prices',
   fetchFromApi = false,
 }: ProductSliderProps) {
   const swiperRef = useRef<SwiperType | null>(null)
@@ -35,146 +33,120 @@ export default function ProductSlider({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (fetchFromApi) {
-      const fetchLatestPrices = async () => {
-        try {
-          setLoading(true)
-          const response = await fetch('/api/latest-prices')
-          const data = await response.json()
+    if (!fetchFromApi) return
 
-          if (data.success && data.products) {
-            setProducts(data.products)
-          } else {
-            setError('Failed to load prices')
-            setProducts([])
-          }
-        } catch (err) {
-          console.error('Error fetching latest prices:', err)
+    const fetchLatestPrices = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await fetch('/api/latest-prices')
+        const data = await response.json()
+
+        if (data.success && data.products) {
+          setProducts(data.products)
+        } else {
           setError('Failed to load prices')
           setProducts([])
-        } finally {
-          setLoading(false)
         }
+      } catch {
+        setError('Failed to load prices')
+        setProducts([])
+      } finally {
+        setLoading(false)
       }
-
-      fetchLatestPrices()
     }
+
+    fetchLatestPrices()
   }, [fetchFromApi])
 
   useEffect(() => {
-    const handleResize = () => {
-      if (swiperRef.current) {
-        swiperRef.current.update()
-      }
-    }
-
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    const onResize = () => swiperRef.current?.update()
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
   }, [])
 
   return (
-    <div className='w-full'>
-      <div className='flex items-center justify-between mb-6'>
-        <h2 className='text-xl font-bold text-slate-800 dark:text-slate-200'>
-          {title}
-        </h2>
-        <div className='hidden gap-2 md:flex'>
-          <button
-            type='button'
-            aria-label='Previous categories'
-            className='swiper-button-prev-custom flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:bg-muted'
-          >
-            <ChevronLeft className='h-4 w-4' />
-          </button>
-          <button
-            type='button'
-            aria-label='Next categories'
-            className='swiper-button-next-custom flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:bg-muted'
-          >
-            <ChevronRight className='h-4 w-4' />
-          </button>
+    <div className='w-full border-b border-border bg-background'>
+      <div className='mx-auto max-w-7xl px-4 py-5 md:px-6 md:py-15'>
+        <div className='mb-3 flex items-center justify-between gap-3'>
+          <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground'>
+            {title}
+          </h2>
+          <div className='flex shrink-0 items-center gap-2'>
+            <div className='flex items-center border border-border bg-card'>
+              <button
+                type='button'
+                aria-label='Previous prices'
+                className='prices-nav-prev flex h-8 w-8 items-center justify-center text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+              >
+                <ChevronLeft className='h-4 w-4' />
+              </button>
+              <span className='h-4 w-px bg-border' aria-hidden />
+              <button
+                type='button'
+                aria-label='Next prices'
+                className='prices-nav-next flex h-8 w-8 items-center justify-center text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+              >
+                <ChevronRight className='h-4 w-4' />
+              </button>
+            </div>
+          </div>
         </div>
+
+        {loading ? (
+          <div className='flex items-center justify-center border border-border bg-card py-16'>
+            <div className='flex items-center gap-3 text-sm text-muted-foreground'>
+              <Loader2 className='h-4 w-4 animate-spin' />
+              Loading latest unit prices…
+            </div>
+          </div>
+        ) : error ? (
+          <div className='border border-border bg-card px-4 py-12 text-center text-sm text-red-700 dark:text-red-400'>
+            {error}
+          </div>
+        ) : products.length === 0 ? (
+          <div className='border border-border bg-card px-4 py-12 text-center text-sm text-muted-foreground'>
+            No recent price moves yet.
+          </div>
+        ) : (
+          <div className='overflow-hidden border border-border bg-border shadow-sm dark:shadow-none'>
+            {/* Mobile: stacked 1-col board cells */}
+            <div className='grid grid-cols-1 gap-px sm:grid-cols-2 md:hidden'>
+              {products.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            <div className='hidden md:block'>
+              <Swiper
+                modules={[Navigation]}
+                spaceBetween={1}
+                slidesPerView={3}
+                loop={products.length > 4}
+                onSwiper={s => {
+                  swiperRef.current = s
+                }}
+                navigation={{
+                  nextEl: '.prices-nav-next',
+                  prevEl: '.prices-nav-prev',
+                }}
+                breakpoints={{
+                  768: { slidesPerView: 3, spaceBetween: 1 },
+                  1024: { slidesPerView: 4, spaceBetween: 1 },
+                  1280: { slidesPerView: 5, spaceBetween: 1 },
+                }}
+                className='prices-board-swiper !bg-border'
+              >
+                {products.map(product => (
+                  <SwiperSlide key={product.id} className='!h-auto bg-card'>
+                    <ProductCard product={product} />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+          </div>
+        )}
       </div>
-
-      {loading ? (
-        <div className='flex items-center justify-center py-20'>
-          <div className='flex flex-col items-center gap-3'>
-            <Loader2 className='w-8 h-8 animate-spin text-primary' />
-            <p className='text-sm text-slate-500 dark:text-slate-400'>
-              در حال دریافت آخرین قیمت‌ها...
-            </p>
-          </div>
-        </div>
-      ) : error ? (
-        <div className='flex items-center justify-center py-20'>
-          <p className='text-sm text-red-500'>{error}</p>
-        </div>
-      ) : (
-        <div className='relative'>
-          <Swiper
-            modules={[Navigation, Pagination, Autoplay]}
-            spaceBetween={16}
-            slidesPerView={1}
-            loop={true}
-            onSwiper={swiper => {
-              swiperRef.current = swiper
-            }}
-            navigation={{
-              nextEl: '.swiper-button-next-products',
-              prevEl: '.swiper-button-prev-products',
-            }}
-            pagination={{
-              clickable: true,
-              el: '.swiper-pagination-products',
-            }}
-            autoplay={{
-              delay: 3500,
-              disableOnInteraction: false,
-            }}
-            breakpoints={{
-              640: {
-                slidesPerView: 2,
-                spaceBetween: 20,
-              },
-
-              1280: {
-                slidesPerView: 4,
-                spaceBetween: 24,
-              },
-              1536: {
-                slidesPerView: 5,
-                spaceBetween: 24,
-              },
-            }}
-            className='products-swiper'
-          >
-            {products.map(product => (
-              <SwiperSlide key={product.id} className='h-auto'>
-                <div className='h-full py-6'>
-                  <ProductCard
-                    product={product}
-                    onOrder={onOrder}
-                    onCalculate={onCalculate}
-                  />
-                </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-
-          {/* Custom Pagination for mobile */}
-          <div className='text-center swiper-pagination-products md:hidden'></div>
-
-          {/* Mobile navigation */}
-          <div className='flex items-center justify-center gap-3 mt-2 md:hidden'>
-            <button className='p-2 transition-colors border rounded-md cursor-pointer swiper-button-next-products border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'>
-              <ChevronLeft className='w-4 h-4' />
-            </button>
-            <button className='p-2 transition-colors border rounded-md cursor-pointer swiper-button-prev-products border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'>
-              <ChevronRight className='w-4 h-4' />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
