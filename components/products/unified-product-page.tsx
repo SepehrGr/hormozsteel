@@ -1,38 +1,19 @@
-'use client';
+'use client'
 
-import ProductPage from '@/components/products/product-page';
+import ProductPage from '@/components/products/product-page'
 
 interface UnifiedProductPageProps {
-  category: string;
-  subcategory: string;
-  title: string;
-  description?: string;
-  features?: string[];
-  applications?: string[];
-  specifications?: { [key: string]: string };
-  productId: string;
+  category: string
+  subcategory: string
+  title: string
+  description?: string
+  features?: string[]
+  applications?: string[]
+  specifications?: { [key: string]: string }
+  productId: string
 }
 
-export default function UnifiedProductPage({
-  category,
-  subcategory,
-  title,
-  description,
-  features = [],
-  applications = [],
-  specifications = {},
-  productId,
-}: UnifiedProductPageProps) {
-  return (
-    <ProductPage
-      category={category}
-      subcategory={subcategory}
-      title={title}
-      description={description}
-      features={features}
-      applications={applications}
-      specifications={specifications}
-      productId={productId}
-    />
-  );
+/** Thin wrapper so route pages can stay server components. */
+export default function UnifiedProductPage(props: UnifiedProductPageProps) {
+  return <ProductPage {...props} />
 }
