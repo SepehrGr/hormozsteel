@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'لطفاً تمام فیلدهای الزامی را پر کنید',
+          error: 'Name, phone, and message are required.',
         },
         { status: 400 }
       );
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             success: false,
-            error: 'فرمت ایمیل صحیح نیست',
+            error: 'Enter a valid email address.',
           },
           { status: 400 }
         );
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message:
-          'پیام شما با موفقیت ارسال شد. به زودی با شما تماس خواهیم گرفت.',
+          'Message received. Sales will follow up on the next business day.',
         data: contactForm,
       },
       { status: 201 }
