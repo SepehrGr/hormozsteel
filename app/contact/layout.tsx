@@ -1,11 +1,15 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Contact sales',
+  description:
+    'Request a firm steel quote — rebar, sheet, sections, pipe, and billets. Sales desk in Bandar Abbas.',
+}
+
 export default function ContactLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  return (
-    <section className="flex flex-col w-full overflow-hidden">
-      {children}
-    </section>
-  );
+  return <div className='w-full'>{children}</div>
 }
