@@ -1,49 +1,60 @@
-'use client';
+'use client'
 
-import { useState, useMemo, useEffect } from 'react';
-import { Product, PriceFilter, PRODUCT_CATEGORIES } from '@/types/products';
-import CategoryTable from '@/components/products/category-table';
-import AdvancedFilters from '@/components/products/advanced-filters';
-import WeightCalculatorModal from '@/components/products/weight-calculator-modal';
-import OrderRequestModal from '@/components/products/order-request-modal';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@heroui/switch';
+import { useState, useMemo, useEffect } from 'react'
+import Link from 'next/link'
 import {
-  Phone,
+  Product,
+  PriceFilter,
+  PRODUCT_CATEGORIES,
+  productCategoryHref,
+} from '@/types/products'
+import { resolveCategoryIcon } from '@/config/category-icons'
+import CategoryTable from '@/components/products/category-table'
+import AdvancedFilters from '@/components/products/advanced-filters'
+import WeightCalculatorModal from '@/components/products/weight-calculator-modal'
+import OrderRequestModal from '@/components/products/order-request-modal'
+import { Badge } from '@/components/ui/badge'
+import {
   Calculator,
-  TrendingUp,
-  Package,
-  Star,
   Filter,
   Search,
-  Download,
-  RefreshCw,
-  Bell,
-  CheckCircle,
-  Clock,
-  Truck,
-  Shield,
-  Award,
-  Users,
-  MapPin,
+  Package,
   AlertCircle,
-  Info,
-  Zap,
-  Target,
-} from 'lucide-react';
+  ChevronRight,
+  CheckCircle2,
+  FileText,
+  Wrench,
+} from 'lucide-react'
 
 interface ProductPageProps {
-  category: string;
-  subcategory: string;
-  title: string;
-  description?: string;
-  features?: string[];
-  applications?: string[];
-  specifications?: { [key: string]: string };
-  productId?: string;
-  enableSheetsToggle?: boolean;
+  category: string
+  subcategory: string
+  title: string
+  description?: string
+  features?: string[]
+  applications?: string[]
+  specifications?: { [key: string]: string }
+  productId?: string
+  enableSheetsToggle?: boolean
+}
+
+function formatUsd(price: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(price)
+}
+
+function normalizeUnit(
+  unit?: string | null,
+): 'kg' | 'ton' | 'piece' | undefined {
+  if (!unit) return undefined
+  const u = unit.toLowerCase()
+  if (u === 'kg' || u === 'ton' || u === 'piece') return u
+  if (u === 'meter' || u === 'm') return 'kg'
+  return 'kg'
 }
 
 export default function ProductPage({
@@ -55,550 +66,433 @@ export default function ProductPage({
   applications = [],
   specifications = {},
 }: ProductPageProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<PriceFilter>({});
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
-  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [filters, setFilters] = useState<PriceFilter>({})
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false)
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false)
   const [selectedOrderProduct, setSelectedOrderProduct] =
-    useState<Product | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [includeVAT, setIncludeVAT] = useState(false);
+    useState<Product | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
 
-  // Fetch products from API
+  const categoryInfo = PRODUCT_CATEGORIES.find(
+    c => c.id === category || c.slug === category,
+  )
+  const iconClass = resolveCategoryIcon(
+    categoryInfo?.icon ?? categoryInfo?.slug ?? category,
+  )
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
-        const url = `/api/products?category=${category}&subcategory=${encodeURIComponent(subcategory)}&limit=1000`;
-        console.log('🔍 ProductPage: Fetching from URL:', url);
-        console.log(
-          '🔍 ProductPage: Category:',
-          category,
-          '| Subcategory:',
-          subcategory
-        );
-
-        const response = await fetch(url);
-        const data = await response.json();
-
-        console.log('✅ ProductPage: API Response:', data);
-        console.log(
-          '✅ ProductPage: Products count:',
-          data.success ? data.data.products.length : 0
-        );
-
+        setLoading(true)
+        setError(null)
+        const url = `/api/products?category=${encodeURIComponent(category)}&subcategory=${encodeURIComponent(subcategory)}&limit=1000`
+        const response = await fetch(url)
+        const data = await response.json()
         if (data.success) {
-          setProducts(data.data.products);
+          setProducts(data.data.products)
         } else {
-          setError(data.error || 'خطا در دریافت محصولات');
+          setError(data.error || 'Failed to load products')
         }
-      } catch (err) {
-        console.error('❌ ProductPage: Error fetching products:', err);
-        setError('خطا در دریافت محصولات');
+      } catch {
+        setError('Failed to load products. Please try again.')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
+    fetchProducts()
+  }, [category, subcategory])
 
-    fetchProducts();
-  }, [category, subcategory]);
-
-  // محاسبه قیمت با/بدون مالیات
-  const calculatePrice = (basePrice: number) => {
-    return includeVAT ? basePrice * 1.1 : basePrice;
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(calculatePrice(price));
-  };
-
-  // فیلتر کردن محصولات بر اساس دسته و زیردسته
   const filteredProducts = useMemo(() => {
-    console.log('🔍 ProductPage Filter: Starting filter...');
-    console.log('🔍 ProductPage Filter: Total products:', products.length);
-    console.log(
-      '🔍 ProductPage Filter: Category:',
-      category,
-      '| Subcategory:',
-      subcategory
-    );
-
-    const filtered = products.filter((product) => {
-      // محصولات از API قبلاً فیلتر شده‌اند، اما برای اطمینان بررسی می‌کنیم
-      // Note: product.category از API یک object است با slug
-      console.log(
-        '🔍 Checking product:',
-        product.name,
-        '| category.slug:',
-        product.category?.slug,
-        '| subcategory:',
-        product.subcategory
-      );
-
-      if (product.category?.slug !== category) {
-        console.log(
-          '  ❌ Category mismatch:',
-          product.category?.slug,
-          '!==',
-          category
-        );
-        return false;
+    return products.filter(product => {
+      if (product.category?.slug && product.category.slug !== category) {
+        return false
       }
-      if (product.subcategory !== subcategory) {
-        console.log(
-          '  ❌ Subcategory mismatch:',
-          product.subcategory,
-          '!==',
-          subcategory
-        );
-        return false;
+      if (product.subcategory && product.subcategory !== subcategory) {
+        return false
       }
 
-      // تابع کمکی برای بررسی فیلترهای چندگانه
       const matchesFilter = (
         filterValue: string | string[] | undefined,
-        productValue: string | undefined
+        productValue: string | null | undefined,
       ) => {
-        if (!filterValue) return true;
-        if (!productValue) return false;
+        if (!filterValue) return true
+        if (!productValue) return false
         if (Array.isArray(filterValue)) {
-          return filterValue.includes(productValue);
+          return filterValue.includes(productValue)
         }
-        return filterValue === productValue;
-      };
-
-      // فیلترهای اضافی با پشتیبانی از چندین انتخاب
-      if (!matchesFilter(filters.brand, product.brand)) return false;
-      if (!matchesFilter(filters.size, product.size)) return false;
-      if (filters.minPrice && product.price < filters.minPrice) return false;
-      if (filters.maxPrice && product.price > filters.maxPrice) return false;
-      if (filters.inStock && !product.inStock) return false;
-
-      // فیلترهای تخصصی با پشتیبانی از چندین انتخاب
-      if (!matchesFilter(filters.thickness, product.thickness)) return false;
-      if (!matchesFilter(filters.diameter, product.diameter)) return false;
-      if (!matchesFilter(filters.grade, product.grade)) return false;
-      if (!matchesFilter(filters.coating, product.coating)) return false;
-      if (!matchesFilter(filters.standard, product.standard)) return false;
-      if (!matchesFilter(filters.length, product.length)) return false;
-
-      // فیلترهای جدید
-      if (!matchesFilter(filters.subtype, product.subtype)) return false;
-      if (!matchesFilter(filters.weightType, product.weightType)) return false;
-      if (!matchesFilter(filters.sheetType, product.sheetType)) return false;
-      if (!matchesFilter(filters.pipeType, product.pipeType)) return false;
-      if (!matchesFilter(filters.wireType, product.wireType)) return false;
-      if (!matchesFilter(filters.height, product.height)) return false;
-      if (!matchesFilter(filters.meshSize, product.meshSize)) return false;
-      if (!matchesFilter(filters.packageType, product.packageType))
-        return false;
-
-      // جستجوی متنی
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        const matchesSearch =
-          product.name.toLowerCase().includes(searchLower) ||
-          product.brand.toLowerCase().includes(searchLower) ||
-          product.size.toLowerCase().includes(searchLower);
-        if (!matchesSearch) return false;
+        return filterValue === productValue
       }
 
-      return true;
-    });
+      if (!matchesFilter(filters.brand, product.brand)) return false
+      if (!matchesFilter(filters.size as string | string[] | undefined, product.size))
+        return false
+      if (filters.minPrice != null && product.price < Number(filters.minPrice))
+        return false
+      if (filters.maxPrice != null && product.price > Number(filters.maxPrice))
+        return false
+      if (filters.inStock && !product.inStock) return false
 
-    console.log(
-      '✅ ProductPage Filter: Filtered products count:',
-      filtered.length
-    );
-    return filtered;
-  }, [products, category, subcategory, filters, searchTerm]);
+      if (searchTerm) {
+        const q = searchTerm.toLowerCase()
+        const haystack = [
+          product.name,
+          product.brand,
+          product.size,
+          product.description,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+        if (!haystack.includes(q)) return false
+      }
 
-  const categoryInfo = PRODUCT_CATEGORIES.find((c) => c.id === category);
+      return true
+    })
+  }, [products, category, subcategory, filters, searchTerm])
 
-  // Function to get the appropriate icon for each product category
-  const getCategoryIcon = (categoryId: string) => {
-    const iconMap: Record<string, string> = {
-      rebar: 'icon-rebar',
-      profile: 'icon-profil',
-      sheet: 'icon-varagh',
-      angle: 'icon-nabshi',
-      beam: 'icon-tirahan',
-      pipe: 'icon-lole',
-      wire: 'icon-wire',
-      mesh: 'icon-Wire-products',
-      billet: 'icon-bullion',
-      tube: 'icon-Equipment',
-      'raw-materials': 'icon-stainless-steel',
-    };
-    return iconMap[categoryId] || 'icon-rebar';
-  };
+  const productsByBrand = useMemo(() => {
+    const grouped: Record<string, Product[]> = {}
+    for (const product of filteredProducts) {
+      const brand = product.brand || 'Unspecified mill'
+      if (!grouped[brand]) grouped[brand] = []
+      grouped[brand].push(product)
+    }
+    return grouped
+  }, [filteredProducts])
+
+  const stats = useMemo(() => {
+    if (filteredProducts.length === 0) {
+      return { count: 0, min: 0, max: 0, inStock: 0 }
+    }
+    const prices = filteredProducts.map(p => p.price)
+    return {
+      count: filteredProducts.length,
+      min: Math.min(...prices),
+      max: Math.max(...prices),
+      inStock: filteredProducts.filter(p => p.inStock).length,
+    }
+  }, [filteredProducts])
 
   const handleOrder = (product: Product) => {
-    setSelectedOrderProduct(product);
-    setIsOrderModalOpen(true);
-  };
+    setSelectedOrderProduct(product)
+    setIsOrderModalOpen(true)
+  }
 
   const handleCalculate = (product: Product) => {
-    setSelectedProduct(product);
-    setIsCalculatorOpen(true);
-  };
+    setSelectedProduct(product)
+    setIsCalculatorOpen(true)
+  }
 
-  const handleCloseCalculator = () => {
-    setIsCalculatorOpen(false);
-    setSelectedProduct(null);
-  };
+  if (loading) {
+    return (
+      <div className='flex min-h-[50vh] items-center justify-center'>
+        <div className='text-center'>
+          <div className='mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-slate-300 border-t-slate-800 dark:border-slate-600 dark:border-t-slate-200' />
+          <p className='text-sm text-slate-600 dark:text-slate-400'>
+            Loading catalog prices…
+          </p>
+        </div>
+      </div>
+    )
+  }
 
-  // گروه‌بندی محصولات بر اساس برند
-  const productsByBrand = useMemo(() => {
-    const grouped: { [brand: string]: Product[] } = {};
-    filteredProducts.forEach((product) => {
-      if (!grouped[product.brand]) grouped[product.brand] = [];
-      grouped[product.brand].push(product);
-    });
-    return grouped;
-  }, [filteredProducts]);
+  if (error) {
+    return (
+      <div className='flex min-h-[50vh] items-center justify-center px-4'>
+        <div className='max-w-md text-center'>
+          <AlertCircle className='mx-auto mb-4 h-10 w-10 text-red-600' />
+          <h2 className='mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100'>
+            Could not load prices
+          </h2>
+          <p className='mb-4 text-sm text-slate-600 dark:text-slate-400'>
+            {error}
+          </p>
+          <button
+            type='button'
+            onClick={() => window.location.reload()}
+            className='rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white'
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="w-full">
-      {/* Loading State */}
-      {loading && (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
-            <p className="text-slate-600 dark:text-slate-400">
-              در حال بارگذاری محصولات...
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && !loading && (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="py-16 text-center">
-            <div className="flex items-center justify-center w-24 h-24 mx-auto mb-6 bg-red-100 rounded-full dark:bg-red-900/20">
-              <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-400" />
-            </div>
-            <h3 className="mb-2 text-2xl font-semibold text-slate-700 dark:text-slate-300">
-              خطا در دریافت اطلاعات
-            </h3>
-            <p className="max-w-md mx-auto mb-4 text-slate-500 dark:text-slate-400">
-              {error}
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
+    <div className='w-full bg-slate-50 dark:bg-slate-950'>
+      {/* Header — terminal-style strip, not marketing hero */}
+      <header className='border-b border-slate-200 bg-slate-900 text-slate-100 dark:border-slate-800'>
+        <div className='mx-auto max-w-7xl px-4 py-8 sm:px-6'>
+          <nav
+            className='mb-4 flex flex-wrap items-center gap-1.5 text-xs text-slate-400'
+            aria-label='Breadcrumb'
+          >
+            <Link href='/products' className='hover:text-slate-200'>
+              Products
+            </Link>
+            <ChevronRight className='h-3 w-3' />
+            <Link
+              href={productCategoryHref(category)}
+              className='hover:text-slate-200'
             >
-              تلاش مجدد
-            </button>
-          </div>
-        </div>
-      )}
+              {categoryInfo?.name ?? category}
+            </Link>
+            <ChevronRight className='h-3 w-3' />
+            <span className='text-slate-200'>{subcategory}</span>
+          </nav>
 
-      {/* Content - Only show when not loading and no error */}
-      {!loading && !error && (
-        <>
-          {/* Header Section */}
-          <div className="relative overflow-hidden text-white bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-600">
-            <div className="absolute inset-0 bg-black/10"></div>
-            <div className="absolute top-0 right-0 translate-x-20 -translate-y-20 rounded-full w-96 h-96 bg-white/5"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 -translate-x-20 translate-y-20 rounded-full bg-white/5"></div>
-            <div className="relative px-6 py-16 mx-auto max-w-7xl">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-24 h-24 mx-auto mb-6 border-2 rounded-full shadow-2xl bg-white/20 backdrop-blur-md border-white/30">
-                  <i
-                    className={
-                      getCategoryIcon(category) +
-                      ' text-5xl text-white drop-shadow-lg'
-                    }
-                  ></i>
-                </div>
-                <h1 className="mb-6 text-5xl font-bold text-white drop-shadow-2xl">
+          <div className='flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between'>
+            <div className='flex items-start gap-4'>
+              <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-slate-700 bg-slate-800'>
+                <i className={`${iconClass} text-2xl text-amber-500`} />
+              </div>
+              <div>
+                <p className='mb-1 text-xs font-medium uppercase tracking-wider text-slate-400'>
+                  Unit prices · USD
+                </p>
+                <h1 className='text-2xl font-semibold tracking-tight sm:text-3xl'>
                   {title}
                 </h1>
                 {description && (
-                  <p className="max-w-3xl mx-auto text-xl font-medium leading-relaxed text-white/95 drop-shadow-lg">
+                  <p className='mt-2 max-w-2xl text-sm leading-relaxed text-slate-400'>
                     {description}
                   </p>
                 )}
               </div>
             </div>
-          </div>
 
-          {/* Features Section */}
-          <div className="hidden bg-white border-t dark:bg-slate-800 border-slate-200 dark:border-slate-700 lg:block">
-            <div className="px-6 py-12 mx-auto max-w-7xl">
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                <div className="flex items-center gap-3 p-4 rounded-lg bg-green-50 dark:bg-green-900/20">
-                  <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
-                  <div>
-                    <h3 className="font-semibold text-slate-800 dark:text-slate-200">
-                      کیفیت تضمینی
-                    </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      تمام محصولات دارای گواهینامه استاندارد
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                  <Shield className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                  <div>
-                    <h3 className="font-semibold text-slate-800 dark:text-slate-200">
-                      ضمانت اصالت
-                    </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      ۱۰۰٪ اصل و مستقیم از کارخانه
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-4 rounded-lg bg-orange-50 dark:bg-orange-900/20">
-                  <Clock className="w-8 h-8 text-orange-600 dark:text-orange-400" />
-                  <div>
-                    <h3 className="font-semibold text-slate-800 dark:text-slate-200">
-                      تحویل سریع
-                    </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      ارسال در کمترین زمان ممکن
-                    </p>
-                  </div>
-                </div>
+            <dl className='grid grid-cols-3 gap-px overflow-hidden rounded-md border border-slate-700 bg-slate-700 sm:min-w-[280px]'>
+              <div className='bg-slate-900 px-3 py-2.5'>
+                <dt className='text-[10px] uppercase tracking-wide text-slate-500'>
+                  Lines
+                </dt>
+                <dd className='text-lg font-semibold tabular-nums'>
+                  {stats.count}
+                </dd>
               </div>
-            </div>
+              <div className='bg-slate-900 px-3 py-2.5'>
+                <dt className='text-[10px] uppercase tracking-wide text-slate-500'>
+                  Low
+                </dt>
+                <dd className='text-sm font-semibold tabular-nums text-emerald-400'>
+                  {stats.count ? formatUsd(stats.min) : '—'}
+                </dd>
+              </div>
+              <div className='bg-slate-900 px-3 py-2.5'>
+                <dt className='text-[10px] uppercase tracking-wide text-slate-500'>
+                  High
+                </dt>
+                <dd className='text-sm font-semibold tabular-nums text-amber-400'>
+                  {stats.count ? formatUsd(stats.max) : '—'}
+                </dd>
+              </div>
+            </dl>
           </div>
+        </div>
+      </header>
 
-          {/* Search and Filter Bar */}
-          <div className="sticky z-10 bg-white border-b top-20 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-            <div className="px-6 py-4 mx-auto">
-              <div className="flex flex-col gap-4 lg:flex-row">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute w-4 h-4 transform -translate-y-1/2 right-3 top-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="جستجو در محصولات..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full px-3 py-2 pl-4 pr-10 border rounded-lg border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
+      {/* Toolbar */}
+      <div className='sticky top-16 z-10 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95'>
+        <div className='mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:px-6'>
+          <div className='relative flex-1'>
+            <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400' />
+            <input
+              type='search'
+              placeholder='Search size, mill, or product name…'
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className='w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100'
+            />
+          </div>
+          <div className='flex items-center gap-2'>
+            <button
+              type='button'
+              onClick={() => setShowFilters(v => !v)}
+              className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                showFilters
+                  ? 'border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900'
+                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900'
+              }`}
+            >
+              <Filter className='h-4 w-4' />
+              Filters
+            </button>
+            <span className='hidden text-xs text-slate-500 sm:inline'>
+              {stats.inStock} of {stats.count} in stock
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Pricing board */}
+      <div className='mx-auto max-w-7xl px-4 py-6 sm:px-6'>
+        <div
+          className={`grid grid-cols-1 gap-6 ${showFilters ? 'lg:grid-cols-4' : ''}`}
+        >
+          {showFilters && (
+            <aside className='lg:col-span-1'>
+              <AdvancedFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                onClearFilters={() => setFilters({})}
+                showCategoryFilter={false}
+                currentCategory={category}
+                currentSubcategory={subcategory}
+              />
+            </aside>
+          )}
+
+          <div className={showFilters ? 'lg:col-span-3' : ''}>
+            {filteredProducts.length === 0 ? (
+              <div className='rounded-md border border-dashed border-slate-300 bg-white px-6 py-16 text-center dark:border-slate-700 dark:bg-slate-900'>
+                <Package className='mx-auto mb-3 h-10 w-10 text-slate-400' />
+                <h3 className='mb-1 text-base font-semibold text-slate-800 dark:text-slate-200'>
+                  No matching line items
+                </h3>
+                <p className='text-sm text-slate-500'>
+                  Adjust search or filters, or clear filters to see the full
+                  list.
+                </p>
+                {(searchTerm || Object.keys(filters).length > 0) && (
                   <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`flex items-center gap-2 px-3 py-2.5 border rounded-lg transition-colors text-sm font-medium cursor-pointer ${
-                      showFilters
-                        ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-600 dark:text-blue-300'
-                        : 'bg-white border-slate-300 text-slate-700 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400'
-                    }`}
+                    type='button'
+                    onClick={() => {
+                      setSearchTerm('')
+                      setFilters({})
+                    }}
+                    className='mt-4 text-sm font-medium text-slate-900 underline-offset-4 hover:underline dark:text-slate-100'
                   >
-                    <Filter className="w-4 h-4" />
-                    <span>فیلترها</span>
+                    Clear search & filters
                   </button>
-                  <div
-                    className="flex items-center gap-2 px-3 py-2 transition-colors bg-white border rounded-lg cursor-pointer dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400"
-                    onClick={() => setIncludeVAT(!includeVAT)}
-                  >
-                    <div className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-                      <Switch
-                        isSelected={includeVAT}
-                        onValueChange={setIncludeVAT}
-                        size="sm"
-                        color="primary"
-                        className="rotate-180"
-                        classNames={{
-                          wrapper: 'group-data-[selected=true]:bg-blue-500',
-                        }}
-                      />
-                      <span>احتساب ارزش افزوده</span>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
-            </div>
-          </div>
-
-          {/* Products Section */}
-          <div className="bg-gray-50 dark:bg-slate-900">
-            <div className="px-6 py-6 mx-auto">
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-                {showFilters && (
-                  <div className="lg:col-span-1">
-                    <AdvancedFilters
-                      filters={filters}
-                      onFiltersChange={setFilters}
-                      onClearFilters={() => setFilters({})}
-                      showCategoryFilter={false}
-                      currentCategory={category}
-                      currentSubcategory={subcategory}
+            ) : (
+              <div className='space-y-8'>
+                {Object.entries(productsByBrand).map(([brand, brandProducts]) => (
+                  <section key={brand}>
+                    <div className='mb-3 flex flex-wrap items-center gap-2'>
+                      <h2 className='text-sm font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300'>
+                        {brand}
+                      </h2>
+                      <Badge className='bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200'>
+                        {brandProducts.length}{' '}
+                        {brandProducts.length === 1 ? 'item' : 'items'}
+                      </Badge>
+                    </div>
+                    <CategoryTable
+                      category={categoryInfo!}
+                      products={brandProducts}
+                      onOrder={handleOrder}
+                      onCalculate={handleCalculate}
+                      formatPrice={formatUsd}
                     />
-                  </div>
-                )}
+                  </section>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
-                <div
-                  className={showFilters ? 'lg:col-span-3' : 'lg:col-span-4'}
-                >
-                  {filteredProducts.length === 0 ? (
-                    <Card>
-                      <CardContent className="py-12 text-center">
-                        <Package className="w-12 h-12 mx-auto mb-4 text-slate-400" />
-                        <h3 className="mb-2 text-lg font-semibold text-slate-600 dark:text-slate-400">
-                          محصولی یافت نشد
-                        </h3>
-                        <p className="text-slate-500 dark:text-slate-500">
-                          لطفاً فیلترهای جستجو را تغییر دهید
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <div className="space-y-10">
-                      {Object.entries(productsByBrand).map(
-                        ([brand, products]) => {
-                          // فرض بر این است که همه محصولات یک برند در این گروه، دسته و زیردسته یکسان دارند
-                          const firstProduct = products[0];
-                          const categoryLabel =
-                            firstProduct?.category?.name || '';
-                          const subcategoryLabel =
-                            firstProduct?.subcategory || '';
-                          return (
-                            <div key={brand}>
-                              <div className="flex items-center gap-2 mb-4">
-                                <span className="text-xl font-bold text-blue-700 dark:text-blue-300">
-                                  {categoryLabel} {subcategoryLabel} {brand}
-                                </span>
-                                <Badge variant="success">
-                                  {products.length} محصول
-                                </Badge>
-                              </div>
-                              <CategoryTable
-                                category={categoryInfo!}
-                                products={products}
-                                onOrder={handleOrder}
-                                onCalculate={handleCalculate}
-                                formatPrice={formatPrice}
-                              />
-                            </div>
-                          );
-                        }
-                      )}
+        {/* Supporting info — editorial, not feature cards soup */}
+        {(features.length > 0 ||
+          applications.length > 0 ||
+          Object.keys(specifications).length > 0) && (
+          <div className='mt-12 grid grid-cols-1 gap-8 border-t border-slate-200 pt-10 dark:border-slate-800 lg:grid-cols-3'>
+            {features.length > 0 && (
+              <section>
+                <h3 className='mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-800 dark:text-slate-200'>
+                  <CheckCircle2 className='h-4 w-4 text-amber-600' />
+                  Product notes
+                </h3>
+                <ul className='space-y-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400'>
+                  {features.map(item => (
+                    <li key={item} className='flex gap-2'>
+                      <span className='mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-400' />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            {applications.length > 0 && (
+              <section>
+                <h3 className='mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-800 dark:text-slate-200'>
+                  <Wrench className='h-4 w-4 text-amber-600' />
+                  Typical use
+                </h3>
+                <ul className='space-y-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400'>
+                  {applications.map(item => (
+                    <li key={item} className='flex gap-2'>
+                      <span className='mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-400' />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            {Object.keys(specifications).length > 0 && (
+              <section>
+                <h3 className='mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-800 dark:text-slate-200'>
+                  <FileText className='h-4 w-4 text-amber-600' />
+                  Specs
+                </h3>
+                <dl className='divide-y divide-slate-200 border border-slate-200 dark:divide-slate-800 dark:border-slate-800'>
+                  {Object.entries(specifications).map(([key, value]) => (
+                    <div
+                      key={key}
+                      className='flex justify-between gap-4 px-3 py-2 text-sm'
+                    >
+                      <dt className='text-slate-500'>{key}</dt>
+                      <dd className='text-right font-medium text-slate-800 dark:text-slate-200'>
+                        {value}
+                      </dd>
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
+                  ))}
+                </dl>
+              </section>
+            )}
           </div>
+        )}
 
-          {/* Product Info Section */}
-          <div className="bg-white dark:bg-slate-800">
-            <div className="px-6 py-12 mx-auto">
-              <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                {/* ویژگی‌ها */}
-                {features.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Star className="w-5 h-5 text-yellow-600" />
-                        ویژگی‌های کلیدی
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2">
-                        {features.map((feature, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
+        <p className='mt-8 flex items-start gap-2 text-xs text-slate-500'>
+          <Calculator className='mt-0.5 h-3.5 w-3.5 shrink-0' />
+          Prices are demo unit rates in USD. Use the calculator action on a row
+          for weight estimates where available.
+        </p>
+      </div>
 
-                {/* کاربردها */}
-                {applications.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Target className="w-5 h-5 text-blue-600" />
-                        کاربردها
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2">
-                        {applications.map((application, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <Zap className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm">{application}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
+      <WeightCalculatorModal
+        isOpen={isCalculatorOpen}
+        onClose={() => {
+          setIsCalculatorOpen(false)
+          setSelectedProduct(null)
+        }}
+        productName={selectedProduct?.name}
+        productCategory={selectedProduct?.category?.name || category}
+        productPrice={selectedProduct?.price}
+        productUnit={normalizeUnit(selectedProduct?.unit)}
+        formatPrice={formatUsd}
+      />
 
-                {/* مشخصات فنی */}
-                {Object.keys(specifications).length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Info className="w-5 h-5 text-purple-600" />
-                        مشخصات فنی
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {Object.entries(specifications).map(([key, value]) => (
-                          <div key={key} className="flex justify-between">
-                            <span className="text-sm font-medium">{key}:</span>
-                            <span className="text-sm text-slate-600 dark:text-slate-400">
-                              {value}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <WeightCalculatorModal
-            isOpen={isCalculatorOpen}
-            onClose={handleCloseCalculator}
-            productName={selectedProduct?.name}
-            productCategory={selectedProduct?.category?.name || category}
-            productPrice={selectedProduct?.price}
-            productUnit={selectedProduct?.unit}
-            includeVAT={includeVAT}
-            formatPrice={formatPrice}
-          />
-
-          <OrderRequestModal
-            isOpen={isOrderModalOpen}
-            onClose={() => {
-              setIsOrderModalOpen(false);
-              setSelectedOrderProduct(null);
-            }}
-            productName={selectedOrderProduct?.name}
-            productSpecs={
-              selectedOrderProduct
-                ? `${selectedOrderProduct.name} - ${selectedOrderProduct.size} - ${selectedOrderProduct.brand}`
-                : ''
-            }
-          />
-        </>
-      )}
+      <OrderRequestModal
+        isOpen={isOrderModalOpen}
+        onClose={() => {
+          setIsOrderModalOpen(false)
+          setSelectedOrderProduct(null)
+        }}
+        productName={selectedOrderProduct?.name}
+        productSpecs={
+          selectedOrderProduct
+            ? `${selectedOrderProduct.name} · ${selectedOrderProduct.size} · ${selectedOrderProduct.brand ?? '—'}`
+            : ''
+        }
+      />
     </div>
-  );
+  )
 }
