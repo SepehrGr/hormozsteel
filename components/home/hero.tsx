@@ -12,10 +12,6 @@ import HeroItem from './hero-item'
 import { ChevronRight, ChevronLeft, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
-/**
- * Homepage hero + product-family market board.
- * Theme tokens only (light/dark). Category board style preserved.
- */
 export default function Hero() {
   const swiperRef = useRef<SwiperType | null>(null)
 
@@ -61,10 +57,7 @@ export default function Hero() {
           {/* Session strip */}
           <div className='mb-8 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border pb-4 text-xs text-muted-foreground'>
             <span className='inline-flex items-center gap-2 font-medium text-foreground'>
-              <span
-                className='relative flex h-2 w-2'
-                aria-hidden
-              >
+              <span className='relative flex h-2 w-2' aria-hidden>
                 <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/40 opacity-60' />
                 <span className='relative inline-flex h-2 w-2 rounded-full bg-emerald-600 dark:bg-emerald-500' />
               </span>
@@ -74,9 +67,8 @@ export default function Hero() {
             <span className='font-mono tabular-nums'>{sessionLabel}</span>
             <span className='hidden h-3 w-px bg-border sm:block' aria-hidden />
             <span>
-              Quotes in{' '}
-              <span className='font-medium text-foreground'>USD</span> ·
-              ex-works basis
+              Quotes in <span className='font-medium text-foreground'>USD</span>{' '}
+              · ex-works basis
             </span>
           </div>
 
@@ -182,16 +174,13 @@ export default function Hero() {
       </div>
 
       {/* Product index — keep board design */}
-      <div className='border-b border-border bg-muted/40'>
-        <div className='mx-auto max-w-7xl px-4 py-5 md:px-6 md:py-6'>
+      <div className='border-b border-border bg-muted/30'>
+        <div className='mx-auto max-w-7xl px-4 py-5 md:px-6 md:py-15'>
           <div className='mb-3 flex items-center justify-between gap-3'>
             <div className='flex items-baseline gap-3'>
               <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground'>
                 Product index
               </h2>
-              <span className='hidden text-xs text-muted-foreground sm:inline'>
-                All product families
-              </span>
             </div>
             <div className='flex items-center gap-2'>
               <Link
