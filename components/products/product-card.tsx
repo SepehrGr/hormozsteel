@@ -1,159 +1,139 @@
 'use client'
 
+import Link from 'next/link'
 import { Product } from '@/types/products'
-import { Badge } from '@/components/ui/badge'
-import {
-  ShoppingCart,
-  Phone,
-  Calculator,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  ArrowUp,
-  ArrowDown,
-} from 'lucide-react'
+import { productCategoryHref, subcategorySlug } from '@/types/products'
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
 interface ProductCardProps {
   product: Product
-  onOrder: (product: Product) => void
-  onCalculate: (product: Product) => void
+  onOrder?: (product: Product) => void
+  onCalculate?: (product: Product) => void
 }
 
-export default function ProductCard({
-  product,
-  onOrder,
-  onCalculate,
-}: ProductCardProps) {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(price)
-  }
+function formatUsd(price: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(price)
+}
 
-  const formatUpdateTime = (value?: string | null) => {
-    if (!value) return '—'
-    const date = new Date(value)
-    if (Number.isNaN(date.getTime())) return '—'
-    return new Intl.DateTimeFormat('en-US', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(date)
-  }
+function formatTime(value?: string | null) {
+  if (!value) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
 
-  const isUp = (t?: string | null) =>
-    t === 'increase' || t === 'UP' || t === 'افزایش'
-  const isDown = (t?: string | null) =>
-    t === 'decrease' || t === 'DOWN' || t === 'کاهش'
+type Move = 'up' | 'down' | 'flat'
 
-  const getPriceChangeIcon = () => {
-    if (!product.priceHistory) return null
-    const { changeType } = product.priceHistory
-    if (isUp(changeType)) {
-      return <TrendingUp className='w-4 h-4 text-green-500' />
-    } else if (isDown(changeType)) {
-      return <TrendingDown className='w-4 h-4 text-red-500' />
-    } else {
-      return <Minus className='w-4 h-4 text-slate-400' />
-    }
-  }
+function resolveMove(product: Product): Move {
+  const raw = product.priceHistory?.changeType || product.priceDirection || ''
+  const t = String(raw).toLowerCase()
+  if (t === 'up' || t === 'increase' || t === 'افزایش') return 'up'
+  if (t === 'down' || t === 'decrease' || t === 'کاهش') return 'down'
+  return 'flat'
+}
 
-  const getPriceChangeBadge = () => {
-    if (!product.priceHistory) return null
-
-    const { changeType } = product.priceHistory
-
-    let bgClass = 'bg-slate-100 text-slate-800 border-slate-200'
-    let darkBgClass =
-      'dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700'
-
-    if (isUp(changeType)) {
-      bgClass = 'bg-green-100 text-green-800 border-green-200'
-      darkBgClass =
-        'dark:bg-green-900/30 dark:text-green-300 dark:border-green-800'
-    } else if (isDown(changeType)) {
-      bgClass = 'bg-red-100 text-red-800 border-red-200'
-      darkBgClass = 'dark:bg-red-900/30 dark:text-red-300 dark:border-red-800'
-    }
-
-    return (
-      <Badge
-        className={`${bgClass} ${darkBgClass} flex items-center justify-center p-2`}
-        title={changeType}
-        aria-label={changeType}
-      >
-        {getPriceChangeIcon()}
-      </Badge>
+/**
+ * Price tick cell — market-board style for the latest-prices rail.
+ */
+export default function ProductCard({ product }: ProductCardProps) {
+  const move = resolveMove(product)
+  const delta = product.priceHistory?.changeAmount ?? product.priceDelta
+  const hasDelta = delta != null && Number(delta) !== 0
+  const updated =
+    formatTime(product.priceHistory?.changedAt) ||
+    formatTime(
+      typeof product.priceUpdatedAt === 'string'
+        ? product.priceUpdatedAt
+        : (product.priceUpdatedAt?.toISOString?.() ?? product.lastUpdated),
     )
-  }
+
+  const categorySlug = product.categorySlug || product.category?.slug || ''
+  const sub = product.subcategory
+  const href =
+    categorySlug && sub
+      ? `${productCategoryHref(categorySlug)}/${subcategorySlug(sub)}`
+      : categorySlug
+        ? productCategoryHref(categorySlug)
+        : '/products'
+
+  const MoveIcon =
+    move === 'up' ? TrendingUp : move === 'down' ? TrendingDown : Minus
+  const moveClass =
+    move === 'up'
+      ? 'text-emerald-700 dark:text-emerald-400'
+      : move === 'down'
+        ? 'text-red-700 dark:text-red-400'
+        : 'text-muted-foreground'
+
+  const meta = [product.brand, product.subcategory].filter(Boolean).join(' · ')
 
   return (
-    <div className='relative h-full group'>
-      <div className='relative flex flex-col h-full min-h-[320px] p-6 transition-all duration-500 bg-white border shadow-lg dark:bg-slate-800 rounded-2xl border-slate-200/50 dark:border-slate-700/50 hover:shadow-xl hover:shadow-blue-500/5 dark:hover:shadow-blue-400/5 hover:-translate-y-1 overflow-hidden'>
-        {/* Price change badge (availability removed) */}
-        <div className='relative z-10 flex items-center justify-end mb-4'>
-          {getPriceChangeBadge()}
-        </div>
+    <Link
+      href={href}
+      className='group flex h-full min-h-[12.5rem] flex-col bg-card px-5 py-5 text-left transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-[13.5rem] sm:px-6 sm:py-6'
+    >
+      {/* 1. Identity */}
+      <div className='min-w-0'>
+        <h3 className='line-clamp-2 text-base font-semibold leading-snug tracking-tight text-foreground sm:text-[1.05rem]'>
+          {product.name}
+        </h3>
+        {meta ? (
+          <p className='mt-1.5 truncate text-xs leading-relaxed text-muted-foreground'>
+            {meta}
+          </p>
+        ) : null}
+      </div>
 
-        {/* Product title */}
-        <div className='relative z-10 mb-4'>
-          <h3 className='mb-2 text-lg font-bold leading-tight transition-colors duration-300 text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400'>
-            {product.name}
-          </h3>
-          <div className='flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400'>
-            <span className='font-medium'>{product.brand}</span>
+      {/* 2. Price — primary data */}
+      <div className='mt-auto pt-6'>
+        <div className='flex items-center justify-between gap-3'>
+          <div className='min-w-0'>
+            <p className='mb-1 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground'>
+              Unit price
+            </p>
+            <p className='font-mono text-2xl font-semibold tabular-nums tracking-tight text-foreground sm:text-[1.65rem]'>
+              {product.price > 0 ? formatUsd(product.price) : 'Quote'}
+            </p>
+            <p className='mt-0.5 text-xs text-muted-foreground'>
+              per {String(product.unit || 'KG').toLowerCase()}
+            </p>
           </div>
-        </div>
 
-        {/* Price section */}
-        <div className='relative z-10 p-4 mb-4 border bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl border-blue-200/50 dark:border-blue-700/50'>
-          <div className='flex items-baseline justify-between'>
-            <div className='text-2xl font-bold text-blue-600 dark:text-blue-400'>
-              {formatPrice(product.price)}
-            </div>
-            <div className='text-sm font-medium text-slate-600 dark:text-slate-400'>
-              / {String(product.unit || 'KG')}
-            </div>
-          </div>
-
-          <div className='mt-2 pt-2 border-t border-blue-200/50 dark:border-blue-700/50 min-h-[28px]'>
-            {product.priceHistory && product.priceHistory.changeAmount !== 0 ? (
-              <div
-                className={`flex items-center gap-1 text-sm font-medium ${
-                  isUp(product.priceHistory.changeType)
-                    ? 'text-green-600 dark:text-green-400'
-                    : isDown(product.priceHistory.changeType)
-                      ? 'text-red-600 dark:text-red-400'
-                      : 'text-slate-600 dark:text-slate-400'
-                }`}
-              >
-                {getPriceChangeIcon()}
-                <span>
-                  {formatPrice(Math.abs(product.priceHistory.changeAmount))}
-                </span>
-              </div>
+          {/* 3. Move — secondary signal */}
+          <div className={`shrink-0 flex items-center gap-1 ${moveClass}`}>
+            {hasDelta ? (
+              <p className='mt-1 font-mono text-sm font-medium tabular-nums'>
+                {move === 'down' ? '−' : '+'}
+                {formatUsd(Math.abs(Number(delta)))}
+              </p>
             ) : (
-              <div className='flex items-center gap-1 text-sm font-medium text-slate-400 dark:text-slate-500'>
-                <Minus className='w-4 h-4' />
-                <span>No change</span>
-              </div>
+              <p className='mt-1 text-xs text-muted-foreground'>No change</p>
             )}
           </div>
         </div>
 
-        {/* Last updated */}
-        <div className='relative z-10 mt-3 text-xs text-center text-slate-500 dark:text-slate-400'>
-          {product.priceHistory?.changedAt ? (
-            <>
-              Price updated: {formatUpdateTime(product.priceHistory.changedAt)}
-            </>
+        {/* 4. Timestamp — quiet footer */}
+        <div className='mt-4 border-t border-border pt-3 text-left text-[11px] text-muted-foreground'>
+          {updated ? (
+            <p className=' tabular-nums'>
+              <span className='font-mono mr-1'>Updated</span>
+              <span className='font-mono'>{updated}</span>{' '}
+            </p>
           ) : (
-            <>Updated: {formatUpdateTime(product.lastUpdated)}</>
+            '—'
           )}
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
