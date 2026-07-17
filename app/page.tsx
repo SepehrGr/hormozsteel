@@ -5,22 +5,11 @@ import AboutSection from '@/components/home/about-section'
 
 export default function Home() {
   return (
-    <main className='flex flex-col gap-12 bg-background'>
-      <section>
-        <Hero />
-      </section>
-
-      <section className='container mx-auto px-4'>
-        <ProductSlider title='Latest prices' fetchFromApi={true} />
-      </section>
-
-      <section>
-        <AboutSection />
-      </section>
-
-      <section>
-        <Traits />
-      </section>
+    <main className='flex flex-col bg-background'>
+      <Hero />
+      <ProductSlider title='Latest prices' fetchFromApi={true} />
+      <AboutSection />
+      <Traits />
     </main>
   )
 }
