@@ -1,102 +1,135 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { PRODUCT_ROUTES } from '@/types/products'
+import { siteConfig } from '@/config/site'
 
-const footerCategories = PRODUCT_ROUTES.slice(0, 6)
+const companyLinks = [
+  { href: '/products', label: 'Catalog' },
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/weight/rebar', label: 'Weight calculators' },
+]
 
+const footerCategories = PRODUCT_ROUTES.slice(0, 8)
+
+/**
+ * Site footer — market-board chrome, theme tokens, real product voice.
+ * Portfolio note kept quiet in the legal strip only.
+ */
 export default function Footer() {
+  const year = new Date().getFullYear()
+
   return (
-    <footer className='mt-10 border-t border-border bg-background'>
-      <div className='container mx-auto max-w-7xl px-4 py-12'>
-        <div className='grid grid-cols-1 gap-8 md:grid-cols-4'>
-          <div className='md:col-span-1'>
-            <div className='mb-4 flex items-center gap-2'>
+    <footer className='w-full border-t border-border bg-muted/40'>
+      <div className='mx-auto max-w-7xl px-4 pt-12 pb-0 md:px-6 md:pt-14'>
+        <div className='grid gap-10 lg:grid-cols-12 lg:gap-12'>
+          {/* Brand */}
+          <div className='lg:col-span-4'>
+            <Link
+              href='/'
+              className='inline-flex items-center gap-2.5 text-foreground transition-opacity duration-200 ease-out hover:opacity-80'
+            >
               <Image
                 src='/Vector.svg'
-                alt='Hormoz Steel'
-                width={40}
-                height={40}
+                alt=''
+                width={32}
+                height={32}
                 className='dark:invert'
               />
-              <h3 className='text-lg font-semibold tracking-tight'>
-                Hormoz Steel
-              </h3>
-            </div>
-            <p className='mb-4 text-sm leading-relaxed text-muted-foreground'>
-              English portfolio demo of a B2B steel pricing catalog — products,
-              live-style prices, and admin tools.
+              <span className='text-base font-semibold tracking-tight'>
+                {siteConfig.name}
+              </span>
+            </Link>
+            <p className='mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground'>
+              {siteConfig.tagline} Unit rates across rebar, sheet, structural
+              sections, pipe, and billets — for industrial procurement.
             </p>
+            <dl className='mt-6 grid grid-cols-2 gap-3 text-sm sm:max-w-xs'>
+              <div className='border border-border bg-card px-3 py-2.5'>
+                <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
+                  Currency
+                </dt>
+                <dd className='font-mono text-sm font-medium tabular-nums text-foreground'>
+                  USD
+                </dd>
+              </div>
+              <div className='border border-border bg-card px-3 py-2.5'>
+                <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
+                  Basis
+                </dt>
+                <dd className='text-sm font-medium text-foreground'>Ex-works</dd>
+              </div>
+            </dl>
           </div>
 
-          <div>
-            <h3 className='mb-4 text-sm font-semibold tracking-tight'>
-              Quick links
-            </h3>
-            <ul className='space-y-2'>
-              <li>
+          {/* Link columns as board panels */}
+          <div className='grid grid-cols-1 gap-px overflow-hidden border border-border bg-border sm:grid-cols-3 lg:col-span-8'>
+            <nav
+              className='bg-card px-5 py-5'
+              aria-label='Company'
+            >
+              <h2 className='mb-4 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                Company
+              </h2>
+              <ul className='space-y-2.5'>
+                {companyLinks.map(link => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className='text-sm text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground'
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+
+            <nav
+              className='bg-card px-5 py-5 sm:col-span-2'
+              aria-label='Product families'
+            >
+              <div className='mb-4 flex items-baseline justify-between gap-2'>
+                <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                  Product index
+                </h2>
                 <Link
                   href='/products'
-                  className='text-sm text-muted-foreground transition hover:text-foreground'
+                  className='text-xs font-medium text-muted-foreground underline-offset-4 transition-colors duration-200 ease-out hover:text-foreground hover:underline'
                 >
-                  Products
+                  Full catalog
                 </Link>
-              </li>
-              <li>
-                <Link
-                  href='/about'
-                  className='text-sm text-muted-foreground transition hover:text-foreground'
-                >
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/contact'
-                  className='text-sm text-muted-foreground transition hover:text-foreground'
-                >
-                  Contact
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className='mb-4 text-sm font-semibold tracking-tight'>
-              Categories
-            </h3>
-            <ul className='space-y-2'>
-              {footerCategories.map(cat => (
-                <li key={cat.href}>
-                  <Link
-                    href={cat.href}
-                    className='text-sm text-muted-foreground transition hover:text-foreground'
-                  >
-                    {cat.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className='mb-4 text-sm font-semibold tracking-tight'>Demo</h3>
-            <p className='text-sm leading-relaxed text-muted-foreground'>
-              Portfolio showcase by Sepehr Gorgini. Not the live client site.
-            </p>
-            <p className='mt-3 text-sm text-muted-foreground'>
-              <Link
-                href='https://sepehrgr.dev'
-                className='underline-offset-4 hover:text-foreground hover:underline'
-              >
-                sepehrgr.dev
-              </Link>
-            </p>
+              </div>
+              <ul className='grid grid-cols-2 gap-x-4 gap-y-2.5 sm:grid-cols-3'>
+                {footerCategories.map(cat => (
+                  <li key={cat.href}>
+                    <Link
+                      href={cat.href}
+                      className='text-sm text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground'
+                    >
+                      {cat.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </div>
         </div>
 
-        <div className='mt-8 border-t border-border pt-8 text-center'>
-          <p className='text-sm text-muted-foreground'>
-            © {new Date().getFullYear()} Hormoz Steel demo. Portfolio use only.
+        {/* Legal strip */}
+        <div className='mt-12 flex flex-col gap-3 border-t border-border py-5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between'>
+          <p className='font-mono tabular-nums'>
+            © {year} {siteConfig.name}
+          </p>
+          <p className='max-w-md sm:text-right'>
+            Portfolio showcase by{' '}
+            <Link
+              href={siteConfig.links.portfolio}
+              className='font-medium text-foreground underline-offset-4 transition-colors duration-200 ease-out hover:underline'
+            >
+              Sepehr Gorgini
+            </Link>
+            . Not the live client deployment.
           </p>
         </div>
       </div>
