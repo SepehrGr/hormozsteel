@@ -1,35 +1,32 @@
 export const traitItems: {
   id: number
   title: string
-  icon: 'Coins' | 'Banknote' | 'ShieldCheck' | 'PhoneCall'
+  /** @deprecated Icons no longer rendered in the board UI. */
+  icon?: 'Coins' | 'Banknote' | 'ShieldCheck' | 'PhoneCall'
   description: string
 }[] = [
   {
-    id: 4,
-    title: 'Pre-purchase guidance',
-    icon: 'PhoneCall',
-    description:
-      'Talk to sales specialists before you buy so size, grade, and volume match the job.',
-  },
-  {
     id: 1,
-    title: 'Competitive pricing',
-    icon: 'Coins',
+    title: 'Transparent unit prices',
     description:
-      'Transparent catalog pricing across steel products so buyers can compare and decide faster.',
+      'Catalog rates in USD by size and mill so you can compare lines before requesting a firm quote.',
   },
   {
     id: 2,
-    title: 'Flexible settlement',
-    icon: 'Banknote',
+    title: 'Settlement that fits the job',
     description:
-      'Support for cash and credit settlement based on proforma terms and agreed conditions.',
+      'Cash or credit against proforma terms — conditions agreed up front, not after the truck is loaded.',
   },
   {
     id: 3,
-    title: 'Quality control',
-    icon: 'ShieldCheck',
+    title: 'Quality before dispatch',
     description:
-      'Products are inspected before loading so shipments leave only when they meet the spec.',
+      'Material is checked against the order spec prior to loading so non-conforming lots do not leave the yard.',
+  },
+  {
+    id: 4,
+    title: 'Pre-purchase guidance',
+    description:
+      'Sales helps match grade, size, and tonnage to the takeoff so you order what the structure actually needs.',
   },
 ]
