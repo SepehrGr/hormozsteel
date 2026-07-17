@@ -4,10 +4,6 @@ interface TraitItemProps {
   description: string
 }
 
-/**
- * Single commitment cell in the traits board.
- * Theme tokens only — no gradient icon tiles.
- */
 export default function TraitItem({
   index,
   title,
@@ -23,7 +19,7 @@ export default function TraitItem({
       <h3 className='mt-4 text-base font-semibold tracking-tight text-foreground sm:text-lg'>
         {title}
       </h3>
-      <p className='mt-2 flex-1 text-sm leading-relaxed text-muted-foreground'>
+      <p className='mt-2 flex-1 text-sm leading-relaxed max-w-[27ch] text-muted-foreground'>
         {description}
       </p>
     </article>
