@@ -1,69 +1,97 @@
-'use client'
-
 import Link from 'next/link'
-import { ShoppingCart, Headphones, ChartNoAxesCombined } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
+
+const steps = [
+  {
+    code: '01',
+    title: 'Scan the board',
+    body: 'Open a product family — rebar, HRC/CRC, sections, pipe — and read unit rates with size and mill at a glance.',
+  },
+  {
+    code: '02',
+    title: 'Filter the line',
+    body: 'Narrow by diameter, section, stock, or mill so the table matches the takeoff, not the whole warehouse.',
+  },
+  {
+    code: '03',
+    title: 'Request a firm quote',
+    body: 'Send tonnage and specs to sales. Indicative catalog prices become a binding offer with delivery terms.',
+  },
+]
 
 export default function AboutSection() {
   return (
-    <section className='py-6'>
-      <div className='container mx-auto px-4'>
-        <div className='relative mb-10 overflow-hidden rounded-2xl border border-border bg-card px-8 py-14 text-center shadow-sm md:px-16 md:py-16'>
-          <div className='relative z-10'>
-            <h3 className='mb-3 text-3xl font-semibold tracking-tight text-foreground md:text-4xl'>
-              Ready to browse the catalog?
-            </h3>
-            <p className='mx-auto mb-8 max-w-2xl text-base text-muted-foreground md:text-lg'>
-              Explore live product categories and pricing tables, or open the
-              admin area to manage inventory (demo credentials after seed).
+    <section className='w-full border-b border-border bg-muted/30'>
+      <div className='mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-15'>
+        <div className='grid gap-10 lg:grid-cols-12 lg:gap-12 lg:items-start'>
+          {/* Editorial column */}
+          <div className='lg:col-span-5'>
+            <p className='mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+              Why Hormoz Steel
             </p>
-            <div className='flex flex-col justify-center gap-3 sm:flex-row'>
-              <Link
-                href='/products'
-                className='inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90'
-              >
-                View products
-              </Link>
-              <Link
-                href='/contact'
-                className='inline-flex items-center justify-center rounded-lg border border-border bg-background px-6 py-3 text-sm font-medium text-foreground transition hover:bg-muted'
-              >
-                Contact
-              </Link>
+            <h2 className='text-2xl font-semibold tracking-tight text-foreground sm:text-3xl lg:text-[2rem] lg:leading-tight'>
+              Built for engineers and buyers who live in spreadsheets
+            </h2>
+            <p className='mt-4 text-sm leading-relaxed text-muted-foreground md:text-base'>
+              We publish clear unit prices so procurement can compare lines
+              before the phone call. No marketing fog — just the sizes, mills,
+              and rates you need to estimate a job and move to a quote.
+            </p>
+            <p className='mt-3 text-sm leading-relaxed text-muted-foreground md:text-base'>
+              Catalog rates are USD, ex-works style. Final pricing follows
+              tonnage, grade, and logistics agreed with sales.
+            </p>
+          </div>
+
+          {/* Process board */}
+          <div className='lg:col-span-7'>
+            <div className='overflow-hidden border border-border bg-border shadow-sm dark:shadow-none'>
+              <div className='flex items-center justify-between border-b border-border bg-card px-4 py-3'>
+                <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                  How procurement works
+                </h3>
+                <span className='text-xs text-muted-foreground'>3 steps</span>
+              </div>
+
+              <ol className='divide-y divide-border bg-card'>
+                {steps.map(step => (
+                  <li
+                    key={step.code}
+                    className='grid grid-cols-[auto_1fr] gap-4 px-4 py-5 transition-colors duration-200 ease-out sm:gap-6 sm:px-5 hover:bg-muted/60'
+                  >
+                    <span className='font-mono text-sm font-semibold tabular-nums text-amber-800 dark:text-amber-500'>
+                      {step.code}
+                    </span>
+                    <div className='min-w-0'>
+                      <h4 className='text-sm font-semibold tracking-tight text-foreground sm:text-base'>
+                        {step.title}
+                      </h4>
+                      <p className='mt-1.5 text-sm leading-relaxed text-muted-foreground'>
+                        {step.body}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+
+              <div className='border-t border-border bg-muted/50 px-4 py-3 sm:px-5'>
+                <div className='flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground'>
+                  <span>
+                    Coverage:{' '}
+                    <span className='text-foreground'>
+                      rebar · sheet · beams · pipe · billets
+                    </span>
+                  </span>
+                  <Link
+                    href='/about'
+                    className='font-medium text-foreground underline-offset-4 transition-colors duration-200 ease-out hover:underline'
+                  >
+                    Company overview →
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div className='mx-auto grid max-w-5xl grid-cols-1 gap-4 md:grid-cols-3'>
-          {[
-            {
-              icon: ShoppingCart,
-              title: 'Catalog & pricing',
-              body: 'Category browse, filters, and price tables for steel products.',
-            },
-            {
-              icon: ChartNoAxesCombined,
-              title: 'Admin workflows',
-              body: 'Manage products, categories, and manufacturers from one panel.',
-            },
-            {
-              icon: Headphones,
-              title: 'Quote-ready UX',
-              body: 'Designed so buyers can scan specs and move to an order request.',
-            },
-          ].map(item => (
-            <div
-              key={item.title}
-              className='rounded-xl border border-border bg-card p-5 text-left'
-            >
-              <item.icon className='mb-3 h-5 w-5 text-muted-foreground' />
-              <h4 className='mb-1 text-sm font-semibold text-foreground'>
-                {item.title}
-              </h4>
-              <p className='text-sm leading-relaxed text-muted-foreground'>
-                {item.body}
-              </p>
-            </div>
-          ))}
         </div>
       </div>
     </section>
