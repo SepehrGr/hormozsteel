@@ -13,7 +13,6 @@ import CategoryTable from '@/components/products/category-table'
 import AdvancedFilters from '@/components/products/advanced-filters'
 import WeightCalculatorModal from '@/components/products/weight-calculator-modal'
 import OrderRequestModal from '@/components/products/order-request-modal'
-import { Badge } from '@/components/ui/badge'
 import {
   Calculator,
   Filter,
@@ -47,9 +46,7 @@ function formatUsd(price: number) {
   }).format(price)
 }
 
-function normalizeUnit(
-  unit?: string | null,
-): 'kg' | 'ton' | 'piece' | undefined {
+function normalizeUnit(unit?: string | null): 'kg' | 'ton' | 'piece' | undefined {
   if (!unit) return undefined
   const u = unit.toLowerCase()
   if (u === 'kg' || u === 'ton' || u === 'piece') return u
@@ -73,8 +70,9 @@ export default function ProductPage({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false)
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false)
-  const [selectedOrderProduct, setSelectedOrderProduct] =
-    useState<Product | null>(null)
+  const [selectedOrderProduct, setSelectedOrderProduct] = useState<Product | null>(
+    null,
+  )
   const [searchTerm, setSearchTerm] = useState('')
   const [showFilters, setShowFilters] = useState(false)
 
@@ -129,7 +127,9 @@ export default function ProductPage({
       }
 
       if (!matchesFilter(filters.brand, product.brand)) return false
-      if (!matchesFilter(filters.size as string | string[] | undefined, product.size))
+      if (
+        !matchesFilter(filters.size as string | string[] | undefined, product.size)
+      )
         return false
       if (filters.minPrice != null && product.price < Number(filters.minPrice))
         return false
@@ -178,6 +178,23 @@ export default function ProductPage({
     }
   }, [filteredProducts])
 
+  const availableBrands = useMemo(() => {
+    return Array.from(
+      new Set(products.map(p => p.brand).filter((b): b is string => Boolean(b))),
+    ).sort()
+  }, [products])
+
+  const availableSizes = useMemo(() => {
+    return Array.from(
+      new Set(products.map(p => p.size).filter((s): s is string => Boolean(s))),
+    ).sort((a, b) => {
+      const na = parseFloat(a)
+      const nb = parseFloat(b)
+      if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb
+      return a.localeCompare(b)
+    })
+  }, [products])
+
   const handleOrder = (product: Product) => {
     setSelectedOrderProduct(product)
     setIsOrderModalOpen(true)
@@ -192,10 +209,8 @@ export default function ProductPage({
     return (
       <div className='flex min-h-[50vh] items-center justify-center'>
         <div className='text-center'>
-          <div className='mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-slate-300 border-t-slate-800 dark:border-slate-600 dark:border-t-slate-200' />
-          <p className='text-sm text-slate-600 dark:text-slate-400'>
-            Loading catalog prices…
-          </p>
+          <div className='mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-border border-t-foreground' />
+          <p className='text-sm text-muted-foreground'>Loading catalog prices…</p>
         </div>
       </div>
     )
@@ -205,17 +220,15 @@ export default function ProductPage({
     return (
       <div className='flex min-h-[50vh] items-center justify-center px-4'>
         <div className='max-w-md text-center'>
-          <AlertCircle className='mx-auto mb-4 h-10 w-10 text-red-600' />
-          <h2 className='mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100'>
+          <AlertCircle className='mx-auto mb-4 h-10 w-10 text-red-600 dark:text-red-400' />
+          <h2 className='mb-2 text-lg font-semibold text-foreground'>
             Could not load prices
           </h2>
-          <p className='mb-4 text-sm text-slate-600 dark:text-slate-400'>
-            {error}
-          </p>
+          <p className='mb-4 text-sm text-muted-foreground'>{error}</p>
           <button
             type='button'
             onClick={() => window.location.reload()}
-            className='rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white'
+            className='bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
           >
             Retry
           </button>
@@ -225,70 +238,80 @@ export default function ProductPage({
   }
 
   return (
-    <div className='w-full bg-slate-50 dark:bg-slate-950'>
-      {/* Header — terminal-style strip, not marketing hero */}
-      <header className='border-b border-slate-200 bg-slate-900 text-slate-100 dark:border-slate-800'>
-        <div className='mx-auto max-w-7xl px-4 py-8 sm:px-6'>
+    <div className='w-full bg-background'>
+      {/* Header — editorial strip matching About / Contact */}
+      <header className='border-b border-border'>
+        <div className='mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14'>
           <nav
-            className='mb-4 flex flex-wrap items-center gap-1.5 text-xs text-slate-400'
+            className='mb-4 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground'
             aria-label='Breadcrumb'
           >
-            <Link href='/products' className='hover:text-slate-200'>
+            <Link
+              href='/products'
+              className='transition-colors duration-200 ease-out hover:text-foreground'
+            >
               Products
             </Link>
             <ChevronRight className='h-3 w-3' />
             <Link
               href={productCategoryHref(category)}
-              className='hover:text-slate-200'
+              className='transition-colors duration-200 ease-out hover:text-foreground'
             >
               {categoryInfo?.name ?? category}
             </Link>
             <ChevronRight className='h-3 w-3' />
-            <span className='text-slate-200'>{subcategory}</span>
+            <span className='text-foreground'>{subcategory}</span>
           </nav>
 
-          <div className='flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between'>
-            <div className='flex items-start gap-4'>
-              <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-slate-700 bg-slate-800'>
-                <i className={`${iconClass} text-2xl text-amber-500`} />
-              </div>
-              <div>
-                <p className='mb-1 text-xs font-medium uppercase tracking-wider text-slate-400'>
+          <div className='grid gap-8 lg:grid-cols-12 lg:items-end'>
+            <div className='lg:col-span-7'>
+              <div className='mb-3 flex items-center gap-3'>
+                <span className='font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
                   Unit prices · USD
-                </p>
-                <h1 className='text-2xl font-semibold tracking-tight sm:text-3xl'>
-                  {title}
-                </h1>
-                {description && (
-                  <p className='mt-2 max-w-2xl text-sm leading-relaxed text-slate-400'>
-                    {description}
-                  </p>
-                )}
+                </span>
+              </div>
+              <div className='flex items-start gap-4'>
+                <div className='flex h-12 w-12 shrink-0 items-center justify-center border border-border bg-card'>
+                  <i
+                    className={`${iconClass} text-2xl text-foreground`}
+                    aria-hidden
+                  />
+                </div>
+                <div>
+                  <h1 className='text-2xl font-semibold tracking-tight text-foreground sm:text-3xl'>
+                    {title}
+                  </h1>
+                  {description && (
+                    <p className='mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground'>
+                      {description}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
-            <dl className='grid grid-cols-3 gap-px overflow-hidden rounded-md border border-slate-700 bg-slate-700 sm:min-w-[280px]'>
-              <div className='bg-slate-900 px-3 py-2.5'>
-                <dt className='text-[10px] uppercase tracking-wide text-slate-500'>
+            <dl className='grid grid-cols-3 gap-px overflow-hidden border border-border bg-border sm:min-w-[280px] lg:col-span-5'>
+              <div className='bg-card px-3 py-2.5'>
+                <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
                   Lines
                 </dt>
-                <dd className='text-lg font-semibold tabular-nums'>
+                <dd className='font-mono text-lg font-semibold tabular-nums text-foreground'>
                   {stats.count}
                 </dd>
               </div>
-              <div className='bg-slate-900 px-3 py-2.5'>
-                <dt className='text-[10px] uppercase tracking-wide text-slate-500'>
+              <div className='bg-card px-3 py-2.5'>
+                <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
                   Low
                 </dt>
-                <dd className='text-sm font-semibold tabular-nums text-emerald-400'>
+                <dd className='text-sm font-semibold tabular-nums text-emerald-600 dark:text-emerald-400'>
                   {stats.count ? formatUsd(stats.min) : '—'}
                 </dd>
               </div>
-              <div className='bg-slate-900 px-3 py-2.5'>
-                <dt className='text-[10px] uppercase tracking-wide text-slate-500'>
+              <div className='bg-card px-3 py-2.5'>
+                <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
                   High
                 </dt>
-                <dd className='text-sm font-semibold tabular-nums text-amber-400'>
+                <dd className='text-sm font-semibold tabular-nums text-amber-800 dark:text-amber-500'>
                   {stats.count ? formatUsd(stats.max) : '—'}
                 </dd>
               </div>
@@ -298,32 +321,32 @@ export default function ProductPage({
       </header>
 
       {/* Toolbar */}
-      <div className='sticky top-16 z-10 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95'>
-        <div className='mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:px-6'>
+      <div className='sticky top-16 z-10 border-b border-border bg-background/95 backdrop-blur'>
+        <div className='mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center md:px-6'>
           <div className='relative flex-1'>
-            <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400' />
+            <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
             <input
               type='search'
               placeholder='Search size, mill, or product name…'
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className='w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100'
+              className='w-full border border-border bg-background py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
             />
           </div>
           <div className='flex items-center gap-2'>
             <button
               type='button'
               onClick={() => setShowFilters(v => !v)}
-              className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+              className={`inline-flex items-center gap-2 border px-3 py-2 text-sm font-medium transition-colors duration-200 ease-out ${
                 showFilters
-                  ? 'border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900'
-                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900'
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border bg-card text-foreground hover:bg-muted'
               }`}
             >
               <Filter className='h-4 w-4' />
               Filters
             </button>
-            <span className='hidden text-xs text-slate-500 sm:inline'>
+            <span className='hidden text-xs text-muted-foreground sm:inline'>
               {stats.inStock} of {stats.count} in stock
             </span>
           </div>
@@ -331,7 +354,7 @@ export default function ProductPage({
       </div>
 
       {/* Pricing board */}
-      <div className='mx-auto max-w-7xl px-4 py-6 sm:px-6'>
+      <div className='mx-auto max-w-7xl px-4 py-6 md:px-6'>
         <div
           className={`grid grid-cols-1 gap-6 ${showFilters ? 'lg:grid-cols-4' : ''}`}
         >
@@ -344,20 +367,21 @@ export default function ProductPage({
                 showCategoryFilter={false}
                 currentCategory={category}
                 currentSubcategory={subcategory}
+                availableBrands={availableBrands}
+                availableSizes={availableSizes}
               />
             </aside>
           )}
 
           <div className={showFilters ? 'lg:col-span-3' : ''}>
             {filteredProducts.length === 0 ? (
-              <div className='rounded-md border border-dashed border-slate-300 bg-white px-6 py-16 text-center dark:border-slate-700 dark:bg-slate-900'>
-                <Package className='mx-auto mb-3 h-10 w-10 text-slate-400' />
-                <h3 className='mb-1 text-base font-semibold text-slate-800 dark:text-slate-200'>
+              <div className='border border-dashed border-border bg-card px-6 py-16 text-center'>
+                <Package className='mx-auto mb-3 h-10 w-10 text-muted-foreground' />
+                <h3 className='mb-1 text-base font-semibold text-foreground'>
                   No matching line items
                 </h3>
-                <p className='text-sm text-slate-500'>
-                  Adjust search or filters, or clear filters to see the full
-                  list.
+                <p className='text-sm text-muted-foreground'>
+                  Adjust search or filters, or clear filters to see the full list.
                 </p>
                 {(searchTerm || Object.keys(filters).length > 0) && (
                   <button
@@ -366,7 +390,7 @@ export default function ProductPage({
                       setSearchTerm('')
                       setFilters({})
                     }}
-                    className='mt-4 text-sm font-medium text-slate-900 underline-offset-4 hover:underline dark:text-slate-100'
+                    className='mt-4 text-sm font-medium text-foreground underline-offset-4 hover:underline'
                   >
                     Clear search & filters
                   </button>
@@ -377,13 +401,13 @@ export default function ProductPage({
                 {Object.entries(productsByBrand).map(([brand, brandProducts]) => (
                   <section key={brand}>
                     <div className='mb-3 flex flex-wrap items-center gap-2'>
-                      <h2 className='text-sm font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-300'>
+                      <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
                         {brand}
                       </h2>
-                      <Badge className='bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200'>
+                      <span className='border border-border bg-muted/50 px-2 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground'>
                         {brandProducts.length}{' '}
                         {brandProducts.length === 1 ? 'item' : 'items'}
-                      </Badge>
+                      </span>
                     </div>
                     <CategoryTable
                       category={categoryInfo!}
@@ -399,21 +423,21 @@ export default function ProductPage({
           </div>
         </div>
 
-        {/* Supporting info — editorial, not feature cards soup */}
+        {/* Supporting info */}
         {(features.length > 0 ||
           applications.length > 0 ||
           Object.keys(specifications).length > 0) && (
-          <div className='mt-12 grid grid-cols-1 gap-8 border-t border-slate-200 pt-10 dark:border-slate-800 lg:grid-cols-3'>
+          <div className='mt-12 grid grid-cols-1 gap-8 border-t border-border pt-10 lg:grid-cols-3'>
             {features.length > 0 && (
               <section>
-                <h3 className='mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-800 dark:text-slate-200'>
-                  <CheckCircle2 className='h-4 w-4 text-amber-600' />
+                <h3 className='mb-3 flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                  <CheckCircle2 className='h-4 w-4 text-amber-800 dark:text-amber-500' />
                   Product notes
                 </h3>
-                <ul className='space-y-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400'>
+                <ul className='space-y-2 text-sm leading-relaxed text-muted-foreground'>
                   {features.map(item => (
                     <li key={item} className='flex gap-2'>
-                      <span className='mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-400' />
+                      <span className='mt-2 h-1 w-1 shrink-0 rounded-full bg-border' />
                       {item}
                     </li>
                   ))}
@@ -422,14 +446,14 @@ export default function ProductPage({
             )}
             {applications.length > 0 && (
               <section>
-                <h3 className='mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-800 dark:text-slate-200'>
-                  <Wrench className='h-4 w-4 text-amber-600' />
+                <h3 className='mb-3 flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                  <Wrench className='h-4 w-4 text-amber-800 dark:text-amber-500' />
                   Typical use
                 </h3>
-                <ul className='space-y-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400'>
+                <ul className='space-y-2 text-sm leading-relaxed text-muted-foreground'>
                   {applications.map(item => (
                     <li key={item} className='flex gap-2'>
-                      <span className='mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-400' />
+                      <span className='mt-2 h-1 w-1 shrink-0 rounded-full bg-border' />
                       {item}
                     </li>
                   ))}
@@ -438,18 +462,18 @@ export default function ProductPage({
             )}
             {Object.keys(specifications).length > 0 && (
               <section>
-                <h3 className='mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-800 dark:text-slate-200'>
-                  <FileText className='h-4 w-4 text-amber-600' />
+                <h3 className='mb-3 flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                  <FileText className='h-4 w-4 text-amber-800 dark:text-amber-500' />
                   Specs
                 </h3>
-                <dl className='divide-y divide-slate-200 border border-slate-200 dark:divide-slate-800 dark:border-slate-800'>
+                <dl className='divide-y divide-border border border-border bg-card'>
                   {Object.entries(specifications).map(([key, value]) => (
                     <div
                       key={key}
                       className='flex justify-between gap-4 px-3 py-2 text-sm'
                     >
-                      <dt className='text-slate-500'>{key}</dt>
-                      <dd className='text-right font-medium text-slate-800 dark:text-slate-200'>
+                      <dt className='text-muted-foreground'>{key}</dt>
+                      <dd className='text-right font-medium text-foreground'>
                         {value}
                       </dd>
                     </div>
@@ -460,10 +484,10 @@ export default function ProductPage({
           </div>
         )}
 
-        <p className='mt-8 flex items-start gap-2 text-xs text-slate-500'>
+        <p className='mt-8 flex items-start gap-2 text-xs text-muted-foreground'>
           <Calculator className='mt-0.5 h-3.5 w-3.5 shrink-0' />
-          Prices are demo unit rates in USD. Use the calculator action on a row
-          for weight estimates where available.
+          Prices are demo unit rates in USD. Use the calculator action on a row for
+          weight estimates where available.
         </p>
       </div>
 

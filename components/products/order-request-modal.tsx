@@ -1,48 +1,32 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import {
-  X,
-  Phone,
-  User,
-  Building2,
-  MapPin,
-  Calendar,
-  Package,
-  Truck,
-  CheckCircle,
-  AlertCircle,
-  Send,
-  MessageSquare,
-  Info,
-  FileText,
-  Weight,
-} from 'lucide-react';
-import moment from 'moment-jalaali';
+import { useState, useEffect } from 'react'
+import { X, CheckCircle, Send } from 'lucide-react'
 
 interface OrderRequestModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  productName?: string;
-  productSpecs?: string;
+  isOpen: boolean
+  onClose: () => void
+  productName?: string
+  productSpecs?: string
 }
 
 interface OrderFormData {
-  customerName: string;
-  companyName: string;
-  phoneNumber: string;
-  city: string;
-  productSpecs: string;
-  quantity: string;
-  deliveryDate: string;
-  deliveryMethod: 'pickup' | 'delivery';
-  additionalNotes: string;
+  customerName: string
+  companyName: string
+  phoneNumber: string
+  city: string
+  productSpecs: string
+  quantity: string
+  deliveryDate: string
+  deliveryMethod: 'pickup' | 'delivery'
+  additionalNotes: string
 }
+
+const fieldClass =
+  'w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground disabled:cursor-not-allowed disabled:opacity-50'
+
+const labelClass =
+  'mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
 
 export default function OrderRequestModal({
   isOpen,
@@ -60,22 +44,33 @@ export default function OrderRequestModal({
     deliveryDate: '',
     deliveryMethod: 'pickup',
     additionalNotes: '',
-  });
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [trackingCode, setTrackingCode] = useState('')
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(prev => ({
+        ...prev,
+        productSpecs: productSpecs || prev.productSpecs,
+      }))
+      setErrorMessage(null)
+    }
+  }, [isOpen, productSpecs])
 
   const handleInputChange = (field: keyof OrderFormData, value: string) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [field]: value,
-    }));
-  };
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
+    setErrorMessage(null)
 
-    // Validation
     if (
       !formData.customerName.trim() ||
       !formData.phoneNumber.trim() ||
@@ -83,18 +78,16 @@ export default function OrderRequestModal({
       !formData.productSpecs.trim() ||
       !formData.quantity.trim()
     ) {
-      alert('لطفاً تمام فیلدهای ضروری را پر کنید.');
-      return;
+      setErrorMessage('Please fill in all required fields.')
+      return
     }
 
-    setIsSubmitting(true);
+    setIsSubmitting(true)
 
     try {
       const response = await fetch('/api/quick-orders', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerName: formData.customerName,
           companyName: formData.companyName,
@@ -107,16 +100,15 @@ export default function OrderRequestModal({
           additionalNotes: formData.additionalNotes,
           productName: productName,
         }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (data.success) {
-        setIsSubmitted(true);
-
-        // Reset form after 3 seconds
+        setTrackingCode(Math.random().toString(36).substring(2, 8).toUpperCase())
+        setIsSubmitted(true)
         setTimeout(() => {
-          setIsSubmitted(false);
+          setIsSubmitted(false)
           setFormData({
             customerName: '',
             companyName: '',
@@ -127,473 +119,305 @@ export default function OrderRequestModal({
             deliveryDate: '',
             deliveryMethod: 'pickup',
             additionalNotes: '',
-          });
-          onClose();
-        }, 3000);
+          })
+          onClose()
+        }, 3000)
       } else {
-        alert(data.error || 'خطا در ثبت سفارش');
-        setIsSubmitting(false);
+        setErrorMessage(data.error || 'Could not submit request.')
+        setIsSubmitting(false)
       }
-    } catch (error) {
-      console.error('Error submitting order:', error);
-      alert('خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.');
-      setIsSubmitting(false);
+    } catch {
+      setErrorMessage('Network error. Check your connection and try again.')
+      setIsSubmitting(false)
     }
-  };
+  }
 
-  // Jalali date picker state
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [displayJYear, setDisplayJYear] = useState<number>(() =>
-    formData.deliveryDate
-      ? moment(formData.deliveryDate).jYear()
-      : moment().jYear()
-  );
-  const [displayJMonth, setDisplayJMonth] = useState<number>(() =>
-    formData.deliveryDate
-      ? moment(formData.deliveryDate).jMonth()
-      : moment().jMonth()
-  );
-
-  // Ensure calendar is closed and month/year are initialized when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      setShowCalendar(false);
-      setDisplayJYear(
-        formData.deliveryDate
-          ? moment(formData.deliveryDate).jYear()
-          : moment().jYear()
-      );
-      setDisplayJMonth(
-        formData.deliveryDate
-          ? moment(formData.deliveryDate).jMonth()
-          : moment().jMonth()
-      );
-    }
-  }, [isOpen]);
-
-  const persianMonths = [
-    'فروردین',
-    'اردیبهشت',
-    'خرداد',
-    'تیر',
-    'مرداد',
-    'شهریور',
-    'مهر',
-    'آبان',
-    'آذر',
-    'دی',
-    'بهمن',
-    'اسفند',
-  ];
-  const jalaliMonthName = (m: number) => persianMonths[m] || '';
-
-  const startOfJMonth = (jy: number, jm: number) =>
-    moment().jYear(jy).jMonth(jm).jDate(1);
-  const daysInJMonth = (jy: number, jm: number) => {
-    // moment-jalaali exposes jDaysInMonth; use any to satisfy TS types
-    return (moment as any).jDaysInMonth(jy, jm);
-  };
-
-  const selectJalaliDay = (day: number) => {
-    const m = moment().jYear(displayJYear).jMonth(displayJMonth).jDate(day);
-    // convert to ISO (gregorian) string
-    const iso = m.toDate().toISOString();
-    handleInputChange('deliveryDate', iso);
-    setShowCalendar(false);
-  };
-
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <Card className="w-full max-w-2xl max-h-[80vh] overflow-hidden bg-white shadow-2xl animate-slide-in-from-bottom">
-        <CardHeader className="sticky top-0 z-10 py-3 ">
+    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
+      <div
+        role='dialog'
+        aria-modal='true'
+        aria-labelledby='order-request-title'
+        className='flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden border border-border bg-card shadow-lg'
+      >
+        <div className='flex items-center justify-between border-b border-border px-5 py-3'>
+          <div>
+            <p className='font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+              Sales desk
+            </p>
+            <h2
+              id='order-request-title'
+              className='text-base font-semibold tracking-tight text-foreground'
+            >
+              Quote request
+            </h2>
+          </div>
           <button
+            type='button'
             onClick={onClose}
-            className="absolute p-1 transition-colors rounded-full left-3 top-3 hover:bg-white/50 group"
-            aria-label="بستن"
+            className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
+            aria-label='Close'
           >
-            <X className="w-4 h-4 text-gray-600 group-hover:text-gray-800" />
+            <X className='h-4 w-4' />
           </button>
+        </div>
 
-          <div className="pt-1 text-center"></div>
-        </CardHeader>
-
-        <CardContent
-          className="p-4 overflow-y-auto"
-          style={{ maxHeight: 'calc(80vh - 80px)' }}
-        >
+        <div className='overflow-y-auto px-5 py-5'>
           {isSubmitted ? (
-            <div className="py-6 space-y-3 text-center">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-green-100 rounded-full">
-                <CheckCircle className="w-6 h-6 text-green-600" />
+            <div className='space-y-3 py-8 text-center'>
+              <div className='mx-auto flex h-12 w-12 items-center justify-center border border-emerald-600/30 bg-emerald-50 dark:bg-emerald-950/40'>
+                <CheckCircle className='h-6 w-6 text-emerald-600 dark:text-emerald-400' />
               </div>
-              <h3 className="text-lg font-medium text-gray-800">
-                درخواست شما ثبت شد
+              <h3 className='text-lg font-semibold text-foreground'>
+                Request received
               </h3>
-              <p className="text-sm text-gray-600">
-                درخواست شما با موفقیت ثبت شد. کارشناسان ما در اسرع وقت با شما
-                تماس خواهند گرفت.
+              <p className='text-sm text-muted-foreground'>
+                Sales will follow up with firm pricing against the catalog board.
               </p>
-              <div className="inline-block px-3 py-2 rounded-md bg-blue-50">
-                <p className="text-sm font-medium text-blue-800">
-                  شماره پیگیری: #
-                  {Math.random().toString(36).substr(2, 6).toUpperCase()}
+              {trackingCode ? (
+                <p className='inline-block border border-border bg-muted/40 px-3 py-2 font-mono text-sm text-foreground'>
+                  Ref · {trackingCode}
                 </p>
-              </div>
+              ) : null}
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* اطلاعات مشتری */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <User className="w-4 h-4 text-blue-600" />
-                  <h3 className="text-sm font-medium text-gray-800">
-                    اطلاعات مشتری
-                  </h3>
+            <form onSubmit={handleSubmit} className='space-y-5'>
+              {productName ? (
+                <div className='border border-border bg-muted/40 px-3 py-2.5 text-sm'>
+                  <p className='text-[10px] uppercase tracking-wide text-muted-foreground'>
+                    Line item
+                  </p>
+                  <p className='mt-0.5 font-medium text-foreground'>{productName}</p>
                 </div>
+              ) : null}
 
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <div>
-                    <Label
-                      htmlFor="customerName"
-                      className="text-sm text-gray-700"
-                    >
-                      نام و نام خانوادگی *
-                    </Label>
-                    <Input
-                      id="customerName"
-                      type="text"
+              <section className='space-y-3'>
+                <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                  Contact
+                </h3>
+                <div className='grid gap-3 sm:grid-cols-2'>
+                  <div className='sm:col-span-2'>
+                    <label htmlFor='customerName' className={labelClass}>
+                      Full name *
+                    </label>
+                    <input
+                      id='customerName'
+                      type='text'
                       value={formData.customerName}
-                      onChange={(e) =>
+                      onChange={e =>
                         handleInputChange('customerName', e.target.value)
                       }
-                      className="w-full py-2"
-                      placeholder="نام کامل"
+                      className={fieldClass}
+                      placeholder='Name for the quote file'
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
-
                   <div>
-                    <Label
-                      htmlFor="phoneNumber"
-                      className="text-sm text-gray-700"
-                    >
-                      شماره تماس *
-                    </Label>
-                    <Input
-                      id="phoneNumber"
-                      type="tel"
+                    <label htmlFor='phoneNumber' className={labelClass}>
+                      Phone *
+                    </label>
+                    <input
+                      id='phoneNumber'
+                      type='tel'
                       value={formData.phoneNumber}
-                      onChange={(e) =>
+                      onChange={e =>
                         handleInputChange('phoneNumber', e.target.value)
                       }
-                      className="w-full py-2"
-                      placeholder="09xxxxxxxxx"
+                      className={fieldClass}
+                      placeholder='+98 …'
+                      dir='ltr'
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div>
-                    <Label
-                      htmlFor="companyName"
-                      className="text-sm text-gray-700"
-                    >
-                      نام شرکت
-                    </Label>
-                    <Input
-                      id="companyName"
-                      type="text"
+                    <label htmlFor='city' className={labelClass}>
+                      Delivery city *
+                    </label>
+                    <input
+                      id='city'
+                      type='text'
+                      value={formData.city}
+                      onChange={e => handleInputChange('city', e.target.value)}
+                      className={fieldClass}
+                      placeholder='City'
+                      required
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  <div className='sm:col-span-2'>
+                    <label htmlFor='companyName' className={labelClass}>
+                      Company
+                    </label>
+                    <input
+                      id='companyName'
+                      type='text'
                       value={formData.companyName}
-                      onChange={(e) =>
+                      onChange={e =>
                         handleInputChange('companyName', e.target.value)
                       }
-                      className="w-full py-2"
-                      placeholder="اختیاری"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="city" className="text-sm text-gray-700">
-                      شهر *
-                    </Label>
-                    <Input
-                      id="city"
-                      type="text"
-                      value={formData.city}
-                      onChange={(e) =>
-                        handleInputChange('city', e.target.value)
-                      }
-                      className="w-full py-2"
-                      placeholder="شهر"
-                      required
+                      className={fieldClass}
+                      placeholder='Optional'
+                      disabled={isSubmitting}
                     />
                   </div>
                 </div>
-              </div>
+              </section>
 
-              {/* مشخصات محصول */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Package className="w-4 h-4 text-blue-600" />
-                  <h3 className="text-sm font-medium text-gray-800">
-                    مشخصات سفارش
-                  </h3>
-                </div>
-
+              <section className='space-y-3'>
+                <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                  Order details
+                </h3>
                 <div>
-                  <Label
-                    htmlFor="productSpecs"
-                    className="text-sm text-gray-700"
-                  >
-                    مشخصات محصول *
-                  </Label>
-                  <Input
-                    id="productSpecs"
-                    type="text"
+                  <label htmlFor='productSpecs' className={labelClass}>
+                    Specs *
+                  </label>
+                  <input
+                    id='productSpecs'
+                    type='text'
                     value={formData.productSpecs}
-                    onChange={(e) =>
-                      handleInputChange('productSpecs', e.target.value)
-                    }
-                    className="w-full py-2"
-                    placeholder="مثال: میلگرد آجدار A3 قطر 12 میلی‌متر"
+                    onChange={e => handleInputChange('productSpecs', e.target.value)}
+                    className={fieldClass}
+                    placeholder='Size, grade, mill…'
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
-
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div className='grid gap-3 sm:grid-cols-2'>
                   <div>
-                    <Label htmlFor="quantity" className="text-sm text-gray-700">
-                      مقدار مورد نیاز *
-                    </Label>
-                    <Input
-                      id="quantity"
-                      type="text"
+                    <label htmlFor='quantity' className={labelClass}>
+                      Quantity *
+                    </label>
+                    <input
+                      id='quantity'
+                      type='text'
                       value={formData.quantity}
-                      onChange={(e) =>
-                        handleInputChange('quantity', e.target.value)
-                      }
-                      className="w-full py-2"
-                      placeholder="مثال: 5 تن"
+                      onChange={e => handleInputChange('quantity', e.target.value)}
+                      className={fieldClass}
+                      placeholder='e.g. 5 tons'
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
-
-                  <div className="relative">
-                    <Label
-                      htmlFor="deliveryDate"
-                      className="text-sm text-gray-700"
-                    >
-                      تاریخ تحویل
-                    </Label>
-
-                    <button
-                      type="button"
-                      onClick={() => setShowCalendar((s) => !s)}
-                      className="flex items-center justify-between w-full px-3 py-2 text-sm text-left text-gray-700 border border-gray-200 rounded-md bg-gray-50"
-                    >
-                      <span>
-                        {formData.deliveryDate
-                          ? moment(formData.deliveryDate).format(
-                              'jYYYY/jMM/jDD'
-                            )
-                          : 'تعیین نشده'}
-                      </span>
-                      <span className="text-xs text-gray-400">🔽</span>
-                    </button>
-
-                    {showCalendar && (
-                      <div className="absolute left-0 z-20 w-full mt-2 bg-white border border-gray-200 rounded-md shadow-lg">
-                        <div className="flex items-center justify-between px-3 py-2 border-b">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              // prev month
-                              if (displayJMonth === 0) {
-                                setDisplayJMonth(11);
-                                setDisplayJYear((y) => y - 1);
-                              } else {
-                                setDisplayJMonth((m) => m - 1);
-                              }
-                            }}
-                            className="px-2 py-1 text-sm"
-                          >
-                            ‹
-                          </button>
-                          <div className="text-sm font-medium">
-                            {jalaliMonthName(displayJMonth)} {displayJYear}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              // next month
-                              if (displayJMonth === 11) {
-                                setDisplayJMonth(0);
-                                setDisplayJYear((y) => y + 1);
-                              } else {
-                                setDisplayJMonth((m) => m + 1);
-                              }
-                            }}
-                            className="px-2 py-1 text-sm"
-                          >
-                            ›
-                          </button>
-                        </div>
-
-                        <div className="grid grid-cols-7 gap-1 p-2 text-xs text-center">
-                          {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map((d) => (
-                            <div key={d} className="text-gray-500">
-                              {d}
-                            </div>
-                          ))}
-
-                          {/* blank leading cells if month doesn't start on first weekday */}
-                          {(() => {
-                            const start = startOfJMonth(
-                              displayJYear,
-                              displayJMonth
-                            ).day();
-                            const blanks = (start + 6) % 7; // convert to jalali week starting index (sat?) adjust
-                            const days = [];
-                            for (let i = 0; i < blanks; i++)
-                              days.push(<div key={`b${i}`} />);
-                            const dim = daysInJMonth(
-                              displayJYear,
-                              displayJMonth
-                            );
-                            for (let d = 1; d <= dim; d++) {
-                              days.push(
-                                <button
-                                  key={`d${d}`}
-                                  type="button"
-                                  onClick={() => selectJalaliDay(d)}
-                                  className="p-2 text-sm rounded hover:bg-blue-50"
-                                >
-                                  {d}
-                                </button>
-                              );
-                            }
-                            return days;
-                          })()}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* hidden ISO input kept for form semantics if needed */}
+                  <div>
+                    <label htmlFor='deliveryDate' className={labelClass}>
+                      Preferred date
+                    </label>
                     <input
-                      type="hidden"
-                      name="deliveryDate"
-                      value={formData.deliveryDate}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* نحوه تحویل */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Truck className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-semibold text-gray-800">نحوه تحویل</h3>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <label className="flex items-center space-x-3 space-x-reverse cursor-pointer">
-                    <input
-                      type="radio"
-                      name="deliveryMethod"
-                      value="pickup"
-                      checked={formData.deliveryMethod === 'pickup'}
-                      onChange={(e) =>
-                        handleInputChange('deliveryMethod', e.target.value)
+                      id='deliveryDate'
+                      type='date'
+                      value={
+                        formData.deliveryDate
+                          ? formData.deliveryDate.slice(0, 10)
+                          : ''
                       }
-                      className="w-4 h-4 text-blue-600"
-                    />
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm font-medium text-gray-700">
-                        تحویل در محل کارخانه
-                      </span>
-                    </div>
-                  </label>
-
-                  <label className="flex items-center space-x-3 space-x-reverse cursor-pointer">
-                    <input
-                      type="radio"
-                      name="deliveryMethod"
-                      value="delivery"
-                      checked={formData.deliveryMethod === 'delivery'}
-                      onChange={(e) =>
-                        handleInputChange('deliveryMethod', e.target.value)
+                      onChange={e =>
+                        handleInputChange(
+                          'deliveryDate',
+                          e.target.value
+                            ? new Date(e.target.value).toISOString()
+                            : '',
+                        )
                       }
-                      className="w-4 h-4 text-blue-600"
+                      className={fieldClass}
+                      disabled={isSubmitting}
                     />
-                    <div className="flex items-center gap-2">
-                      <Truck className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm font-medium text-gray-700">
-                        ارسال با باربری
-                      </span>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {/* توضیحات اضافی */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="additionalNotes"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-blue-600" />
-                    توضیحات اضافی
                   </div>
-                </Label>
+                </div>
+              </section>
+
+              <section className='space-y-3'>
+                <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                  Delivery
+                </h3>
+                <div className='grid gap-2 sm:grid-cols-2'>
+                  {(
+                    [
+                      { value: 'pickup', label: 'Ex-works pickup' },
+                      { value: 'delivery', label: 'Freight to site' },
+                    ] as const
+                  ).map(option => (
+                    <label
+                      key={option.value}
+                      className={`flex cursor-pointer items-center gap-2 border px-3 py-2.5 text-sm transition-colors duration-200 ease-out ${
+                        formData.deliveryMethod === option.value
+                          ? 'border-foreground bg-muted text-foreground'
+                          : 'border-border bg-background text-muted-foreground hover:bg-muted/50'
+                      }`}
+                    >
+                      <input
+                        type='radio'
+                        name='deliveryMethod'
+                        value={option.value}
+                        checked={formData.deliveryMethod === option.value}
+                        onChange={e =>
+                          handleInputChange('deliveryMethod', e.target.value)
+                        }
+                        className='sr-only'
+                        disabled={isSubmitting}
+                      />
+                      {option.label}
+                    </label>
+                  ))}
+                </div>
+              </section>
+
+              <div>
+                <label htmlFor='additionalNotes' className={labelClass}>
+                  Notes
+                </label>
                 <textarea
-                  id="additionalNotes"
+                  id='additionalNotes'
                   value={formData.additionalNotes}
-                  onChange={(e) =>
+                  onChange={e =>
                     handleInputChange('additionalNotes', e.target.value)
                   }
-                  className="w-full min-h-[80px] p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="توضیحات اضافی در مورد سفارش خود (اختیاری)"
+                  className={`${fieldClass} min-h-[5rem] resize-y`}
+                  placeholder='Timing, inspection, mill preference…'
+                  disabled={isSubmitting}
                 />
               </div>
 
-              {/* دکمه‌های عملیات */}
-              <div className="flex gap-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onClose}
-                  className="flex-1"
-                  disabled={isSubmitting}
+              {errorMessage ? (
+                <div
+                  role='alert'
+                  className='border border-red-600/40 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-100'
                 >
-                  انصراف
-                </Button>
-                <Button
-                  type="submit"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  {errorMessage}
+                </div>
+              ) : null}
+
+              <div className='flex flex-col gap-2 border-t border-border pt-4 sm:flex-row'>
+                <button
+                  type='button'
+                  onClick={onClose}
                   disabled={isSubmitting}
+                  className='inline-flex flex-1 items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:opacity-50'
+                >
+                  Cancel
+                </button>
+                <button
+                  type='submit'
+                  disabled={isSubmitting}
+                  className='inline-flex flex-1 items-center justify-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'
                 >
                   {isSubmitting ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin" />
-                      در حال ثبت...
-                    </div>
+                    'Sending…'
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <Send className="w-4 h-4" />
-                      ثبت درخواست سفارش
-                    </div>
+                    <>
+                      <Send className='h-4 w-4' />
+                      Send request
+                    </>
                   )}
-                </Button>
+                </button>
               </div>
             </form>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
