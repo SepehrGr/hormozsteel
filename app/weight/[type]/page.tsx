@@ -1,245 +1,195 @@
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import SheetWeightCalculator from '@/components/calculators/sheet-weight-calculator';
-import BeamWeightCalculator from '@/components/calculators/beam-weight-calculator';
-import RebarWeightCalculator from '@/components/calculators/rebar-weight-calculator';
-import BilletWeightCalculator from '@/components/calculators/billet-weight-calculator';
-import PipeWeightCalculator from '@/components/calculators/pipe-weight-calculator';
-import StudWeightCalculator from '@/components/calculators/stud-weight-calculator';
-import AngleWeightCalculator from '@/components/calculators/angle-weight-calculator';
-import SquareTubeWeightCalculator from '@/components/calculators/square-tube-weight-calculator';
-import {
-  Calculator,
-  Star,
-  Shield,
-  Ruler,
-  Layers,
-  Truck,
-  Users2,
-} from 'lucide-react';
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import type { Metadata } from 'next'
+import SheetWeightCalculator from '@/components/calculators/sheet-weight-calculator'
+import BeamWeightCalculator from '@/components/calculators/beam-weight-calculator'
+import RebarWeightCalculator from '@/components/calculators/rebar-weight-calculator'
+import BilletWeightCalculator from '@/components/calculators/billet-weight-calculator'
+import PipeWeightCalculator from '@/components/calculators/pipe-weight-calculator'
+import StudWeightCalculator from '@/components/calculators/stud-weight-calculator'
+import AngleWeightCalculator from '@/components/calculators/angle-weight-calculator'
+import SquareTubeWeightCalculator from '@/components/calculators/square-tube-weight-calculator'
 
 type WeightPageProps = {
-  params: Promise<{
-    type: string;
-  }>;
-};
-
-// تعریف انواع ماشین حساب موجود
-const WEIGHT_CALCULATORS = {
-  sheet: {
-    title: 'وزن ورق',
-    description: 'محاسبه وزن انواع ورق فولادی',
-  },
-  beam: {
-    title: 'وزن تیرآهن',
-    description: 'محاسبه وزن انواع تیرآهن',
-  },
-  rebar: {
-    title: 'وزن میلگرد',
-    description: 'محاسبه وزن میلگرد آجدار و ساده',
-  },
-  billet: {
-    title: 'وزن شمش فولادی',
-    description: 'محاسبه وزن شمش فولادی',
-  },
-  pipe: {
-    title: 'وزن لوله فولادی',
-    description: 'محاسبه وزن انواع لوله فولادی',
-  },
-  stud: {
-    title: 'وزن ناودانی',
-    description: 'محاسبه وزن ناودانی',
-  },
-  angle: {
-    title: 'وزن نبشی',
-    description: 'محاسبه وزن نبشی',
-  },
-  'square-tube': {
-    title: 'وزن قوطی',
-    description: 'محاسبه وزن قوطی',
-  },
-};
-
-export default async function WeightCalculatorPage({
-  params,
-}: WeightPageProps) {
-  const resolvedParams = await params;
-  const calculatorInfo =
-    WEIGHT_CALCULATORS[resolvedParams.type as keyof typeof WEIGHT_CALCULATORS];
-  if (!calculatorInfo) notFound();
-
-  // Hero icon selection based on type
-  // const heroIcon = getHeroIcon(params.type);
-
-  return (
-    <main className="relative">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden text-white bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-600">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute top-0 right-0 translate-x-20 -translate-y-20 rounded-full w-96 h-96 bg-white/5"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 -translate-x-20 translate-y-20 rounded-full bg-white/5"></div>
-        <div className="relative px-6 py-16 mx-auto max-w-7xl">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 mx-auto mb-6 border-2 rounded-full shadow-2xl bg-white/20 backdrop-blur-md border-white/30">
-              <span
-                className="text-4xl text-white icon-calc drop-shadow-lg"
-                style={{ fontFamily: 'icomoon' }}
-                aria-label="آیکون ماشین حساب وزن"
-              ></span>
-            </div>
-            <h1 className="mb-6 text-5xl font-bold text-white drop-shadow-2xl">
-              {calculatorInfo.title}
-            </h1>
-            <p className="max-w-2xl mx-auto text-xl font-medium leading-relaxed text-white/95 drop-shadow-lg">
-              {calculatorInfo.description}
-            </p>
-            <div className="flex flex-col items-center justify-center gap-4 mt-8 text-sm sm:flex-row sm:gap-6">
-              <div className="flex items-center gap-2 px-4 py-2 border rounded-full bg-white/10 backdrop-blur-sm border-white/20">
-                <Shield className="w-4 h-4 text-white drop-shadow-md" />
-                <span className="font-medium text-white drop-shadow-sm">
-                  دقت بالا و تضمین صحت فرمول
-                </span>
-              </div>
-              <div className="flex items-center gap-2 px-4 py-2 border rounded-full bg-white/10 backdrop-blur-sm border-white/20">
-                <Users2 className="w-4 h-4 text-white drop-shadow-md" />
-                <span className="font-medium text-white drop-shadow-sm">
-                  مناسب مهندسین و خریداران
-                </span>
-              </div>
-              <div className="flex items-center gap-2 px-4 py-2 border rounded-full bg-white/10 backdrop-blur-sm border-white/20">
-                <Ruler className="w-4 h-4 text-white drop-shadow-md" />
-                <span className="font-medium text-white drop-shadow-sm">
-                  پشتیبانی از ابعاد و چگالی مختلف
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="container px-6 py-16 mx-auto">
-        {/* force LTR layout for the grid so column starts place items visually left/right */}
-        <div
-          dir="ltr"
-          className="relative z-20 grid grid-cols-1 gap-12 -mt-24 lg:grid-cols-3"
-        >
-          {/* Calculator (main) */}
-          <div className="flex flex-col gap-8 lg:col-span-2 lg:col-start-1 lg:order-1">
-            {/* کارت ماشین حساب */}
-            <div className="relative p-6 overflow-hidden border shadow-2xl bg-white/80 dark:bg-slate-900/80 border-gray-200/60 dark:border-gray-700/50 rounded-3xl md:p-8 backdrop-blur-md">
-              {/* هدر کارت */}
-              <div className="relative mb-6 text-center">
-                <div className="inline-flex items-center gap-3 px-4 py-2 mb-4 border rounded-full bg-white/60 dark:bg-slate-800/60 border-gray-200/50 dark:border-gray-700/50">
-                  <span
-                    className="text-blue-600 icon-calc dark:text-blue-400"
-                    style={{ fontFamily: 'icomoon' }}
-                  ></span>
-                  <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                    ماشین حساب {calculatorInfo.title}
-                  </span>
-                </div>
-              </div>
-
-              {/* محتوای ماشین حساب */}
-              <div className="relative">
-                {renderCalculator(resolvedParams.type)}
-              </div>
-            </div>
-            {/* اطلاعات و فرمول‌ها حذف شد */}
-          </div>
-
-          {/* Right Sidebar: other calculators */}
-          <aside className="lg:col-span-1 lg:col-start-3 lg:order-2">
-            <div className="sticky p-6 border shadow-2xl top-24 md:p-8 rounded-3xl bg-white/80 dark:bg-slate-900/80 border-gray-200/60 dark:border-gray-700/50 backdrop-blur-md">
-              <div className="flex justify-center w-full mb-4">
-                <div className="inline-flex items-center justify-center gap-2 px-4 py-2 border rounded-full shadow-sm w-max bg-white/20 dark:bg-white/6 border-white/10 dark:border-white/6 backdrop-blur-md">
-                  <span
-                    className="text-blue-600 icon-calc dark:text-blue-400"
-                    style={{ fontFamily: 'icomoon' }}
-                  ></span>
-                  <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                    ماشین حساب‌های دیگر
-                  </span>
-                </div>
-              </div>
-              <ul className="space-y-2">
-                {Object.entries(WEIGHT_CALCULATORS).map(([key, info]) => (
-                  <li key={key}>
-                    <Link
-                      href={`/weight/${key}`}
-                      scroll={false}
-                      className={`flex items-start gap-3 w-full p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${resolvedParams.type === key ? 'bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800' : ''}`}
-                    >
-                      <div className="flex-1 text-right">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {(info as any).title}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {(info as any).description}
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
-        </div>
-      </div>
-    </main>
-  );
+  params: Promise<{ type: string }>
 }
 
-function getHeroIcon(type: string) {
-  switch (type) {
-    case 'sheet':
-      return <Layers className="w-8 h-8 text-white" />;
-    case 'beam':
-      return <Truck className="w-8 h-8 text-white" />;
-    case 'rebar':
-      return <Ruler className="w-8 h-8 text-white" />;
-    case 'billet':
-      return <Star className="w-8 h-8 text-white" />;
-    case 'pipe':
-      return <Users2 className="w-8 h-8 text-white" />;
-    case 'stud':
-      return <Shield className="w-8 h-8 text-white" />;
-    case 'angle':
-      return <Calculator className="w-8 h-8 text-white" />;
-    case 'square-tube':
-      return <Layers className="w-8 h-8 text-white" />;
-    default:
-      return <Calculator className="w-8 h-8 text-white" />;
+export const WEIGHT_CALCULATORS = {
+  rebar: {
+    title: 'Rebar weight',
+    description: 'Ribbed and plain bar by diameter and bar length.',
+  },
+  beam: {
+    title: 'Beam weight',
+    description: 'IPE / INP / HE-style sections from flange and web dims.',
+  },
+  sheet: {
+    title: 'Sheet weight',
+    description: 'Plate and coil sheet by length, width, and thickness.',
+  },
+  pipe: {
+    title: 'Pipe weight',
+    description: 'Round pipe from OD, wall thickness, and length.',
+  },
+  angle: {
+    title: 'Angle weight',
+    description: 'Equal and unequal leg angles.',
+  },
+  stud: {
+    title: 'Channel weight',
+    description: 'U-channel / stud sections from flange and web dims.',
+  },
+  'square-tube': {
+    title: 'Hollow section weight',
+    description: 'SHS / RHS tubes by section size and wall thickness.',
+  },
+  billet: {
+    title: 'Billet weight',
+    description: 'Square billet section × length.',
+  },
+} as const
+
+type CalcKey = keyof typeof WEIGHT_CALCULATORS
+
+export async function generateMetadata({
+  params,
+}: WeightPageProps): Promise<Metadata> {
+  const { type } = await params
+  const info = WEIGHT_CALCULATORS[type as CalcKey]
+  if (!info) return { title: 'Weight calculator' }
+  return {
+    title: `${info.title} calculator`,
+    description: info.description,
   }
+}
+
+export async function generateStaticParams() {
+  return Object.keys(WEIGHT_CALCULATORS).map(type => ({ type }))
 }
 
 function renderCalculator(type: string) {
   switch (type) {
     case 'sheet':
-      return <SheetWeightCalculator />;
+      return <SheetWeightCalculator />
     case 'beam':
-      return <BeamWeightCalculator />;
+      return <BeamWeightCalculator />
     case 'rebar':
-      return <RebarWeightCalculator />;
+      return <RebarWeightCalculator />
     case 'billet':
-      return <BilletWeightCalculator />;
+      return <BilletWeightCalculator />
     case 'pipe':
-      return <PipeWeightCalculator />;
+      return <PipeWeightCalculator />
     case 'stud':
-      return <StudWeightCalculator />;
+      return <StudWeightCalculator />
     case 'angle':
-      return <AngleWeightCalculator />;
+      return <AngleWeightCalculator />
     case 'square-tube':
-      return <SquareTubeWeightCalculator />;
+      return <SquareTubeWeightCalculator />
     default:
-      return <div>ماشین حساب در دست توسعه است</div>;
+      return (
+        <p className='text-sm text-muted-foreground'>
+          Calculator not available.
+        </p>
+      )
   }
 }
 
-// Generate static params for all calculator types
-export async function generateStaticParams() {
-  return Object.keys(WEIGHT_CALCULATORS).map((type) => ({
-    type,
-  }));
+export default async function WeightCalculatorPage({
+  params,
+}: WeightPageProps) {
+  const { type } = await params
+  const calculatorInfo = WEIGHT_CALCULATORS[type as CalcKey]
+  if (!calculatorInfo) notFound()
+
+  return (
+    <div className='w-full' dir='ltr'>
+      <header className='border-b border-border bg-background'>
+        <div className='mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-12'>
+          <p className='mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+            Weight calculators
+          </p>
+          <div className='grid gap-6 lg:grid-cols-12 lg:items-end'>
+            <div className='lg:col-span-8'>
+              <h1 className='text-3xl font-semibold tracking-tight text-foreground sm:text-4xl'>
+                {calculatorInfo.title}
+              </h1>
+              <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base'>
+                {calculatorInfo.description} Results in kilograms. Density
+                defaults suit carbon steel mill products.
+              </p>
+            </div>
+            <dl className='grid grid-cols-2 gap-px overflow-hidden border border-border bg-border lg:col-span-4'>
+              <div className='bg-card px-3 py-2.5'>
+                <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
+                  Output
+                </dt>
+                <dd className='text-sm font-medium text-foreground'>kg</dd>
+              </div>
+              <div className='bg-card px-3 py-2.5'>
+                <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
+                  Layout
+                </dt>
+                <dd className='text-sm font-medium text-foreground'>LTR</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </header>
+
+      <div className='border-b border-border bg-muted/40'>
+        <div className='mx-auto grid max-w-7xl gap-px overflow-hidden border-x border-border bg-border lg:grid-cols-12'>
+          {/* Calculator board */}
+          <div className='bg-card lg:col-span-8'>
+            <div className='flex items-center justify-between border-b border-border px-5 py-3 md:px-6'>
+              <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                Inputs
+              </h2>
+              <span className='text-xs text-muted-foreground'>
+                Indicative · not a mill cert
+              </span>
+            </div>
+            <div className='px-5 py-6 md:px-6 md:py-8'>
+              {renderCalculator(type)}
+            </div>
+          </div>
+
+          {/* Other calculators */}
+          <aside className='bg-card lg:col-span-4'>
+            <div className='border-b border-border px-5 py-3 md:px-6'>
+              <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                All calculators
+              </h2>
+            </div>
+            <nav aria-label='Weight calculators'>
+              <ul className='divide-y divide-border'>
+                {Object.entries(WEIGHT_CALCULATORS).map(([key, info]) => {
+                  const active = type === key
+                  return (
+                    <li key={key}>
+                      <Link
+                        href={`/weight/${key}`}
+                        scroll={false}
+                        className={`block px-5 py-3.5 transition-colors duration-200 ease-out md:px-6 ${
+                          active
+                            ? 'bg-muted text-foreground'
+                            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                        }`}
+                      >
+                        <span className='block text-sm font-medium text-foreground'>
+                          {info.title}
+                        </span>
+                        <span className='mt-0.5 block text-xs leading-snug text-muted-foreground'>
+                          {info.description}
+                        </span>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </nav>
+          </aside>
+        </div>
+      </div>
+    </div>
+  )
 }
