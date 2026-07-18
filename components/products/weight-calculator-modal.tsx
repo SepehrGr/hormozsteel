@@ -1,27 +1,37 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
-import RebarWeightCalculator from '@/components/calculators/rebar-weight-calculator';
-import SheetWeightCalculator from '@/components/calculators/sheet-weight-calculator';
-import BeamWeightCalculator from '@/components/calculators/beam-weight-calculator';
-import PipeWeightCalculator from '@/components/calculators/pipe-weight-calculator';
-import AngleWeightCalculator from '@/components/calculators/angle-weight-calculator';
-import StudWeightCalculator from '@/components/calculators/stud-weight-calculator';
-import BilletWeightCalculator from '@/components/calculators/billet-weight-calculator';
-import SquareTubeWeightCalculator from '@/components/calculators/square-tube-weight-calculator';
+import { useEffect } from 'react'
+import { X } from 'lucide-react'
+import RebarWeightCalculator from '@/components/calculators/rebar-weight-calculator'
+import SheetWeightCalculator from '@/components/calculators/sheet-weight-calculator'
+import BeamWeightCalculator from '@/components/calculators/beam-weight-calculator'
+import PipeWeightCalculator from '@/components/calculators/pipe-weight-calculator'
+import AngleWeightCalculator from '@/components/calculators/angle-weight-calculator'
+import StudWeightCalculator from '@/components/calculators/stud-weight-calculator'
+import BilletWeightCalculator from '@/components/calculators/billet-weight-calculator'
+import SquareTubeWeightCalculator from '@/components/calculators/square-tube-weight-calculator'
+import { formatUsd } from '@/components/calculators/calculator-ui'
 
 interface WeightCalculatorModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  productName?: string;
-  productCategory?: string;
-  productPrice?: number; // قیمت محصول به ازای واحد (کیلوگرم یا تن)
-  productUnit?: 'kg' | 'ton' | 'piece'; // واحد محصول
-  includeVAT?: boolean; // شامل ارزش افزوده
-  formatPrice?: (price: number) => string;
+  isOpen: boolean
+  onClose: () => void
+  productName?: string
+  productCategory?: string
+  productPrice?: number
+  productUnit?: 'kg' | 'ton' | 'piece'
+  includeVAT?: boolean
+  formatPrice?: (price: number) => string
+}
+
+const TITLES: Record<string, string> = {
+  sheet: 'Sheet weight',
+  beam: 'Beam weight',
+  pipe: 'Pipe weight',
+  angle: 'Angle weight',
+  stud: 'Channel weight',
+  billet: 'Billet weight',
+  'square-tube': 'Hollow section weight',
+  rebar: 'Rebar weight',
 }
 
 export default function WeightCalculatorModal({
@@ -34,158 +44,115 @@ export default function WeightCalculatorModal({
   includeVAT = false,
   formatPrice: customFormatPrice,
 }: WeightCalculatorModalProps) {
-  // تشخیص نوع ماشین حساب بر اساس دسته‌بندی محصول
-  const getCalculatorType = () => {
-    if (!productCategory && !productName) return 'rebar'; // پیش‌فرض میلگرد
+  const searchText =
+    `${productCategory || ''} ${productName || ''}`.toLowerCase()
 
-    const searchText =
-      `${productCategory || ''} ${productName || ''}`.toLowerCase();
+  const calculatorType = (() => {
+    if (searchText.includes('rebar') || searchText.includes('میلگرد'))
+      return 'rebar'
+    if (searchText.includes('sheet') || searchText.includes('ورق'))
+      return 'sheet'
+    if (searchText.includes('beam') || searchText.includes('تیر')) return 'beam'
+    if (searchText.includes('pipe') || searchText.includes('لوله')) return 'pipe'
+    if (searchText.includes('angle') || searchText.includes('نبشی'))
+      return 'angle'
+    if (
+      searchText.includes('channel') ||
+      searchText.includes('stud') ||
+      searchText.includes('ناودانی')
+    )
+      return 'stud'
+    if (searchText.includes('billet') || searchText.includes('شمش'))
+      return 'billet'
+    if (
+      searchText.includes('tube') ||
+      searchText.includes('hollow') ||
+      searchText.includes('قوطی')
+    )
+      return 'square-tube'
+    return 'rebar'
+  })()
 
-    if (searchText.includes('میلگرد') || searchText.includes('rebar')) {
-      return 'rebar';
-    } else if (searchText.includes('ورق') || searchText.includes('sheet')) {
-      return 'sheet';
-    } else if (
-      searchText.includes('تیرآهن') ||
-      searchText.includes('تیر') ||
-      searchText.includes('beam')
-    ) {
-      return 'beam';
-    } else if (searchText.includes('لوله') || searchText.includes('pipe')) {
-      return 'pipe';
-    } else if (searchText.includes('نبشی') || searchText.includes('angle')) {
-      return 'angle';
-    } else if (
-      searchText.includes('ناودانی') ||
-      searchText.includes('استاد') ||
-      searchText.includes('stud')
-    ) {
-      return 'stud';
-    } else if (searchText.includes('شمش') || searchText.includes('billet')) {
-      return 'billet';
-    } else if (
-      searchText.includes('قوطی') ||
-      searchText.includes('square') ||
-      searchText.includes('tube')
-    ) {
-      return 'square-tube';
-    } else {
-      return 'rebar'; // پیش‌فرض
-    }
-  };
-
-  const calculatorType = getCalculatorType();
-
-  const getCalculatorTitle = () => {
-    switch (calculatorType) {
-      case 'sheet':
-        return 'ماشین حساب وزن ورق';
-      case 'beam':
-        return 'ماشین حساب وزن تیرآهن';
-      case 'pipe':
-        return 'ماشین حساب وزن لوله';
-      case 'angle':
-        return 'ماشین حساب وزن نبشی';
-      case 'stud':
-        return 'ماشین حساب وزن ناودانی';
-      case 'billet':
-        return 'ماشین حساب وزن شمش';
-      case 'square-tube':
-        return 'ماشین حساب وزن قوطی';
-      case 'rebar':
-      default:
-        return 'ماشین حساب وزن میلگرد';
-    }
-  };
+  const formatPrice = customFormatPrice || formatUsd
 
   const renderCalculator = () => {
-    const calculatorProps = {
+    const priceProps = {
       productPrice,
       productUnit,
       includeVAT,
-      formatPrice:
-        customFormatPrice || ((price: number) => price.toLocaleString('fa-IR')),
-    };
-
+      formatPrice,
+    }
     switch (calculatorType) {
       case 'sheet':
-        return <SheetWeightCalculator {...calculatorProps} />;
+        return <SheetWeightCalculator {...priceProps} />
       case 'beam':
-        return <BeamWeightCalculator />;
+        return <BeamWeightCalculator />
       case 'pipe':
-        return <PipeWeightCalculator />;
+        return <PipeWeightCalculator />
       case 'angle':
-        return <AngleWeightCalculator />;
+        return <AngleWeightCalculator />
       case 'stud':
-        return <StudWeightCalculator />;
+        return <StudWeightCalculator />
       case 'billet':
-        return <BilletWeightCalculator />;
+        return <BilletWeightCalculator />
       case 'square-tube':
-        return <SquareTubeWeightCalculator />;
-      case 'rebar':
+        return <SquareTubeWeightCalculator />
       default:
-        return <RebarWeightCalculator {...calculatorProps} />;
+        return <RebarWeightCalculator {...priceProps} />
     }
-  };
+  }
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      // جلوگیری از اسکرول پس‌زمینه
-      document.body.style.overflow = 'hidden';
+      if (e.key === 'Escape') onClose()
     }
-
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape)
+      document.body.style.overflow = 'hidden'
+    }
     return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, onClose]);
+      document.removeEventListener('keydown', handleEscape)
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen, onClose])
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="max-h-[90vh] overflow-y-auto animate-in fade-in-0 zoom-in-95 duration-300">
-        <Card className="w-full">
-          <CardHeader className="flex flex-row items-center justify-between pb-4 space-y-0">
-            <div>
-              <CardTitle className="text-lg">{getCalculatorTitle()}</CardTitle>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                محاسبه دقیق وزن {productPrice ? 'و قیمت ' : ''}
-                {productName || 'محصول انتخابی'}
-              </p>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="w-8 h-8 p-0 cursor-pointer"
+    <div
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+      role='dialog'
+      aria-modal='true'
+      aria-labelledby='weight-calc-title'
+      dir='ltr'
+    >
+      <div className='max-h-[90vh] w-full max-w-2xl overflow-y-auto border border-border bg-card shadow-sm'>
+        <div className='flex items-start justify-between border-b border-border px-5 py-4'>
+          <div>
+            <h2
+              id='weight-calc-title'
+              className='text-base font-semibold tracking-tight text-foreground'
             >
-              <X className="w-4 h-4" />
-            </Button>
-          </CardHeader>
-
-          <CardContent>
-            {productName && (
-              <div className="p-3 mb-6 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                <div className="text-sm text-blue-700 dark:text-blue-300">
-                  محصول انتخابی:{' '}
-                  <span className="font-semibold">{productName}</span>
-                </div>
-              </div>
-            )}
-
-            {renderCalculator()}
-          </CardContent>
-        </Card>
+              {TITLES[calculatorType] ?? 'Weight calculator'}
+            </h2>
+            <p className='mt-1 text-xs text-muted-foreground'>
+              {productName
+                ? `For ${productName}`
+                : 'Enter dimensions for an indicative mass'}
+              {productPrice != null ? ' · with line value' : ''}
+            </p>
+          </div>
+          <button
+            type='button'
+            onClick={onClose}
+            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+            aria-label='Close'
+          >
+            <X className='h-4 w-4' />
+          </button>
+        </div>
+        <div className='px-5 py-6'>{renderCalculator()}</div>
       </div>
     </div>
-  );
+  )
 }

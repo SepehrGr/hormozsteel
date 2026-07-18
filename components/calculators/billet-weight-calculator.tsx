@@ -1,160 +1,108 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@heroui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectItem } from '@heroui/select';
+import { useState } from 'react'
+import {
+  Field,
+  fieldClass,
+  CalculatorActions,
+  CalculatorResult,
+  FormulaNote,
+  DensitySelect,
+} from './calculator-ui'
 
 export default function BilletWeightCalculator() {
-  const [length, setLength] = useState('');
-  const [width, setWidth] = useState('');
-  const [height, setHeight] = useState('');
-  const [density, setDensity] = useState('7.85');
-  const [result, setResult] = useState<number | null>(null);
+  const [length, setLength] = useState('')
+  const [width, setWidth] = useState('')
+  const [height, setHeight] = useState('')
+  const [density, setDensity] = useState('7.85')
+  const [result, setResult] = useState<number | null>(null)
 
   const calculateWeight = () => {
-    const l = parseFloat(length);
-    const w = parseFloat(width) / 1000; // تبدیل mm به m
-    const h = parseFloat(height) / 1000; // تبدیل mm به m
-    const d = parseFloat(density); // چگالی
-
-    if (l && w && h && d) {
-      // فرمول محاسبه وزن شمش: طول × عرض × ارتفاع × چگالی
-      const weight = l * w * h * d * 1000; // ضرب در 1000 برای تبدیل تن به کیلوگرم
-      setResult(Math.round(weight * 100) / 100);
-    }
-  };
+    const l = parseFloat(length)
+    const w = parseFloat(width) / 1000
+    const h = parseFloat(height) / 1000
+    const d = parseFloat(density)
+    if (!l || !w || !h || !d) return
+    // l m × w m × h m × d t/m³ → tonnes; ×1000 → kg
+    const weight = l * w * h * d * 1000
+    setResult(Math.round(weight * 100) / 100)
+  }
 
   const resetForm = () => {
-    setLength('');
-    setWidth('');
-    setHeight('');
-    setResult(null);
-  };
+    setLength('')
+    setWidth('')
+    setHeight('')
+    setResult(null)
+  }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto bg-transparent border-none shadow-none">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center text-gray-900 mb-7 dark:text-white">
-          محاسبه وزن شمش فولادی
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
-            <Label htmlFor="length">طول (متر)</Label>
-            <Input
-              id="length"
-              type="number"
-              value={length}
-              onChange={(e) => setLength(e.target.value)}
-              placeholder="مثال: 6 یا 12"
-              variant="bordered"
-              className="mt-1"
-            />
-          </div>
+    <div className='space-y-6' dir='ltr'>
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+        <Field id='length' label='Length (m)'>
+          <input
+            id='length'
+            type='number'
+            inputMode='decimal'
+            value={length}
+            onChange={e => setLength(e.target.value)}
+            placeholder='e.g. 6 or 12'
+            className={fieldClass}
+          />
+        </Field>
+        <Field id='width' label='Section width (mm)'>
+          <input
+            id='width'
+            type='number'
+            inputMode='decimal'
+            value={width}
+            onChange={e => setWidth(e.target.value)}
+            placeholder='e.g. 150'
+            className={fieldClass}
+          />
+        </Field>
+        <Field id='height' label='Section height (mm)'>
+          <input
+            id='height'
+            type='number'
+            inputMode='decimal'
+            value={height}
+            onChange={e => setHeight(e.target.value)}
+            placeholder='e.g. 150'
+            className={fieldClass}
+          />
+        </Field>
+        <DensitySelect value={density} onChange={setDensity} />
+      </div>
 
-          <div>
-            <Label htmlFor="width">عرض (میلیمتر)</Label>
-            <Input
-              id="width"
-              type="number"
-              value={width}
-              onChange={(e) => setWidth(e.target.value)}
-              placeholder="مثال: 150"
-              variant="bordered"
-              className="mt-1"
-            />
-          </div>
+      <CalculatorActions
+        onCalculate={calculateWeight}
+        onReset={resetForm}
+        calculateLabel='Calculate weight'
+      />
 
-          <div>
-            <Label htmlFor="height">ارتفاع (میلیمتر)</Label>
-            <Input
-              id="height"
-              type="number"
-              value={height}
-              onChange={(e) => setHeight(e.target.value)}
-              placeholder="مثال: 150"
-              variant="bordered"
-              className="mt-1"
-            />
-          </div>
+      {result != null && (
+        <CalculatorResult
+          weightKg={result}
+          details={
+            <>
+              <p>
+                {width} × {height} mm · L {length} m · ρ {density}
+              </p>
+              <p>
+                ≈ {(result / 1000).toLocaleString('en-US', {
+                  maximumFractionDigits: 3,
+                })}{' '}
+                t
+              </p>
+            </>
+          }
+        />
+      )}
 
-          <div>
-            <Label htmlFor="density">انتخاب چگالی</Label>
-            <Select
-              selectedKeys={[density]}
-              onSelectionChange={(keys) =>
-                setDensity(Array.from(keys)[0] as string)
-              }
-              placeholder="انتخاب چگالی"
-              variant="bordered"
-              className="mt-1 bg-white dark:bg-neutral-900"
-            >
-              <SelectItem key="8">چگالی رایج (8)</SelectItem>
-              <SelectItem key="7.85">چگالی استاندارد (7.85)</SelectItem>
-              <SelectItem key="7.86">آهن (7.86)</SelectItem>
-              <SelectItem key="7.84">استیل (7.84)</SelectItem>
-            </Select>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-3 md:flex-row">
-          <Button
-            onClick={calculateWeight}
-            variant="outline"
-            className="flex-1"
-          >
-            محاسبه وزن دقیق شمش
-          </Button>
-          <Button onClick={resetForm} variant="outline">
-            پاک کردن
-          </Button>
-        </div>
-
-        {result !== null && (
-          <div className="p-4 border border-green-200 rounded-lg bg-green-50 dark:bg-green-900/40 dark:border-green-700">
-            <div className="text-center">
-              <div className="mb-2 text-2xl font-bold text-green-600">
-                {result.toLocaleString('fa-IR')} کیلوگرم
-              </div>
-              <div className="text-sm text-green-700">وزن دقیق شمش فولادی</div>
-              <div className="mt-2 text-xs text-gray-600 dark:text-gray-200">
-                طول: {length}m × عرض: {width}mm × ارتفاع: {height}mm
-              </div>
-              <div className="text-xs text-gray-600">
-                حجم:{' '}
-                {length && width && height
-                  ? (
-                      (parseFloat(length) *
-                        parseFloat(width) *
-                        parseFloat(height)) /
-                      1000000
-                    ).toFixed(4)
-                  : '---'}{' '}
-                متر مکعب
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="p-4 border border-blue-200 rounded-lg bg-blue-50 dark:bg-blue-900/40 dark:border-blue-700">
-          <h4 className="mb-2 font-semibold text-blue-800 dark:text-blue-200">
-            فرمول محاسبه وزن شمش:
-          </h4>
-          <code className="block mb-2 text-sm text-blue-700 dark:text-blue-200">
-            وزن = طول (m) × عرض (m) × ارتفاع (m) × چگالی × 1000
-          </code>
-          <div className="mt-2 text-xs text-blue-600 dark:text-blue-200">
-            <p>
-              • انواع شمش: بیلت (مربعی/مستطیلی)، بلوم (فابریک)، اسلب (تختال)
-            </p>
-            <p>• طول استاندارد شمش‌ها: 6 و 12 متر</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+      <FormulaNote
+        formula='W(kg) = L(m) × a(m) × b(m) × ρ × 1000'
+        notes={['Section sides entered in mm; converted to metres in the formula']}
+      />
+    </div>
+  )
 }
