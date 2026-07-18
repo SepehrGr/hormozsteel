@@ -1,6 +1,6 @@
-import React from 'react';
-import Link from 'next/link';
+import Link from 'next/link'
 import { PRODUCT_CATEGORIES, productCategoryHref } from '@/types/products'
+import { resolveCategoryIcon } from '@/config/category-icons'
 
 type Props = {
   current?: string
@@ -8,36 +8,61 @@ type Props = {
 
 export default function ProductsSidebar({ current }: Props) {
   return (
-    <div className='sticky top-24'>
-      <div className='p-4 border shadow-lg sm:p-6 rounded-2xl bg-white/90 dark:bg-slate-900/90 border-gray-200/60 dark:border-gray-700/50 backdrop-blur-md'>
-        <div className='flex justify-center w-full mb-4'>
-          <div className='inline-flex items-center justify-center gap-2 px-3 py-1.5 border rounded-full shadow-sm w-max bg-white/40 dark:bg-white/10 border-white/20 dark:border-white/10 backdrop-blur-md'>
-            <span className='text-sm font-medium text-blue-800 dark:text-blue-200'>
-              Categories
-            </span>
-          </div>
-        </div>
+    <aside className='sticky top-24 border border-border bg-card'>
+      <div className='flex items-center justify-between border-b border-border px-4 py-3'>
+        <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+          Categories
+        </h2>
+        <Link
+          href='/products'
+          className='text-xs font-medium text-muted-foreground underline-offset-4 transition-colors duration-200 ease-out hover:text-foreground hover:underline'
+        >
+          Index
+        </Link>
+      </div>
 
-        <ul className='space-y-1.5'>
-          {PRODUCT_CATEGORIES.map(cat => (
+      <ul className='divide-y divide-border'>
+        {PRODUCT_CATEGORIES.map(cat => {
+          const active = current === cat.slug || current === cat.id
+          const iconClass = resolveCategoryIcon(cat.icon ?? cat.slug)
+          return (
             <li key={cat.slug}>
               <Link
                 href={productCategoryHref(cat.slug)}
                 scroll={false}
-                className={`flex items-center gap-2 w-full p-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-sm ${
-                  current === cat.slug || current === cat.id
-                    ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 font-medium'
-                    : ''
+                className={`group flex items-center gap-3 px-4 py-3 text-sm transition-colors duration-200 ease-out ${
+                  active
+                    ? 'bg-muted text-foreground'
+                    : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                 }`}
               >
-                <div className='flex-1 text-left'>
-                  <div className='text-gray-900 dark:text-white'>{cat.name}</div>
-                </div>
+                <i
+                  className={`${iconClass} text-base ${
+                    active
+                      ? 'text-amber-800 dark:text-amber-500'
+                      : 'text-muted-foreground group-hover:text-foreground'
+                  }`}
+                  aria-hidden
+                />
+                <span className='min-w-0 flex-1'>
+                  <span className='block font-medium text-foreground'>
+                    {cat.name}
+                  </span>
+                  <span className='mt-0.5 block font-mono text-[10px] tracking-wider text-muted-foreground'>
+                    {cat.id.toUpperCase()}
+                  </span>
+                </span>
+                {active ? (
+                  <span
+                    className='h-1.5 w-1.5 shrink-0 rounded-full bg-amber-700 dark:bg-amber-500'
+                    aria-hidden
+                  />
+                ) : null}
               </Link>
             </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+          )
+        })}
+      </ul>
+    </aside>
   )
 }

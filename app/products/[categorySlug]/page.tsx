@@ -1,119 +1,135 @@
-import React from 'react';
-import { notFound } from 'next/navigation';
-import CategoryProducts from '@/components/products/category-products';
-import ProductsSidebar from '@/components/products/products-sidebar';
-import { PRODUCT_CATEGORIES } from '@/types/products';
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import CategoryProducts from '@/components/products/category-products'
+import ProductsSidebar from '@/components/products/products-sidebar'
+import { PRODUCT_CATEGORIES } from '@/types/products'
+import { resolveCategoryIcon } from '@/config/category-icons'
+import { ChevronRight } from 'lucide-react'
 
 interface PageProps {
   params: Promise<{
-    categorySlug: string;
-  }>;
+    categorySlug: string
+  }>
 }
 
-// Generate static params for all categories
 export async function generateStaticParams() {
-  return PRODUCT_CATEGORIES.map((category) => ({
+  return PRODUCT_CATEGORIES.map(category => ({
     categorySlug: category.id,
-  }));
+  }))
 }
 
-// Generate metadata for each category
 export async function generateMetadata({ params }: PageProps) {
-  const { categorySlug } = await params;
-  const category = PRODUCT_CATEGORIES.find((cat) => cat.id === categorySlug);
+  const { categorySlug } = await params
+  const category = PRODUCT_CATEGORIES.find(cat => cat.id === categorySlug)
 
   if (!category) {
-    return {
-      title: 'دسته‌بندی یافت نشد',
-    };
+    return { title: 'Category not found · Hormoz Steel' }
   }
 
   return {
-    title: `${category.name} | آهن هرمز`,
-    description: `مشاهده تمامی محصولات ${category.name} با بهترین قیمت و کیفیت در آهن هرمز`,
-    openGraph: {
-      title: `${category.name} | آهن هرمز`,
-      description: `مشاهده تمامی محصولات ${category.name} با بهترین قیمت و کیفیت در آهن هرمز`,
-    },
-  };
+    title: `${category.name} prices · Hormoz Steel`,
+    description: `${category.description}. USD unit prices from the Hormoz Steel catalog.`,
+  }
 }
 
 export default async function CategoryPage({ params }: PageProps) {
-  const { categorySlug } = await params;
-
-  // پیدا کردن دسته‌بندی بر اساس categorySlug
-  const category = PRODUCT_CATEGORIES.find((cat) => cat.id === categorySlug);
+  const { categorySlug } = await params
+  const category = PRODUCT_CATEGORIES.find(cat => cat.id === categorySlug)
 
   if (!category) {
-    notFound();
+    notFound()
   }
 
-  // Function to get the appropriate icon for each product category
-  const getCategoryIcon = (categoryId: string) => {
-    const iconMap: Record<string, string> = {
-      rebar: 'icon-rebar',
-      profile: 'icon-profil',
-      sheet: 'icon-varagh',
-      angle: 'icon-nabshi',
-      beam: 'icon-tirahan',
-      pipe: 'icon-lole',
-      wire: 'icon-wire',
-      mesh: 'icon-Wire-products',
-      shamsh: 'icon-bullion',
-      qooti: 'icon-Equipment',
-      maftoli: 'icon-wire',
-      'raw-materials': 'icon-stainless-steel',
-    };
-    return iconMap[categoryId] || 'icon-rebar';
-  };
+  const iconClass = resolveCategoryIcon(category.icon ?? category.slug)
+  const code = category.id.toUpperCase()
 
   return (
-    <div className="w-full">
-      {/* Header Section */}
-      <div className="relative overflow-hidden text-white bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-600">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute top-0 right-0 translate-x-20 -translate-y-20 rounded-full w-96 h-96 bg-white/5"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 -translate-x-20 translate-y-20 rounded-full bg-white/5"></div>
+    <div className='w-full'>
+      <header className='border-b border-border'>
+        <div className='mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14'>
+          <nav
+            className='mb-4 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground'
+            aria-label='Breadcrumb'
+          >
+            <Link
+              href='/products'
+              className='transition-colors duration-200 ease-out hover:text-foreground'
+            >
+              Products
+            </Link>
+            <ChevronRight className='h-3 w-3' />
+            <span className='text-foreground'>{category.name}</span>
+          </nav>
 
-        <div className="relative px-6 py-16 mx-auto max-w-7xl">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-24 h-24 mx-auto mb-6 border-2 rounded-full shadow-2xl bg-white/20 backdrop-blur-md border-white/30">
-              <i
-                className={`${getCategoryIcon(category.id)} text-5xl text-white drop-shadow-lg`}
-              ></i>
+          <div className='grid gap-8 lg:grid-cols-12 lg:items-end'>
+            <div className='lg:col-span-7'>
+              <div className='mb-3 flex items-center gap-3'>
+                <span className='font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+                  Pricing board
+                </span>
+                <span className='font-mono text-[10px] font-medium tracking-[0.16em] text-amber-800 dark:text-amber-500'>
+                  {code}
+                </span>
+              </div>
+              <div className='flex items-start gap-4'>
+                <div className='flex h-12 w-12 shrink-0 items-center justify-center border border-border bg-card'>
+                  <i
+                    className={`${iconClass} text-2xl text-foreground`}
+                    aria-hidden
+                  />
+                </div>
+                <div>
+                  <h1 className='text-3xl font-semibold tracking-tight text-foreground sm:text-4xl'>
+                    {category.name}
+                  </h1>
+                  <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base'>
+                    {category.description}. Filter by mill and size, compare unit
+                    rates in USD, and request a firm quote from sales.
+                  </p>
+                </div>
+              </div>
             </div>
-            <h1 className="mb-6 text-5xl font-bold text-white drop-shadow-2xl">
-              {category.name}
-            </h1>
-            <p className="max-w-3xl mx-auto text-xl font-medium leading-relaxed text-white/95 drop-shadow-lg">
-              مشاهده تمامی محصولات دسته‌بندی {category.name} - تفکیک شده بر اساس
-              برند و نوع
-            </p>
+
+            <dl className='grid grid-cols-2 gap-px overflow-hidden border border-border bg-border lg:col-span-5'>
+              <div className='bg-card px-4 py-3'>
+                <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
+                  Sub-lines
+                </dt>
+                <dd className='mt-0.5 font-mono text-lg font-semibold tabular-nums text-foreground'>
+                  {category.subcategories.length}
+                </dd>
+              </div>
+              <div className='bg-card px-4 py-3'>
+                <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
+                  Currency
+                </dt>
+                <dd className='mt-0.5 text-sm font-medium text-foreground'>USD</dd>
+              </div>
+              <div className='bg-card px-4 py-3 sm:col-span-2'>
+                <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
+                  Lines covered
+                </dt>
+                <dd className='mt-1 text-sm leading-relaxed text-foreground'>
+                  {category.subcategories.join(' · ')}
+                </dd>
+              </div>
+            </dl>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Features Section */}
-      <div className="hidden bg-white border-t dark:bg-slate-800 border-slate-200 dark:border-slate-700 lg:block">
-        <div className="mx-auto max-w-7xl"></div>
-      </div>
-
-      {/* Products Section with Sidebar */}
-      <div className="bg-gray-50 dark:bg-slate-900">
-        <div className="container px-4 py-8 mx-auto sm:px-6 lg:px-8">
-          <div dir="ltr" className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-            {/* Main Content - Products */}
-            <div dir="rtl" className="lg:col-span-9">
+      <section className='border-b border-border bg-background'>
+        <div className='mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10'>
+          <div className='grid grid-cols-1 gap-8 lg:grid-cols-12'>
+            <div className='lg:col-span-9'>
               <CategoryProducts category={category} />
             </div>
-
-            {/* Sidebar */}
-            <div dir="rtl" className="lg:col-span-3">
+            <div className='lg:col-span-3'>
               <ProductsSidebar current={category.id} />
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
-  );
+  )
 }
