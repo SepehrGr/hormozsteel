@@ -1,6 +1,7 @@
 'use client'
 
-import { useRef, useEffect, useMemo } from 'react'
+import { useRef, useEffect, useMemo, useState } from 'react'
+import { useTheme } from 'next-themes'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation } from 'swiper/modules'
 import type { Swiper as SwiperType } from 'swiper'
@@ -11,9 +12,31 @@ import { siteConfig } from '@/config/site'
 import HeroItem from './hero-item'
 import { ChevronRight, ChevronLeft, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import Threads from '../ui/threads'
+
+/** Site amber accents as 0–1 RGB (Threads / OGL Color). */
+const AMBER_LIGHT: [number, number, number] = [
+  146 / 255, // amber-800 #92400e — matches light-mode codes
+  64 / 255,
+  14 / 255,
+]
+const AMBER_DARK: [number, number, number] = [
+  245 / 255, // amber-500 #f59e0b — matches dark-mode codes
+  158 / 255,
+  11 / 255,
+]
 
 export default function Hero() {
   const swiperRef = useRef<SwiperType | null>(null)
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
+
+  const threadsColor = useMemo((): [number, number, number] => {
+    if (!mounted) return AMBER_LIGHT
+    return resolvedTheme === 'dark' ? AMBER_DARK : AMBER_LIGHT
+  }, [mounted, resolvedTheme])
 
   const sessionLabel = useMemo(() => {
     try {
@@ -40,18 +63,17 @@ export default function Hero() {
     <section className='w-full'>
       {/* Hero */}
       <div className='relative overflow-hidden border-b border-border bg-background'>
-        {/* Quiet industrial texture — not orbs/gradients */}
         <div
-          className='pointer-events-none absolute inset-0 opacity-[0.35] dark:opacity-[0.2]'
+          className='pointer-events-none absolute inset-0 opacity-70 dark:opacity-50'
           aria-hidden
-          style={{
-            backgroundImage: `linear-gradient(to right, var(--border) 1px, transparent 1px),
-              linear-gradient(to bottom, var(--border) 1px, transparent 1px)`,
-            backgroundSize: '48px 48px',
-            maskImage:
-              'linear-gradient(to bottom, black 0%, black 55%, transparent 100%)',
-          }}
-        />
+        >
+          <Threads
+            color={threadsColor}
+            distance={0}
+            amplitude={3}
+            enableMouseInteraction={false}
+          />
+        </div>
 
         <div className='relative mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16 lg:py-20'>
           {/* Session strip */}
