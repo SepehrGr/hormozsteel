@@ -1,9 +1,5 @@
 import React from 'react'
-import { Input } from '@heroui/input'
-import { Button } from '@heroui/button'
 import { Search, X, RefreshCw } from 'lucide-react'
-import { Select, SelectItem } from '@heroui/select'
-import { PRODUCT_CATEGORIES } from '@/types/products'
 
 interface Props {
   searchTerm: string
@@ -19,10 +15,15 @@ interface Props {
   onClearFilters: () => void
 }
 
+const fieldClass =
+  'w-full border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
+
+const labelClass =
+  'mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
+
 export default function Filters({
   searchTerm,
   setSearchTerm,
-
   categoryFilter,
   setCategoryFilter,
   stockFilter,
@@ -34,128 +35,97 @@ export default function Filters({
   onClearFilters,
 }: Props) {
   return (
-    <div>
-      <div className='grid grid-cols-1 gap-3 md:grid-cols-5'>
-        <div className='md:col-span-2'>
-          <label className='block mb-2 text-sm font-medium text-right text-gray-700 dark:text-gray-300'>
-            جستجو
-          </label>
-          <div className='flex gap-2'>
-            <Input
-              placeholder='جستجو بر اساس نام یا برند...'
+    <div className='grid grid-cols-1 gap-3 md:grid-cols-5'>
+      <div className='md:col-span-2'>
+        <label className={labelClass}>Search</label>
+        <div className='flex gap-2'>
+          <div className='relative flex-1'>
+            <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+            <input
+              type='search'
+              placeholder='Name or mill…'
               value={searchTerm}
-              onChange={(e: any) => setSearchTerm(e.target.value)}
-              startContent={<Search className='w-4 h-4 text-gray-400' />}
-              variant='bordered'
-              classNames={{
-                input: 'text-right',
-                inputWrapper: 'border-gray-300 hover:border-primary h-10',
-              }}
+              onChange={e => setSearchTerm(e.target.value)}
+              className={`${fieldClass} pl-9`}
             />
-            {searchTerm && (
-              <Button
-                isIconOnly
-                color='default'
-                variant='flat'
-                onPress={() => {
-                  setSearchTerm('')
-                }}
-                className='h-10'
-              >
-                <X className='w-4 h-4' />
-              </Button>
-            )}
           </div>
-        </div>
-
-        <div>
-          <label className='block mb-2 text-sm font-medium text-right text-gray-700 dark:text-gray-300'>
-            دسته‌بندی
-          </label>
-          <Select
-            placeholder='همه دسته‌بندی‌ها'
-            selectedKeys={
-              categoryFilter ? new Set([categoryFilter]) : new Set()
-            }
-            onSelectionChange={keys => {
-              const selectedKey = Array.from(keys)[0] as string
-              setCategoryFilter(selectedKey || '')
-            }}
-            variant='bordered'
-            disallowEmptySelection={false}
-            classNames={{
-              trigger: 'h-10 min-h-10',
-              value: 'text-gray-900 dark:text-white',
-            }}
-            aria-label='categories'
-          >
-            {(categories || []).map((category: any) => (
-              <SelectItem key={category.id}>{category.name}</SelectItem>
-            ))}
-          </Select>
-        </div>
-
-        <div>
-          <label className='block mb-2 text-sm font-medium text-right text-gray-700 dark:text-gray-300'>
-            وضعیت موجودی
-          </label>
-          <Select
-            placeholder='همه محصولات'
-            selectedKeys={stockFilter ? new Set([stockFilter]) : new Set()}
-            onSelectionChange={keys => {
-              const selectedKey = Array.from(keys)[0] as string
-              setStockFilter(selectedKey || '')
-            }}
-            variant='bordered'
-            disallowEmptySelection={false}
-            classNames={{
-              trigger: 'h-10 min-h-10',
-              value: 'text-gray-900 dark:text-white',
-            }}
-            aria-label='subcategories'
-          >
-            <SelectItem key='true'>موجود</SelectItem>
-            <SelectItem key='false'>ناموجود</SelectItem>
-          </Select>
-        </div>
-
-        <div>
-          <label className='block mb-2 text-sm font-medium text-right text-gray-700 dark:text-gray-300'>
-            عملیات
-          </label>
-          {selectedProductsCount > 0 ? (
-            <div className='flex h-10 gap-2'>
-              <Button
-                size='md'
-                variant='flat'
-                color='primary'
-                onClick={onBulkOpen}
-                className='flex-1'
-              >
-                ویرایش ({selectedProductsCount})
-              </Button>
-              <Button
-                size='md'
-                color='danger'
-                variant='flat'
-                onClick={onDeleteOpen}
-                className='flex-1'
-              >
-                حذف ({selectedProductsCount})
-              </Button>
-            </div>
-          ) : (
-            <Button
-              size='md'
-              variant='bordered'
-              startContent={<RefreshCw className='w-4 h-4' />}
-              onClick={onClearFilters}
-              className='w-full h-10'
+          {searchTerm ? (
+            <button
+              type='button'
+              onClick={() => setSearchTerm('')}
+              className='inline-flex h-10 w-10 items-center justify-center border border-border bg-card text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
+              aria-label='Clear search'
             >
-              پاک کردن فیلترها
-            </Button>
-          )}
+              <X className='h-4 w-4' />
+            </button>
+          ) : null}
         </div>
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor='admin-category-filter'>
+          Category
+        </label>
+        <select
+          id='admin-category-filter'
+          value={categoryFilter}
+          onChange={e => setCategoryFilter(e.target.value)}
+          className={fieldClass}
+        >
+          <option value=''>All categories</option>
+          {(categories || []).map((category: any) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor='admin-stock-filter'>
+          Stock
+        </label>
+        <select
+          id='admin-stock-filter'
+          value={stockFilter}
+          onChange={e => setStockFilter(e.target.value)}
+          className={fieldClass}
+        >
+          <option value=''>All</option>
+          <option value='true'>In stock</option>
+          <option value='false'>Out of stock</option>
+        </select>
+      </div>
+
+      <div>
+        <label className={labelClass}>Actions</label>
+        {selectedProductsCount > 0 ? (
+          <div className='flex h-10 gap-2'>
+            <button
+              type='button'
+              onClick={onBulkOpen}
+              className='flex-1 border border-border bg-card px-2 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+            >
+              Edit ({selectedProductsCount})
+            </button>
+            <button
+              type='button'
+              onClick={onDeleteOpen}
+              className='flex-1 border border-red-600/40 bg-red-50 px-2 text-xs font-medium text-red-800 transition-colors duration-200 ease-out hover:bg-red-100 dark:bg-red-950/40 dark:text-red-200'
+            >
+              Delete ({selectedProductsCount})
+            </button>
+          </div>
+        ) : (
+          <button
+            type='button'
+            onClick={onClearFilters}
+            className='inline-flex h-10 w-full items-center justify-center gap-2 border border-border bg-card text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+          >
+            <RefreshCw className='h-4 w-4' />
+            Clear filters
+          </button>
+        )}
       </div>
     </div>
   )
