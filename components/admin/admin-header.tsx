@@ -2,24 +2,16 @@
 
 import { useSession, signOut } from 'next-auth/react'
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@heroui/button'
-import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-  DropdownSection,
-} from '@heroui/dropdown'
+import { useRouter, usePathname } from 'next/navigation'
 import {
   LogOut,
   Settings,
-  User as UserIcon,
   Bell,
   Mail,
   Shield,
   ChevronDown,
   Package,
+  X,
 } from 'lucide-react'
 import { ThemeSwitch } from '@/components/layout/theme-switch'
 
@@ -33,18 +25,49 @@ interface Notification {
   link: string
 }
 
+const PAGE_TITLES: Record<string, string> = {
+  '/admin/dashboard': 'Dashboard',
+  '/admin/products': 'Products',
+  '/admin/categories': 'Categories',
+  '/admin/manufacturers': 'Manufacturers',
+  '/admin/orders': 'Orders',
+  '/admin/settings': 'Settings',
+  '/admin/users': 'Admin users',
+}
+
+function getPageTitle(pathname: string) {
+  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname]
+  const match = Object.keys(PAGE_TITLES).find(
+    key => key !== '/admin/dashboard' && pathname.startsWith(key),
+  )
+  return match ? PAGE_TITLES[match] : 'Admin'
+}
+
+function getTimeAgo(date: Date): string {
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  return `${diffDays}d ago`
+}
+
 export default function AdminHeader() {
   const { data: session } = useSession()
   const router = useRouter()
-  const [searchOpen, setSearchOpen] = useState(false)
+  const pathname = usePathname()
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Fetch new notifications
   const fetchNotifications = async () => {
     try {
-      // Fetch new contact forms and quick orders in parallel
       const [contactRes, ordersRes] = await Promise.all([
         fetch('/api/contact?status=new&limit=5'),
         fetch('/api/quick-orders?status=pending&limit=5'),
@@ -55,46 +78,38 @@ export default function AdminHeader() {
         ordersRes.json(),
       ])
 
-      const newNotifications: Notification[] = []
+      const next: Notification[] = []
 
-      // Add new contact forms
       if (contactData.success && contactData.data?.contactForms) {
-        contactData.data.contactForms.forEach((form: any) => {
-          const timeAgo = getTimeAgo(new Date(form.createdAt))
-          newNotifications.push({
+        for (const form of contactData.data.contactForms) {
+          next.push({
             id: `contact-${form.id}`,
             type: 'contact',
-            title: `پیام جدید از ${form.name}`,
-            description: timeAgo,
+            title: `Message from ${form.name}`,
+            description: getTimeAgo(new Date(form.createdAt)),
             time: form.createdAt,
             icon: 'mail',
             link: '/admin/orders',
           })
-        })
+        }
       }
 
-      // Add new quick orders
       if (ordersData.success && ordersData.data?.quickOrders) {
-        ordersData.data.quickOrders.forEach((order: any) => {
-          const timeAgo = getTimeAgo(new Date(order.createdAt))
-          newNotifications.push({
+        for (const order of ordersData.data.quickOrders) {
+          next.push({
             id: `order-${order.id}`,
             type: 'order',
-            title: `سفارش جدید از ${order.customerName}`,
-            description: timeAgo,
+            title: `Quote from ${order.customerName}`,
+            description: getTimeAgo(new Date(order.createdAt)),
             time: order.createdAt,
             icon: 'package',
             link: '/admin/orders',
           })
-        })
+        }
       }
 
-      // Sort by time (newest first)
-      newNotifications.sort(
-        (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
-      )
-
-      setNotifications(newNotifications.slice(0, 10)) // Max 10 notifications
+      next.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+      setNotifications(next.slice(0, 10))
     } catch (error) {
       console.error('Error fetching notifications:', error)
     } finally {
@@ -102,263 +117,236 @@ export default function AdminHeader() {
     }
   }
 
-  // Get time ago string
-  const getTimeAgo = (date: Date): string => {
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
-
-    if (diffMins < 1) return 'الان'
-    if (diffMins < 60) return `${diffMins} دقیقه پیش`
-    if (diffHours < 24) return `${diffHours} ساعت پیش`
-    return `${diffDays} روز پیش`
-  }
-
-  // Fetch notifications on mount and every 30 seconds
   useEffect(() => {
     fetchNotifications()
-    const interval = setInterval(fetchNotifications, 30000) // 30 seconds
+    const interval = setInterval(fetchNotifications, 30000)
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    setShowNotifications(false)
+    setShowUserMenu(false)
+  }, [pathname])
 
   const handleSignOut = () => {
     signOut({ callbackUrl: '/admin/login' })
   }
 
-  const confirmSignOut = () => {
-    setShowLogoutModal(true)
-  }
-
-  const handleNotificationClick = (link: string) => {
-    router.push(link)
-  }
-
   const notificationCount = notifications.length
+  const pageTitle = getPageTitle(pathname)
 
   return (
     <>
-      <header className='sticky top-0 z-40 flex items-center justify-between h-16 px-6 border-b border-gray-100 shadow-sm bg-white/80 backdrop-blur-md dark:bg-gray-900/80 dark:border-gray-800'>
-        {/* Left Section - Title & Search */}
-        <div className='flex items-center gap-6'>
-          <h1 className='text-xl font-bold text-gray-900 dark:text-white'>
-            پنل مدیریت
+      <header className='sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:px-6'>
+        <div>
+          <p className='font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>
+            Control panel
+          </p>
+          <h1 className='text-sm font-semibold tracking-tight text-foreground md:text-base'>
+            {pageTitle}
           </h1>
         </div>
 
-        {/* Right Section - Actions & User */}
-        <div className='flex items-center gap-3'>
+        <div className='flex items-center gap-2'>
           {/* Notifications */}
-          <Dropdown placement='bottom-end'>
-            <DropdownTrigger>
-              <Button
-                isIconOnly
-                variant='light'
-                className='relative text-gray-600 dark:text-gray-400'
-                size='sm'
-              >
-                <Bell className='w-5 h-5' />
-                {notificationCount > 0 && (
-                  <span className='absolute top-0 right-0 flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-red-500 rounded-full'>
-                    {notificationCount > 9 ? '9+' : notificationCount}
-                  </span>
-                )}
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu aria-label='Notifications' className='w-80'>
-              {loading ? (
-                <DropdownSection>
-                  <DropdownItem key='loading' isReadOnly>
-                    <div className='py-4 text-center text-gray-500'>
-                      در حال بارگذاری...
-                    </div>
-                  </DropdownItem>
-                </DropdownSection>
-              ) : notifications.length === 0 ? (
-                <DropdownSection>
-                  <DropdownItem key='empty' isReadOnly>
-                    <div className='py-8 text-center'>
-                      <Bell className='w-12 h-12 mx-auto mb-3 text-gray-300' />
-                      <p className='text-sm text-gray-500'>
-                        اعلان جدیدی وجود ندارد
+          <div className='relative'>
+            <button
+              type='button'
+              onClick={() => {
+                setShowNotifications(v => !v)
+                setShowUserMenu(false)
+              }}
+              className='relative flex h-9 w-9 items-center justify-center border border-border bg-card text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
+              aria-label='Notifications'
+            >
+              <Bell className='h-4 w-4' />
+              {notificationCount > 0 && (
+                <span className='absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center bg-red-600 px-1 font-mono text-[10px] font-semibold text-white'>
+                  {notificationCount > 9 ? '9+' : notificationCount}
+                </span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <div className='absolute right-0 mt-2 w-80 border border-border bg-card shadow-lg'>
+                <div className='flex items-center justify-between border-b border-border px-3 py-2.5'>
+                  <p className='font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                    Inbox
+                  </p>
+                  <button
+                    type='button'
+                    onClick={() => setShowNotifications(false)}
+                    className='text-muted-foreground hover:text-foreground'
+                    aria-label='Close'
+                  >
+                    <X className='h-3.5 w-3.5' />
+                  </button>
+                </div>
+                <div className='max-h-80 overflow-y-auto'>
+                  {loading ? (
+                    <p className='px-4 py-6 text-center text-sm text-muted-foreground'>
+                      Loading…
+                    </p>
+                  ) : notifications.length === 0 ? (
+                    <div className='px-4 py-8 text-center'>
+                      <Bell className='mx-auto mb-2 h-8 w-8 text-muted-foreground/40' />
+                      <p className='text-sm text-muted-foreground'>
+                        No new notifications
                       </p>
                     </div>
-                  </DropdownItem>
-                </DropdownSection>
-              ) : (
-                <>
-                  <DropdownSection title='اعلان‌های جدید' showDivider>
-                    {notifications.map(notif => (
-                      <DropdownItem
-                        key={notif.id}
-                        description={notif.description}
-                        onClick={() => handleNotificationClick(notif.link)}
-                        startContent={
-                          <div
-                            className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                              notif.icon === 'mail'
-                                ? 'bg-green-100 dark:bg-green-900/30'
-                                : 'bg-blue-100 dark:bg-blue-900/30'
-                            }`}
+                  ) : (
+                    <ul className='divide-y divide-border'>
+                      {notifications.map(notif => (
+                        <li key={notif.id}>
+                          <button
+                            type='button'
+                            onClick={() => {
+                              setShowNotifications(false)
+                              router.push(notif.link)
+                            }}
+                            className='flex w-full items-start gap-3 px-3 py-3 text-left transition-colors duration-200 ease-out hover:bg-muted'
                           >
-                            {notif.icon === 'mail' ? (
-                              <Mail
-                                className={`w-4 h-4 ${
-                                  notif.icon === 'mail'
-                                    ? 'text-green-600 dark:text-green-400'
-                                    : 'text-blue-600 dark:text-blue-400'
-                                }`}
-                              />
-                            ) : (
-                              <Package
-                                className={`w-4 h-4 ${
-                                  notif.icon === 'package'
-                                    ? 'text-blue-600 dark:text-blue-400'
-                                    : 'text-green-600 dark:text-green-400'
-                                }`}
-                              />
-                            )}
-                          </div>
-                        }
-                      >
-                        {notif.title}
-                      </DropdownItem>
-                    ))}
-                  </DropdownSection>
-                  <DropdownSection>
-                    <DropdownItem
-                      key='view-all'
-                      className='text-center'
-                      onClick={() => router.push('/admin/orders')}
-                    >
-                      مشاهده همه
-                    </DropdownItem>
-                  </DropdownSection>
-                </>
-              )}
-            </DropdownMenu>
-          </Dropdown>
+                            <span className='mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center border border-border bg-background'>
+                              {notif.icon === 'mail' ? (
+                                <Mail className='h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400' />
+                              ) : (
+                                <Package className='h-3.5 w-3.5 text-amber-800 dark:text-amber-500' />
+                              )}
+                            </span>
+                            <span className='min-w-0'>
+                              <span className='block text-sm font-medium text-foreground'>
+                                {notif.title}
+                              </span>
+                              <span className='mt-0.5 block text-xs text-muted-foreground'>
+                                {notif.description}
+                              </span>
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                {notifications.length > 0 && (
+                  <button
+                    type='button'
+                    onClick={() => {
+                      setShowNotifications(false)
+                      router.push('/admin/orders')
+                    }}
+                    className='w-full border-t border-border px-3 py-2.5 text-center text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                  >
+                    View orders desk
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
 
-          {/* Theme Toggle */}
           <ThemeSwitch />
 
-          {/* Divider */}
-          <div className='w-px h-8 bg-gray-200 dark:bg-gray-700' />
+          <div className='hidden h-6 w-px bg-border sm:block' />
 
-          {/* User Menu */}
+          {/* User menu */}
           {session?.user && (
-            <Dropdown placement='bottom-end'>
-              <DropdownTrigger>
-                <button className='flex items-center gap-3 px-3 py-2 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800'>
-                  <div className='flex items-center gap-3'>
-                    <div className='text-right'>
-                      <div className='text-sm font-semibold text-gray-900 dark:text-white'>
-                        {session.user.name || 'کاربر'}
-                      </div>
-                      <div className='text-xs text-gray-500 dark:text-gray-400'>
-                        {session.user.role === 'SUPER_ADMIN'
-                          ? 'مدیر کل'
-                          : 'مدیر'}
-                      </div>
-                    </div>
-                    <div className='relative'>
-                      <div className='flex items-center justify-center w-10 h-10 text-sm font-bold text-white rounded-full bg-gradient-to-br from-gray-700 to-gray-900 dark:from-gray-600 dark:to-gray-800'>
-                        {session.user.name?.charAt(0) || 'A'}
-                      </div>
-                      {session.user.role === 'SUPER_ADMIN' && (
-                        <div className='absolute bottom-0 right-0 flex items-center justify-center w-4 h-4 border-2 border-white rounded-full bg-gradient-to-br from-blue-500 to-blue-600 dark:border-gray-900'>
-                          <Shield className='w-2.5 h-2.5 text-white' />
-                        </div>
-                      )}
-                    </div>
-                    <ChevronDown className='w-4 h-4 text-gray-400' />
-                  </div>
-                </button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label='User menu' className='w-64'>
-                <DropdownSection showDivider>
-                  <DropdownItem
-                    key='info'
-                    isReadOnly
-                    className='h-auto opacity-100 cursor-default'
-                  >
-                    <div className='py-2'>
-                      <p className='text-sm font-semibold text-gray-900 dark:text-white'>
-                        {session.user.name}
+            <div className='relative'>
+              <button
+                type='button'
+                onClick={() => {
+                  setShowUserMenu(v => !v)
+                  setShowNotifications(false)
+                }}
+                className='flex items-center gap-2 border border-border bg-card px-2 py-1.5 transition-colors duration-200 ease-out hover:bg-muted'
+              >
+                <div className='hidden text-right sm:block'>
+                  <p className='text-xs font-semibold text-foreground'>
+                    {session.user.name || 'User'}
+                  </p>
+                  <p className='font-mono text-[10px] uppercase tracking-wide text-muted-foreground'>
+                    {session.user.role === 'SUPER_ADMIN' ? 'Super admin' : 'Admin'}
+                  </p>
+                </div>
+                <div className='relative flex h-8 w-8 items-center justify-center border border-border bg-background font-mono text-xs font-semibold text-foreground'>
+                  {session.user.name?.charAt(0)?.toUpperCase() || 'A'}
+                  {session.user.role === 'SUPER_ADMIN' && (
+                    <span className='absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center border border-border bg-amber-500'>
+                      <Shield className='h-2 w-2 text-white' />
+                    </span>
+                  )}
+                </div>
+                <ChevronDown className='hidden h-3.5 w-3.5 text-muted-foreground sm:block' />
+              </button>
+
+              {showUserMenu && (
+                <div className='absolute right-0 mt-2 w-56 border border-border bg-card shadow-lg'>
+                  <div className='border-b border-border px-3 py-3'>
+                    <p className='text-sm font-semibold text-foreground'>
+                      {session.user.name}
+                    </p>
+                    {session.user.email && (
+                      <p className='mt-0.5 truncate text-xs text-muted-foreground'>
+                        {session.user.email}
                       </p>
-                      {session.user.email && (
-                        <p className='text-xs text-gray-500 dark:text-gray-400'>
-                          {session.user.email}
-                        </p>
-                      )}
-                      <div className='flex items-center gap-1 mt-2'>
-                        <Shield className='w-3 h-3 text-gray-400' />
-                        <span className='text-xs text-gray-600 dark:text-gray-400'>
-                          {session.user.role === 'SUPER_ADMIN'
-                            ? 'مدیر کل'
-                            : 'مدیر'}
-                        </span>
-                      </div>
-                    </div>
-                  </DropdownItem>
-                </DropdownSection>
-                <DropdownSection showDivider>
-                  <DropdownItem
-                    key='settings'
-                    startContent={<Settings className='w-4 h-4' />}
-                    onClick={() => router.push('/admin/settings')}
+                    )}
+                  </div>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      setShowUserMenu(false)
+                      router.push('/admin/settings')
+                    }}
+                    className='flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                   >
-                    تنظیمات
-                  </DropdownItem>
-                </DropdownSection>
-                <DropdownSection>
-                  <DropdownItem
-                    key='logout'
-                    className='text-red-600 dark:text-red-400 '
-                    startContent={<LogOut className='w-4 h-4' />}
-                    onClick={confirmSignOut}
+                    <Settings className='h-4 w-4 text-muted-foreground' />
+                    Settings
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      setShowUserMenu(false)
+                      setShowLogoutModal(true)
+                    }}
+                    className='flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-sm text-red-600 transition-colors duration-200 ease-out hover:bg-muted dark:text-red-400'
                   >
-                    خروج از حساب
-                  </DropdownItem>
-                </DropdownSection>
-              </DropdownMenu>
-            </Dropdown>
+                    <LogOut className='h-4 w-4' />
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </header>
 
-      {/* Logout Confirmation Modal */}
       {showLogoutModal && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm'>
-          <div className='w-full max-w-md p-6 mx-4 bg-white shadow-2xl rounded-2xl dark:bg-gray-800'>
-            <div className='flex items-center gap-4 mb-4'>
-              <div className='flex items-center justify-center w-12 h-12 bg-red-100 rounded-full dark:bg-red-900/30'>
-                <LogOut className='w-6 h-6 text-red-600 dark:text-red-400' />
-              </div>
-              <div>
-                <h3 className='text-lg font-bold text-gray-900 dark:text-white'>
-                  خروج از حساب کاربری
-                </h3>
-                <p className='text-sm text-gray-500 dark:text-gray-400'>
-                  آیا مطمئن هستید؟
-                </p>
-              </div>
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
+          <div className='w-full max-w-md border border-border bg-card shadow-lg'>
+            <div className='border-b border-border px-5 py-3'>
+              <p className='font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                Session
+              </p>
+              <h3 className='text-base font-semibold text-foreground'>Sign out?</h3>
             </div>
-            <p className='mb-6 text-sm text-gray-600 dark:text-gray-400'>
-              با خروج از حساب، تمام تغییرات ذخیره نشده از دست می‌رود.
-            </p>
-            <div className='flex gap-3'>
-              <Button
-                variant='flat'
-                onPress={() => setShowLogoutModal(false)}
-                className='flex-1'
-              >
-                انصراف
-              </Button>
-              <Button color='danger' onPress={handleSignOut} className='flex-1'>
-                خروج
-              </Button>
+            <div className='px-5 py-5'>
+              <p className='text-sm text-muted-foreground'>
+                You will need to sign in again to access the control panel.
+              </p>
+              <div className='mt-5 flex gap-2'>
+                <button
+                  type='button'
+                  onClick={() => setShowLogoutModal(false)}
+                  className='inline-flex flex-1 items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                >
+                  Cancel
+                </button>
+                <button
+                  type='button'
+                  onClick={handleSignOut}
+                  className='inline-flex flex-1 items-center justify-center bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
+                >
+                  Sign out
+                </button>
+              </div>
             </div>
           </div>
         </div>
