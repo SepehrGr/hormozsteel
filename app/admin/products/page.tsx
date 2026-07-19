@@ -169,11 +169,7 @@ export default function AdminProducts() {
     search: searchQuery,
     category: categoryFilter,
     inStock:
-      stockFilter === 'true'
-        ? true
-        : stockFilter === 'false'
-          ? false
-          : undefined,
+      stockFilter === 'true' ? true : stockFilter === 'false' ? false : undefined,
     page: currentPage,
     limit: itemsPerPage,
   })
@@ -646,8 +642,7 @@ export default function AdminProducts() {
     if (stockFilter) params.inStock = stockFilter
     if (sortDescriptor.column) {
       params.sortBy = String(sortDescriptor.column)
-      params.sortOrder =
-        sortDescriptor.direction === 'ascending' ? 'asc' : 'desc'
+      params.sortOrder = sortDescriptor.direction === 'ascending' ? 'asc' : 'desc'
     }
     return new URLSearchParams({ ...params, ...override }).toString()
   }
@@ -743,16 +738,18 @@ export default function AdminProducts() {
   }
 
   return (
-    <div className='space-y-6' dir='rtl'>
-      {/* Header Section */}
-      <div className='flex items-center justify-between'>
+    <div className='space-y-6' dir='ltr'>
+      <div className='flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
         <div>
-          <h1 className='flex items-center gap-3 text-3xl font-bold text-gray-900 dark:text-white'>
-            <Package className='w-8 h-8 text-primary' />
-            مدیریت محصولات
+          <p className='font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+            Catalog
+          </p>
+          <h1 className='flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground'>
+            <Package className='h-6 w-6' />
+            Products
           </h1>
-          <p className='mt-2 text-sm text-gray-500 dark:text-gray-400'>
-            مشاهده، ویرایش و مدیریت تمام محصولات فروشگاه
+          <p className='mt-1 text-sm text-muted-foreground'>
+            View, edit, and manage catalog line items (USD unit prices).
           </p>
         </div>
         <HeaderActions
@@ -771,9 +768,13 @@ export default function AdminProducts() {
         selected={selectedProducts.length}
       />
 
-      {/* Filters */}
-      <Card>
-        <CardBody className='py-3'>
+      <div className='border border-border bg-card'>
+        <div className='border-b border-border px-4 py-3'>
+          <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+            Filters
+          </h2>
+        </div>
+        <div className='px-4 py-4'>
           <Filters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
@@ -793,26 +794,25 @@ export default function AdminProducts() {
               setCurrentPage(1)
             }}
           />
-        </CardBody>
-      </Card>
+        </div>
+      </div>
 
-      {/* Products Table */}
-      <Card>
-        <CardHeader className='flex items-center gap-2 pb-3'>
-          <Package className='w-5 h-5 text-primary' />
-          <h3 className='text-lg font-semibold'>
-            لیست محصولات ({sortedProducts.length})
+      <div className='border border-border bg-card'>
+        <div className='flex items-center gap-2 border-b border-border px-4 py-3'>
+          <Package className='h-4 w-4 text-muted-foreground' />
+          <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+            Line items ({sortedProducts.length})
           </h3>
-        </CardHeader>
-        <CardBody className='overflow-x-auto'>
+        </div>
+        <div className='overflow-x-auto'>
           <Table
             aria-label='Products table'
             sortDescriptor={sortDescriptor}
             onSortChange={setSortDescriptor}
             classNames={{
-              wrapper: 'shadow-none',
-              th: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold',
-              td: 'py-4',
+              wrapper: 'shadow-none rounded-none',
+              th: 'bg-muted/50 text-muted-foreground text-[10px] font-semibold uppercase tracking-[0.12em]',
+              td: 'py-3',
             }}
           >
             <TableHeader>
@@ -826,34 +826,34 @@ export default function AdminProducts() {
                 />
               </TableColumn>
               <TableColumn key='name' allowsSorting>
-                نام محصول
+                Product
               </TableColumn>
               <TableColumn key='brand' allowsSorting>
-                برند
+                Mill
               </TableColumn>
               <TableColumn key='size' allowsSorting>
-                سایز
+                Size
               </TableColumn>
               <TableColumn key='weight' allowsSorting>
-                وزن
+                Weight
               </TableColumn>
               <TableColumn key='price' allowsSorting>
-                قیمت (تومان)
+                Price (USD)
               </TableColumn>
               <TableColumn key='inStock' allowsSorting>
-                موجودی
+                Stock
               </TableColumn>
               <TableColumn key='category' allowsSorting>
-                دسته‌بندی
+                Category
               </TableColumn>
-              <TableColumn key='subcategory'>زیردسته</TableColumn>
-              <TableColumn width={150}>عملیات</TableColumn>
+              <TableColumn key='subcategory'>Sub-line</TableColumn>
+              <TableColumn width={150}>Actions</TableColumn>
             </TableHeader>
-            <TableBody isLoading={isLoading} emptyContent='هیچ محصولی یافت نشد'>
+            <TableBody isLoading={isLoading} emptyContent='No products found'>
               {sortedProducts.map((product: Product) => (
                 <TableRow
                   key={product.id}
-                  className='transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
+                  className='transition-colors duration-200 ease-out hover:bg-muted/50'
                 >
                   <TableCell>
                     <Checkbox
@@ -864,23 +864,16 @@ export default function AdminProducts() {
                     />
                   </TableCell>
                   <TableCell>
-                    <div className='flex items-center gap-3'>
-                      <div className='p-2 bg-blue-100 rounded-lg dark:bg-blue-900'>
-                        <Package className='w-4 h-4 text-blue-600 dark:text-blue-400' />
-                      </div>
-                      <span className='font-medium text-gray-900 dark:text-white'>
-                        {product.name}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className='text-gray-600 dark:text-gray-400'>
-                      {product.brand}
+                    <span className='font-medium text-foreground'>
+                      {product.name}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className='font-medium text-gray-900 dark:text-white'>
-                      {product.size || 'نامشخص'}
+                    <span className='text-muted-foreground'>{product.brand}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className='font-mono text-xs tabular-nums text-foreground'>
+                      {product.size || '—'}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -896,18 +889,17 @@ export default function AdminProducts() {
                         variant='bordered'
                         step='0.1'
                         classNames={{
-                          input:
-                            'text-blue-600 dark:text-blue-400 font-bold text-right',
-                          inputWrapper: 'h-8 min-h-8 border-blue-500',
+                          input: 'font-mono tabular-nums',
+                          inputWrapper: 'h-8 min-h-8',
                         }}
                       />
                     ) : (
                       <span
-                        className='font-medium text-gray-600 cursor-pointer dark:text-gray-400 hover:underline'
+                        className='cursor-pointer font-mono text-xs tabular-nums text-muted-foreground hover:underline'
                         onClick={() => handleWeightClick(product)}
-                        title='کلیک کنید برای ویرایش'
+                        title='Click to edit'
                       >
-                        {product.weight ? product.weight : '-'}
+                        {product.weight ? product.weight : '—'}
                       </span>
                     )}
                   </TableCell>
@@ -923,206 +915,166 @@ export default function AdminProducts() {
                         size='sm'
                         variant='bordered'
                         classNames={{
-                          input:
-                            'text-green-600 dark:text-green-400 font-bold text-right',
-                          inputWrapper: 'h-8 min-h-8 border-green-500',
+                          input: 'font-mono font-semibold tabular-nums',
+                          inputWrapper: 'h-8 min-h-8',
                         }}
                       />
                     ) : (
                       <span
-                        className='font-bold text-green-600 cursor-pointer dark:text-green-400 hover:underline'
+                        className='cursor-pointer font-mono text-sm font-semibold tabular-nums text-foreground hover:underline'
                         onClick={() => handlePriceClick(product)}
-                        title='کلیک کنید برای ویرایش'
+                        title='Click to edit'
                       >
-                        {product.price.toLocaleString('fa-IR')}
+                        $
+                        {product.price.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </span>
                     )}
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      size='sm'
-                      variant='flat'
-                      color={product.inStock ? 'success' : 'danger'}
+                    <button
+                      type='button'
                       onClick={() => handleStockToggle(product)}
-                      className='transition-opacity cursor-pointer hover:opacity-80'
-                      title='کلیک کنید برای تغییر وضعیت'
+                      className={`border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide transition-colors duration-200 ease-out ${
+                        product.inStock
+                          ? 'border-emerald-600/30 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-200'
+                          : 'border-red-600/30 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200'
+                      }`}
+                      title='Click to toggle stock'
                     >
-                      {product.inStock ? 'موجود' : 'ناموجود'}
-                    </Chip>
+                      {product.inStock ? 'In stock' : 'Out'}
+                    </button>
                   </TableCell>
                   <TableCell>
-                    <Chip size='sm' variant='bordered'>
+                    <span className='border border-border bg-muted/40 px-2 py-0.5 text-xs text-foreground'>
                       {product.category.name}
-                    </Chip>
+                    </span>
                   </TableCell>
                   <TableCell>
-                    <span className='text-sm text-gray-500 dark:text-gray-400'>
+                    <span className='text-sm text-muted-foreground'>
                       {product.subcategory}
                     </span>
                   </TableCell>
                   <TableCell>
                     <div className='flex gap-1'>
-                      <Button
-                        size='sm'
-                        variant='light'
-                        color='primary'
-                        isIconOnly
-                        onPress={() => handleEditProduct(product)}
+                      <button
+                        type='button'
+                        onClick={() => handleEditProduct(product)}
+                        className='inline-flex h-8 w-8 items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                        title='Edit'
                       >
-                        <Edit className='w-4 h-4' />
-                      </Button>
-                      <Button
-                        size='sm'
-                        color='danger'
-                        variant='light'
-                        isIconOnly
-                        onPress={() => handleDeleteProduct(product)}
+                        <Edit className='h-3.5 w-3.5' />
+                      </button>
+                      <button
+                        type='button'
+                        onClick={() => handleDeleteProduct(product)}
+                        className='inline-flex h-8 w-8 items-center justify-center border border-border bg-card text-red-600 transition-colors duration-200 ease-out hover:bg-muted dark:text-red-400'
+                        title='Delete'
                       >
-                        <Trash2 className='w-4 h-4' />
-                      </Button>
+                        <Trash2 className='h-3.5 w-3.5' />
+                      </button>
                     </div>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </CardBody>
-        <CardBody className='px-6 py-4 border-t border-gray-200 dark:border-gray-700'>
-          <div className='flex items-center justify-between gap-4'>
-            {/* Items per page selector */}
-            <div className='flex items-center gap-2'>
-              <span className='text-sm text-gray-600 dark:text-gray-400'>
-                نمایش:
-              </span>
-              <Select
-                selectedKeys={new Set([itemsPerPage.toString()])}
-                onSelectionChange={keys => {
-                  const selected = Array.from(keys)[0] as string
-                  setItemsPerPage(parseInt(selected))
-                  setCurrentPage(1)
-                }}
-                variant='bordered'
-                size='sm'
-                className='w-20'
-                classNames={{
-                  trigger: 'h-9 min-h-9',
-                }}
-                aria-label='limit'
-              >
-                <SelectItem key='10'>10</SelectItem>
-                <SelectItem key='20'>20</SelectItem>
-                <SelectItem key='50'>50</SelectItem>
-                <SelectItem key='100'>100</SelectItem>
-              </Select>
-              <span className='text-sm text-gray-600 dark:text-gray-400'>
-                مورد در هر صفحه
-              </span>
-            </div>
-
-            {/* Pagination info */}
-            <div className='text-sm text-gray-600 dark:text-gray-400'>
-              نمایش{' '}
-              <span className='font-semibold text-gray-900 dark:text-white'>
-                {pagination ? (currentPage - 1) * itemsPerPage + 1 : 0}
-              </span>{' '}
-              تا{' '}
-              <span className='font-semibold text-gray-900 dark:text-white'>
-                {pagination
-                  ? Math.min(currentPage * itemsPerPage, pagination.total)
-                  : 0}
-              </span>{' '}
-              از{' '}
-              <span className='font-semibold text-gray-900 dark:text-white'>
-                {pagination?.total || 0}
-              </span>{' '}
-              مورد
-            </div>
-
-            {/* Pagination buttons */}
-            <div className='flex items-center gap-2'>
-              <Button
-                isIconOnly
-                variant='bordered'
-                size='sm'
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                isDisabled={currentPage === 1 || isLoading}
-                className='h-9 w-9'
-              >
-                <ChevronRight className='w-4 h-4' />
-              </Button>
-
-              {/* Page numbers */}
-              <div className='flex items-center gap-1'>
-                {pagination &&
-                  Array.from(
-                    { length: Math.min(5, pagination.totalPages) },
-                    (_, i) => {
-                      let pageNum: number
-                      if (pagination.totalPages <= 5) {
-                        pageNum = i + 1
-                      } else if (currentPage <= 3) {
-                        pageNum = i + 1
-                      } else if (currentPage >= pagination.totalPages - 2) {
-                        pageNum = pagination.totalPages - 4 + i
-                      } else {
-                        pageNum = currentPage - 2 + i
-                      }
-                      return pageNum
-                    },
-                  ).map((pageNum, idx, arr) => {
-                    // Add ellipsis if needed
-                    if (
-                      idx > 0 &&
-                      pageNum !== arr[idx - 1] + 1 &&
-                      pagination.totalPages > 5
-                    ) {
-                      return (
-                        <span
-                          key={`ellipsis-${pageNum}`}
-                          className='px-2 text-gray-600 dark:text-gray-400'
-                        >
-                          ...
-                        </span>
-                      )
-                    }
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={currentPage === pageNum ? 'solid' : 'bordered'}
-                        size='sm'
-                        onClick={() => setCurrentPage(pageNum)}
-                        isDisabled={isLoading}
-                        className='px-2 h-9 min-w-9'
-                        color={currentPage === pageNum ? 'primary' : 'default'}
-                      >
-                        {pageNum}
-                      </Button>
-                    )
-                  })}
-              </div>
-
-              <Button
-                isIconOnly
-                variant='bordered'
-                size='sm'
-                onClick={() =>
-                  setCurrentPage(p =>
-                    pagination ? Math.min(pagination.totalPages, p + 1) : p,
-                  )
-                }
-                isDisabled={
-                  !pagination ||
-                  currentPage === pagination.totalPages ||
-                  isLoading
-                }
-                className='h-9 w-9'
-              >
-                <ChevronLeft className='w-4 h-4' />
-              </Button>
-            </div>
+        </div>
+        <div className='flex flex-col gap-3 border-t border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between'>
+          <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+            <span>Show</span>
+            <select
+              value={itemsPerPage}
+              onChange={e => {
+                setItemsPerPage(parseInt(e.target.value, 10))
+                setCurrentPage(1)
+              }}
+              className='border border-border bg-background px-2 py-1.5 text-sm text-foreground focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
+              aria-label='Rows per page'
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <span>per page</span>
           </div>
-        </CardBody>
-      </Card>
+
+          <div className='text-sm text-muted-foreground'>
+            Showing{' '}
+            <span className='font-medium tabular-nums text-foreground'>
+              {pagination ? (currentPage - 1) * itemsPerPage + 1 : 0}
+            </span>{' '}
+            –{' '}
+            <span className='font-medium tabular-nums text-foreground'>
+              {pagination
+                ? Math.min(currentPage * itemsPerPage, pagination.total)
+                : 0}
+            </span>{' '}
+            of{' '}
+            <span className='font-medium tabular-nums text-foreground'>
+              {pagination?.total || 0}
+            </span>
+          </div>
+
+          <div className='flex items-center gap-1'>
+            <button
+              type='button'
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1 || isLoading}
+              className='inline-flex h-9 w-9 items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:opacity-50'
+              aria-label='Previous page'
+            >
+              <ChevronLeft className='h-4 w-4' />
+            </button>
+            {pagination &&
+              Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                let pageNum: number
+                if (pagination.totalPages <= 5) {
+                  pageNum = i + 1
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1
+                } else if (currentPage >= pagination.totalPages - 2) {
+                  pageNum = pagination.totalPages - 4 + i
+                } else {
+                  pageNum = currentPage - 2 + i
+                }
+                return pageNum
+              }).map(pageNum => (
+                <button
+                  key={pageNum}
+                  type='button'
+                  onClick={() => setCurrentPage(pageNum)}
+                  disabled={isLoading}
+                  className={`inline-flex h-9 min-w-9 items-center justify-center border px-2 text-sm font-medium transition-colors duration-200 ease-out disabled:opacity-50 ${
+                    currentPage === pageNum
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border bg-card text-foreground hover:bg-muted'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+            <button
+              type='button'
+              onClick={() =>
+                setCurrentPage(p =>
+                  pagination ? Math.min(pagination.totalPages, p + 1) : p,
+                )
+              }
+              disabled={
+                !pagination || currentPage === pagination.totalPages || isLoading
+              }
+              className='inline-flex h-9 w-9 items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:opacity-50'
+              aria-label='Next page'
+            >
+              <ChevronRight className='h-4 w-4' />
+            </button>
+          </div>
+        </div>
+      </div>
 
       <BulkUpdateModal
         isOpen={isBulkModalOpen}
