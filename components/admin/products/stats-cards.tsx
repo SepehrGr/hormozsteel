@@ -1,4 +1,3 @@
-import { Card, CardBody } from '@heroui/card'
 import { Package, Layers } from 'lucide-react'
 
 interface Props {
@@ -8,38 +7,29 @@ interface Props {
 
 export default function StatsCards({ total, selected }: Props) {
   return (
-    <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-      <Card className='border-l-4 border-l-blue-500'>
-        <CardBody className='flex flex-row items-center justify-between'>
-          <div>
-            <p className='text-sm text-gray-500 dark:text-gray-400'>
-              مجموع محصولات
-            </p>
-            <p className='text-2xl font-bold text-gray-900 dark:text-white'>
-              {total}
-            </p>
-          </div>
-          <div className='p-3 bg-blue-100 rounded-full dark:bg-blue-900'>
-            <Package className='w-6 h-6 text-blue-600 dark:text-blue-400' />
-          </div>
-        </CardBody>
-      </Card>
-
-      <Card className='border-l-4 border-l-purple-500'>
-        <CardBody className='flex flex-row items-center justify-between'>
-          <div>
-            <p className='text-sm text-gray-500 dark:text-gray-400'>
-              انتخاب شده
-            </p>
-            <p className='text-2xl font-bold text-purple-600 dark:text-purple-400'>
-              {selected}
-            </p>
-          </div>
-          <div className='p-3 bg-purple-100 rounded-full dark:bg-purple-900'>
-            <Layers className='w-6 h-6 text-purple-600 dark:text-purple-400' />
-          </div>
-        </CardBody>
-      </Card>
+    <div className='grid grid-cols-2 gap-px overflow-hidden border border-border bg-border sm:max-w-md'>
+      <div className='bg-card px-4 py-3'>
+        <div className='flex items-start justify-between gap-2'>
+          <p className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+            Products
+          </p>
+          <Package className='h-4 w-4 text-muted-foreground' />
+        </div>
+        <p className='mt-1 font-mono text-2xl font-semibold tabular-nums text-foreground'>
+          {total.toLocaleString('en-US')}
+        </p>
+      </div>
+      <div className='bg-card px-4 py-3'>
+        <div className='flex items-start justify-between gap-2'>
+          <p className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+            Selected
+          </p>
+          <Layers className='h-4 w-4 text-muted-foreground' />
+        </div>
+        <p className='mt-1 font-mono text-2xl font-semibold tabular-nums text-foreground'>
+          {selected.toLocaleString('en-US')}
+        </p>
+      </div>
     </div>
   )
 }
