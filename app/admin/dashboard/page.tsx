@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader } from '@heroui/card'
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import {
   Package,
@@ -6,9 +6,9 @@ import {
   Building2,
   ShoppingCart,
   Users,
-  TrendingUp,
-  DollarSign,
   Clock,
+  DollarSign,
+  ArrowRight,
 } from 'lucide-react'
 
 async function getDashboardStats() {
@@ -55,126 +55,173 @@ async function getDashboardStats() {
   }
 }
 
+function formatUsd(n: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(n)
+}
+
+function formatDate(d: Date) {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(d)
+}
+
 export default async function AdminDashboard() {
   const stats = await getDashboardStats()
 
   const statCards = [
     {
-      title: 'کل محصولات',
-      value: stats.totalProducts.toLocaleString(),
+      title: 'Products',
+      value: stats.totalProducts.toLocaleString('en-US'),
       icon: Package,
-      color: 'text-blue-600 dark:text-blue-400',
+      href: '/admin/products',
     },
     {
-      title: 'دسته‌بندی‌ها',
-      value: stats.totalCategories.toLocaleString(),
+      title: 'Categories',
+      value: stats.totalCategories.toLocaleString('en-US'),
       icon: FolderTree,
-      color: 'text-green-600 dark:text-green-400',
+      href: '/admin/categories',
     },
     {
-      title: 'تولیدکنندگان',
-      value: stats.totalManufacturers.toLocaleString(),
+      title: 'Manufacturers',
+      value: stats.totalManufacturers.toLocaleString('en-US'),
       icon: Building2,
-      color: 'text-purple-600 dark:text-purple-400',
+      href: '/admin/manufacturers',
     },
     {
-      title: 'کل سفارشات',
-      value: stats.totalOrders.toLocaleString(),
+      title: 'Orders',
+      value: stats.totalOrders.toLocaleString('en-US'),
       icon: ShoppingCart,
-      color: 'text-orange-600 dark:text-orange-400',
+      href: '/admin/orders',
     },
     {
-      title: 'مشتریان',
-      value: stats.totalCustomers.toLocaleString(),
+      title: 'Customers',
+      value: stats.totalCustomers.toLocaleString('en-US'),
       icon: Users,
-      color: 'text-indigo-600 dark:text-indigo-400',
+      href: '/admin/orders',
     },
     {
-      title: 'سفارشات در انتظار',
-      value: stats.pendingOrders.toLocaleString(),
+      title: 'Pending',
+      value: stats.pendingOrders.toLocaleString('en-US'),
       icon: Clock,
-      color: 'text-yellow-600 dark:text-yellow-400',
+      href: '/admin/orders',
     },
     {
-      title: 'کل درآمد',
-      value: `$${stats.totalRevenue.toLocaleString()}`,
+      title: 'Revenue',
+      value: formatUsd(Number(stats.totalRevenue)),
       icon: DollarSign,
-      color: 'text-green-600 dark:text-green-400',
-    },
-    {
-      title: 'رشد',
-      value: '+12.5%',
-      icon: TrendingUp,
-      color: 'text-emerald-600 dark:text-emerald-400',
+      href: '/admin/orders',
     },
   ]
 
   return (
     <div className='space-y-6'>
-      <div className='flex items-center justify-between'>
-        <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>
-          داشبورد
-        </h1>
-        <p className='text-gray-500 dark:text-gray-400'>
-          خوش آمدید! در اینجا آخرین وضعیت فروشگاه شما را مشاهده می‌کنید.
-        </p>
+      <div className='flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between'>
+        <div>
+          <p className='font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+            Overview
+          </p>
+          <h1 className='text-2xl font-semibold tracking-tight text-foreground'>
+            Dashboard
+          </h1>
+          <p className='mt-1 text-sm text-muted-foreground'>
+            Catalog and desk snapshot for the Hormoz Steel demo.
+          </p>
+        </div>
+        <Link
+          href='/admin/products'
+          className='inline-flex items-center gap-1.5 text-sm font-medium text-foreground underline-offset-4 transition-colors duration-200 ease-out hover:underline'
+        >
+          Manage products
+          <ArrowRight className='h-3.5 w-3.5' />
+        </Link>
       </div>
 
-      {/* Stats Grid */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
-        {statCards.map((stat, index) => {
+      <div className='grid grid-cols-2 gap-px overflow-hidden border border-border bg-border sm:grid-cols-3 lg:grid-cols-4'>
+        {statCards.map(stat => {
           const Icon = stat.icon
           return (
-            <Card key={index} className='hover:shadow-lg transition-shadow'>
-              <CardBody className='p-6'>
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-sm font-medium text-gray-600 dark:text-gray-400'>
-                      {stat.title}
-                    </p>
-                    <p className='text-2xl font-bold text-gray-900 dark:text-white'>
-                      {stat.value}
-                    </p>
-                  </div>
-                  <Icon className={`h-8 w-8 ${stat.color}`} />
-                </div>
-              </CardBody>
-            </Card>
+            <Link
+              key={stat.title}
+              href={stat.href}
+              className='group bg-card px-4 py-4 transition-colors duration-200 ease-out hover:bg-muted'
+            >
+              <div className='flex items-start justify-between gap-2'>
+                <p className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+                  {stat.title}
+                </p>
+                <Icon className='h-4 w-4 text-muted-foreground transition-colors duration-200 ease-out group-hover:text-amber-800 dark:group-hover:text-amber-500' />
+              </div>
+              <p className='mt-2 font-mono text-2xl font-semibold tabular-nums tracking-tight text-foreground'>
+                {stat.value}
+              </p>
+            </Link>
           )
         })}
       </div>
 
-      {/* Recent Orders */}
-      <Card>
-        <CardHeader>
-          <h2 className='text-xl font-semibold'>آخرین سفارشات</h2>
-        </CardHeader>
-        <CardBody>
-          <div className='space-y-4'>
-            {stats.recentOrders.map(order => (
-              <div
-                key={order.id}
-                className='flex items-center justify-between p-4 border rounded-lg'
-              >
-                <div>
-                  <p className='font-medium'>سفارش #{order.orderNumber}</p>
-                  <p className='text-sm text-gray-600 dark:text-gray-400'>
-                    {order.customer.name} • {order.items.length} آیتم
-                  </p>
-                </div>
-                <div className='text-left'>
-                  <p className='font-medium'>
-                    ${order.totalAmount.toLocaleString()}
-                  </p>
-                  <p className='text-sm text-gray-600 dark:text-gray-400'>
-                    {new Date(order.createdAt).toLocaleDateString('fa-IR')}
-                  </p>
-                </div>
-              </div>
-            ))}
+      <section className='border border-border bg-card'>
+        <div className='flex items-center justify-between border-b border-border px-4 py-3'>
+          <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+            Recent orders
+          </h2>
+          <Link
+            href='/admin/orders'
+            className='text-xs font-medium text-muted-foreground underline-offset-4 transition-colors duration-200 ease-out hover:text-foreground hover:underline'
+          >
+            View all
+          </Link>
+        </div>
+
+        {stats.recentOrders.length === 0 ? (
+          <div className='px-4 py-12 text-center text-sm text-muted-foreground'>
+            No orders yet. Quote requests from the public site will appear here.
           </div>
-        </CardBody>
-      </Card>
+        ) : (
+          <div className='overflow-x-auto'>
+            <table className='w-full min-w-[560px] text-sm'>
+              <thead>
+                <tr className='border-b border-border bg-muted/50 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground'>
+                  <th className='px-4 py-2.5'>Order</th>
+                  <th className='px-4 py-2.5'>Customer</th>
+                  <th className='px-4 py-2.5 text-center'>Lines</th>
+                  <th className='px-4 py-2.5 text-right'>Total</th>
+                  <th className='px-4 py-2.5 text-right'>Date</th>
+                </tr>
+              </thead>
+              <tbody className='divide-y divide-border'>
+                {stats.recentOrders.map(order => (
+                  <tr
+                    key={order.id}
+                    className='transition-colors duration-200 ease-out hover:bg-muted/40'
+                  >
+                    <td className='px-4 py-3 font-mono text-xs font-medium text-foreground'>
+                      #{order.orderNumber}
+                    </td>
+                    <td className='px-4 py-3 text-foreground'>
+                      {order.customer.name}
+                    </td>
+                    <td className='px-4 py-3 text-center tabular-nums text-muted-foreground'>
+                      {order.items.length}
+                    </td>
+                    <td className='px-4 py-3 text-right font-medium tabular-nums text-foreground'>
+                      {formatUsd(Number(order.totalAmount))}
+                    </td>
+                    <td className='px-4 py-3 text-right text-muted-foreground'>
+                      {formatDate(new Date(order.createdAt))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   )
 }
