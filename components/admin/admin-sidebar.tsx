@@ -9,145 +9,140 @@ import {
   Package,
   FolderTree,
   Building2,
-  ShoppingCart,
-  Users,
-  BarChart3,
+  ClipboardList,
   Settings,
   Shield,
-  ClipboardList,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const sidebarItems = [
-  {
-    title: 'داشبورد',
-    href: '/admin/dashboard',
-    icon: LayoutDashboard,
-  },
-  {
-    title: 'محصولات',
-    href: '/admin/products',
-    icon: Package,
-  },
-  {
-    title: 'دسته‌بندی‌ها',
-    href: '/admin/categories',
-    icon: FolderTree,
-  },
-  {
-    title: 'سفارشات',
-    href: '/admin/orders',
-    icon: ClipboardList,
-  },
-  {
-    title: 'تنظیمات پروفایل',
-    href: '/admin/settings',
-    icon: Settings,
-  },
+  { title: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+  { title: 'Products', href: '/admin/products', icon: Package },
+  { title: 'Categories', href: '/admin/categories', icon: FolderTree },
+  { title: 'Manufacturers', href: '/admin/manufacturers', icon: Building2 },
+  { title: 'Orders', href: '/admin/orders', icon: ClipboardList },
+  { title: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
 const superAdminItems = [
-  {
-    title: 'کاربران ادمین',
-    href: '/admin/users',
-    icon: Shield,
-  },
+  { title: 'Admin users', href: '/admin/users', icon: Shield },
 ]
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+  collapsed?: boolean
+  onCollapsedChange?: (collapsed: boolean) => void
+}
+
+export default function AdminSidebar({
+  collapsed: collapsedProp,
+  onCollapsedChange,
+}: AdminSidebarProps = {}) {
   const pathname = usePathname()
   const { data: session } = useSession()
-  const [collapsed, setCollapsed] = useState(false)
+  const [internalCollapsed, setInternalCollapsed] = useState(false)
+  const collapsed = collapsedProp ?? internalCollapsed
+  const setCollapsed = (next: boolean | ((v: boolean) => boolean)) => {
+    const value = typeof next === 'function' ? next(collapsed) : next
+    if (onCollapsedChange) onCollapsedChange(value)
+    else setInternalCollapsed(value)
+  }
 
   const allItems =
     session?.user?.role === 'SUPER_ADMIN'
       ? [...sidebarItems, ...superAdminItems]
       : sidebarItems
 
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`)
+
   return (
     <aside
       className={cn(
-        'fixed inset-y-0 right-0 z-50 flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 transition-width',
-        collapsed ? 'w-20' : 'w-64',
+        'fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-card transition-[width] duration-200 ease-out',
+        collapsed ? 'w-[4.25rem]' : 'w-60',
       )}
       aria-label='Admin sidebar'
     >
-      {/* Header / Brand / Profile */}
-      <div className='flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700'>
+      <div className='flex h-14 items-center justify-between border-b border-border px-3'>
         <Link
           href='/admin/dashboard'
-          className={cn('flex items-center gap-3', collapsed && 'justify-center')}
+          className={cn(
+            'flex min-w-0 items-center gap-2.5',
+            collapsed && 'justify-center',
+          )}
         >
-          <Package className='w-8 h-8 text-primary' />
-          {!collapsed && <span className='text-xl font-bold'>آهن هرمز</span>}
+          <div className='flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-background'>
+            <Package className='h-4 w-4 text-foreground' />
+          </div>
+          {!collapsed && (
+            <div className='min-w-0'>
+              <p className='truncate text-sm font-semibold tracking-tight text-foreground'>
+                Hormoz Steel
+              </p>
+              <p className='font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground'>
+                Admin
+              </p>
+            </div>
+          )}
         </Link>
 
         <button
-          aria-label={collapsed ? 'باز کردن منو' : 'بستن منو'}
-          onClick={() => setCollapsed(!collapsed)}
-          className='p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700'
+          type='button'
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          onClick={() => setCollapsed(v => !v)}
+          className='flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-background text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
         >
           {collapsed ? (
-            <ChevronRight className='w-5 h-5 text-gray-600 dark:text-gray-300' />
+            <ChevronRight className='h-4 w-4' />
           ) : (
-            <ChevronLeft className='w-5 h-5 text-gray-600 dark:text-gray-300' />
+            <ChevronLeft className='h-4 w-4' />
           )}
         </button>
       </div>
 
-      <div className='flex-1 px-2 py-6 overflow-y-auto'>
-        {/* Profile */}
+      <div className='flex-1 overflow-y-auto px-2 py-4'>
         <div
           className={cn(
-            'flex items-center gap-3 px-3 mb-6',
-            collapsed && 'justify-center',
+            'mb-4 flex items-center gap-2.5 border border-border bg-background px-2.5 py-2',
+            collapsed && 'justify-center px-0',
           )}
         >
-          <div className='flex items-center gap-3'>
-            <div className='flex items-center justify-center w-10 h-10 font-bold text-white rounded-full bg-gradient-to-br from-blue-700 to-blue-500'>
-              {session?.user?.name ? session.user.name.charAt(0) : 'A'}
-            </div>
-            {!collapsed && (
-              <div>
-                <div className='text-sm font-semibold text-slate-800 dark:text-slate-100'>
-                  {session?.user?.name || 'ادمین'}
-                </div>
-                <div className='text-xs text-slate-500 dark:text-slate-400'>
-                  مدیریت سایت
-                </div>
-              </div>
-            )}
+          <div className='flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-card font-mono text-xs font-semibold text-foreground'>
+            {session?.user?.name?.charAt(0)?.toUpperCase() || 'A'}
           </div>
+          {!collapsed && (
+            <div className='min-w-0'>
+              <p className='truncate text-sm font-medium text-foreground'>
+                {session?.user?.name || 'Admin'}
+              </p>
+              <p className='truncate font-mono text-[10px] uppercase tracking-wide text-muted-foreground'>
+                {session?.user?.role === 'SUPER_ADMIN' ? 'Super admin' : 'Admin'}
+              </p>
+            </div>
+          )}
         </div>
 
         <nav>
-          <ul className='space-y-2'>
+          <ul className='space-y-0.5'>
             {allItems.map(item => {
               const Icon = item.icon
-              const isActive = pathname === item.href
-
+              const active = isActive(item.href)
               return (
-                <li key={item.href} className='relative'>
+                <li key={item.href}>
                   <Link
                     href={item.href}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                      isActive
-                        ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700',
-                    )}
                     title={collapsed ? item.title : undefined}
+                    className={cn(
+                      'flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-out',
+                      collapsed && 'justify-center px-0',
+                      active
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                    )}
                   >
-                    <Icon
-                      className={cn(
-                        'h-5 w-5 flex-shrink-0',
-                        isActive
-                          ? 'text-primary-foreground'
-                          : 'text-gray-600 dark:text-gray-300',
-                      )}
-                    />
+                    <Icon className='h-4 w-4 shrink-0' />
                     {!collapsed && <span>{item.title}</span>}
                   </Link>
                 </li>
@@ -156,6 +151,17 @@ export default function AdminSidebar() {
           </ul>
         </nav>
       </div>
+
+      {!collapsed && (
+        <div className='border-t border-border px-3 py-3'>
+          <Link
+            href='/'
+            className='text-xs font-medium text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground'
+          >
+            ← Public site
+          </Link>
+        </div>
+      )}
     </aside>
   )
 }
