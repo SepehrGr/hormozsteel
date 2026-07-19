@@ -1,11 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Button } from '@heroui/button'
-import { Input } from '@heroui/input'
-import { Card, CardBody, CardHeader } from '@heroui/card'
-import { Divider } from '@heroui/divider'
-import { Factory, Edit2, Check, X, Eye, EyeOff } from 'lucide-react'
+import { Settings, Edit2, Check, X, Eye, EyeOff } from 'lucide-react'
 import { addToast } from '@heroui/toast'
 
 interface AdminProfile {
@@ -15,6 +11,12 @@ interface AdminProfile {
   password?: string
   passwordConfirm?: string
 }
+
+const fieldClass =
+  'w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground disabled:cursor-not-allowed disabled:opacity-60'
+
+const labelClass =
+  'mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
 
 export default function AdminSettings() {
   const [admin, setAdmin] = useState<AdminProfile | null>(null)
@@ -30,28 +32,25 @@ export default function AdminSettings() {
         const response = await fetch('/api/admin/profile')
         if (response.ok) {
           const data = await response.json()
-          setAdmin({
+          const profile = {
             id: data.data.id,
             name: data.data.name,
             email: data.data.email,
-          })
-          setFormData({
-            id: data.data.id,
-            name: data.data.name,
-            email: data.data.email,
-          })
+          }
+          setAdmin(profile)
+          setFormData(profile)
         } else {
           addToast({
-            title: 'خطا',
-            description: 'خطا در بارگذاری اطلاعات',
+            title: 'Error',
+            description: 'Could not load profile',
             color: 'danger',
           })
         }
       } catch (error) {
         console.error('Error fetching admin data:', error)
         addToast({
-          title: 'خطا',
-          description: 'خطا در اتصال به سرور',
+          title: 'Error',
+          description: 'Network error while loading profile',
           color: 'danger',
         })
       } finally {
@@ -64,86 +63,55 @@ export default function AdminSettings() {
 
   const toggleEdit = (field: string) => {
     if (!admin || !formData) return
-
-    // Prevent direct editing of passwordConfirm
     if (field === 'passwordConfirm') return
 
-    const newEditingFields = new Set(editingFields)
+    const next = new Set(editingFields)
 
     if (field === 'password') {
-      if (newEditingFields.has('password')) {
-        // Closing password edit - close both password and passwordConfirm
-        newEditingFields.delete('password')
-        newEditingFields.delete('passwordConfirm')
-        setFormData({
-          ...formData,
-          password: '',
-          passwordConfirm: '',
-        } as AdminProfile)
+      if (next.has('password')) {
+        next.delete('password')
+        next.delete('passwordConfirm')
+        setFormData({ ...formData, password: '', passwordConfirm: '' })
       } else {
-        // Opening password edit - open both password and passwordConfirm
-        newEditingFields.add('password')
-        newEditingFields.add('passwordConfirm')
+        next.add('password')
+        next.add('passwordConfirm')
       }
-    } else {
-      // Regular field toggle
-      if (newEditingFields.has(field)) {
-        newEditingFields.delete(field)
-        setFormData({
-          ...formData,
-          [field]: admin[field as keyof AdminProfile],
-        } as AdminProfile)
-      } else {
-        newEditingFields.add(field)
-      }
-    }
-    setEditingFields(newEditingFields)
-  }
-
-  const handleFieldChange = (field: string, value: string) => {
-    if (!formData) return
-    setFormData({
-      ...formData,
-      [field]: value,
-    } as AdminProfile)
-  }
-
-  const handleSave = async (field: string) => {
-    if (!admin || !formData) return
-
-    if (!formData[field as keyof AdminProfile]) {
-      addToast({
-        title: 'خطا',
-        description: `${field} نمی‌تواند خالی باشد`,
-        color: 'warning',
+    } else if (next.has(field)) {
+      next.delete(field)
+      setFormData({
+        ...formData,
+        [field]: (admin as any)[field],
       })
-      return
+    } else {
+      next.add(field)
     }
 
-    // Check if this is a password field
-    if (field === 'password') {
-      if (!formData.password || !formData.passwordConfirm) {
+    setEditingFields(next)
+  }
+
+  const toggleShowPassword = (field: string) => {
+    const next = new Set(showPassword)
+    if (next.has(field)) next.delete(field)
+    else next.add(field)
+    setShowPassword(next)
+  }
+
+  const handleSave = async () => {
+    if (!formData || !admin) return
+
+    if (editingFields.has('password')) {
+      if (!formData.password || formData.password.length < 6) {
         addToast({
-          title: 'خطا',
-          description: 'رمز عبور و تأیید آن باید هر دو پر شوند',
+          title: 'Validation',
+          description: 'Password must be at least 6 characters',
           color: 'warning',
         })
         return
       }
-
       if (formData.password !== formData.passwordConfirm) {
         addToast({
-          title: 'خطا',
-          description: 'رمز عبور و تأیید آن باید یکسان باشند',
-          color: 'warning',
-        })
-        return
-      }
-
-      if (formData.password.length < 6) {
-        addToast({
-          title: 'خطا',
-          description: 'رمز عبور باید حداقل 6 کاراکتر باشد',
+          title: 'Validation',
+          description: 'Passwords do not match',
           color: 'warning',
         })
         return
@@ -151,61 +119,59 @@ export default function AdminSettings() {
     }
 
     setIsSaving(true)
-
     try {
+      const payload: Record<string, string> = {}
+      if (editingFields.has('name') && formData.name !== admin.name) {
+        payload.name = formData.name
+      }
+      if (editingFields.has('email') && formData.email !== admin.email) {
+        payload.email = formData.email
+      }
+      if (editingFields.has('password') && formData.password) {
+        payload.password = formData.password
+      }
+
+      if (Object.keys(payload).length === 0) {
+        setEditingFields(new Set())
+        setIsSaving(false)
+        return
+      }
+
       const response = await fetch('/api/admin/profile', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          [field]: formData[field as keyof AdminProfile],
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       })
 
+      const data = await response.json()
+
       if (response.ok) {
-        const updatedData = await response.json()
-        setAdmin({
-          ...admin,
-          [field]: formData[field as keyof AdminProfile],
-        })
-
-        const newEditingFields = new Set(editingFields)
-        newEditingFields.delete(field)
-        setEditingFields(newEditingFields)
-
-        // Clear password fields after successful save
-        if (field === 'password') {
-          setFormData(prevFormData => ({
-            ...prevFormData!,
-            password: '',
-            passwordConfirm: '',
-          }))
-          // Clear password visibility state
-          const newShowPassword = new Set(showPassword)
-          newShowPassword.delete('password')
-          newShowPassword.delete('passwordConfirm')
-          setShowPassword(newShowPassword)
+        const updated = {
+          id: data.data.id,
+          name: data.data.name,
+          email: data.data.email,
         }
-
+        setAdmin(updated)
+        setFormData(updated)
+        setEditingFields(new Set())
+        setShowPassword(new Set())
         addToast({
-          title: 'موفقیت',
-          description: `${field} با موفقیت بروزرسانی شد`,
+          title: 'Saved',
+          description: 'Profile updated',
           color: 'success',
         })
       } else {
-        const error = await response.json()
         addToast({
-          title: 'خطا',
-          description: error.message || 'خطا در بروزرسانی اطلاعات',
+          title: 'Error',
+          description: data.error || 'Could not save profile',
           color: 'danger',
         })
       }
     } catch (error) {
-      console.error('Error saving field:', error)
+      console.error('Save failed:', error)
       addToast({
-        title: 'خطا',
-        description: 'خطا در ارتباط با سرور',
+        title: 'Error',
+        description: 'Network error while saving',
         color: 'danger',
       })
     } finally {
@@ -213,240 +179,164 @@ export default function AdminSettings() {
     }
   }
 
-  const renderEditableField = (
-    label: string,
-    fieldName: string,
-    type: string = 'text',
-  ) => {
-    if (!admin || !formData) return null
-
-    const isEditing = editingFields.has(fieldName)
-    const isPasswordField = type === 'password'
-    const isPasswordVisible = showPassword.has(fieldName)
-    const inputType = isPasswordField && isPasswordVisible ? 'text' : type
-    const value = isEditing
-      ? formData[fieldName as keyof AdminProfile]
-      : admin[fieldName as keyof AdminProfile]
-
-    // Special handling for password confirmation field
-    const isPasswordConfirm = fieldName === 'passwordConfirm'
-    const isPasswordEditing = editingFields.has('password')
-    const passwordsMatch =
-      formData.password === formData.passwordConfirm &&
-      formData.password &&
-      formData.password.length > 0
-    const passwordLengthValid =
-      formData.password && formData.password.length >= 6
-
-    // Don't render passwordConfirm unless password is being edited
-    if (isPasswordConfirm && !isPasswordEditing) {
-      return null
-    }
-
-    const togglePasswordVisibility = () => {
-      const newShowPassword = new Set(showPassword)
-      if (newShowPassword.has(fieldName)) {
-        newShowPassword.delete(fieldName)
-      } else {
-        newShowPassword.add(fieldName)
-      }
-      setShowPassword(newShowPassword)
-    }
-
-    return (
-      <div key={fieldName} className='space-y-2'>
-        <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-          {label}
-          {fieldName === 'password' && formData.password && (
-            <span
-              className={`text-xs font-normal ${
-                passwordLengthValid ? 'text-success' : 'text-danger'
-              }`}
-            >
-              {passwordLengthValid
-                ? '✓ حداقل 6 کاراکتر'
-                : `✗ ${formData.password.length}/6`}
-            </span>
-          )}
-          {isPasswordConfirm && formData.password && (
-            <span
-              className={`text-xs font-normal ${
-                passwordsMatch ? 'text-success' : 'text-danger'
-              }`}
-            >
-              {passwordsMatch ? '✓ تطابق' : '✗ عدم تطابق'}
-            </span>
-          )}
-        </label>
-        <div className='flex items-center gap-2'>
-          <div className='relative flex-1'>
-            <Input
-              type={inputType}
-              value={value || ''}
-              onChange={e => handleFieldChange(fieldName, e.target.value)}
-              disabled={!isEditing}
-              placeholder={`${label} را وارد کنید`}
-              variant='bordered'
-              size='lg'
-              classNames={{
-                inputWrapper: isEditing
-                  ? 'border-default-200 hover:border-primary'
-                  : 'bg-default-100 border-default-200',
-              }}
-            />
-            {isPasswordField && isEditing && (
-              <Button
-                isIconOnly
-                size='sm'
-                variant='light'
-                className='absolute left-2 top-1/2 -translate-y-1/2'
-                onClick={togglePasswordVisibility}
-              >
-                {isPasswordVisible ? (
-                  <EyeOff className='w-4 h-4 text-default-500' />
-                ) : (
-                  <Eye className='w-4 h-4 text-default-500' />
-                )}
-              </Button>
-            )}
-          </div>
-          {!isPasswordConfirm && isEditing ? (
-            <div className='flex gap-2'>
-              <Button
-                isIconOnly
-                size='lg'
-                variant='flat'
-                color='success'
-                onClick={() => handleSave(fieldName)}
-                isLoading={isSaving}
-                isDisabled={
-                  (isPasswordConfirm && !passwordsMatch) ||
-                  (fieldName === 'password' && !passwordLengthValid)
-                }
-              >
-                <Check className='w-5 h-5' />
-              </Button>
-              <Button
-                isIconOnly
-                size='lg'
-                variant='flat'
-                color='danger'
-                onClick={() =>
-                  toggleEdit(isPasswordConfirm ? 'password' : fieldName)
-                }
-              >
-                <X className='w-5 h-5' />
-              </Button>
-            </div>
-          ) : (
-            !isPasswordConfirm &&
-            !isEditing && (
-              <Button
-                isIconOnly
-                size='lg'
-                variant='flat'
-                color='primary'
-                onClick={() => toggleEdit(fieldName)}
-              >
-                <Edit2 className='w-5 h-5' />
-              </Button>
-            )
-          )}
-        </div>
-      </div>
-    )
-  }
-
   if (isLoading) {
     return (
-      <div className='container px-6 py-8 mx-auto' dir='rtl'>
-        <div className='mb-8'>
-          <div className='flex items-center gap-3'>
-            <div className='p-3 bg-gradient-to-r from-blue-400 to-blue-500 rounded-xl'>
-              <Factory className='w-8 h-8 text-white' />
-            </div>
-            <div>
-              <h1 className='text-3xl font-bold text-gray-900 dark:text-gray-100'>
-                تنظیمات پروفایل
-              </h1>
-              <p className='text-gray-600 dark:text-gray-400'>
-                مدیریت اطلاعات ادمین
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className='flex justify-center'>
-          <div className='animate-spin'>
-            <div className='w-8 h-8 border-4 border-primary border-t-transparent rounded-full'></div>
-          </div>
+      <div className='flex min-h-[40vh] items-center justify-center'>
+        <div className='text-center'>
+          <div className='mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-border border-t-foreground' />
+          <p className='text-sm text-muted-foreground'>Loading profile…</p>
         </div>
       </div>
     )
   }
 
-  if (!admin) {
+  if (!admin || !formData) {
     return (
-      <div className='container px-6 py-8 mx-auto' dir='rtl'>
-        <div className='mb-8'>
-          <div className='flex items-center gap-3'>
-            <div className='p-3 bg-gradient-to-r from-blue-400 to-blue-500 rounded-xl'>
-              <Factory className='w-8 h-8 text-white' />
-            </div>
-            <div>
-              <h1 className='text-3xl font-bold text-gray-900 dark:text-gray-100'>
-                تنظیمات پروفایل
-              </h1>
-              <p className='text-gray-600 dark:text-gray-400'>
-                مدیریت اطلاعات ادمین
+      <div className='border border-border bg-card px-6 py-12 text-center text-sm text-muted-foreground'>
+        Could not load admin profile.
+      </div>
+    )
+  }
+
+  const FieldRow = ({
+    label,
+    field,
+    type = 'text',
+  }: {
+    label: string
+    field: 'name' | 'email' | 'password' | 'passwordConfirm'
+    type?: string
+  }) => {
+    const editing = editingFields.has(field)
+    const isPassword = field === 'password' || field === 'passwordConfirm'
+    const value = (formData as any)[field] ?? ''
+
+    return (
+      <div className='border-b border-border px-4 py-4 last:border-b-0'>
+        <div className='flex items-start justify-between gap-3'>
+          <div className='min-w-0 flex-1'>
+            <label className={labelClass} htmlFor={`settings-${field}`}>
+              {label}
+            </label>
+            {editing ? (
+              <div className='relative'>
+                <input
+                  id={`settings-${field}`}
+                  type={
+                    isPassword
+                      ? showPassword.has(field)
+                        ? 'text'
+                        : 'password'
+                      : type
+                  }
+                  value={value}
+                  onChange={e =>
+                    setFormData({ ...formData, [field]: e.target.value })
+                  }
+                  className={`${fieldClass} ${isPassword ? 'pr-11' : ''}`}
+                  placeholder={isPassword ? '••••••••' : undefined}
+                  disabled={isSaving}
+                />
+                {isPassword ? (
+                  <button
+                    type='button'
+                    onClick={() => toggleShowPassword(field)}
+                    className='absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground'
+                    aria-label='Toggle visibility'
+                  >
+                    {showPassword.has(field) ? (
+                      <EyeOff className='h-4 w-4' />
+                    ) : (
+                      <Eye className='h-4 w-4' />
+                    )}
+                  </button>
+                ) : null}
+              </div>
+            ) : (
+              <p className='text-sm font-medium text-foreground'>
+                {isPassword ? '••••••••' : value || '—'}
               </p>
-            </div>
+            )}
           </div>
+          {field !== 'passwordConfirm' ? (
+            <button
+              type='button'
+              onClick={() => toggleEdit(field === 'password' ? 'password' : field)}
+              className='inline-flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-card text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
+              aria-label={editing ? 'Cancel edit' : 'Edit'}
+            >
+              {editing ? (
+                <X className='h-3.5 w-3.5' />
+              ) : (
+                <Edit2 className='h-3.5 w-3.5' />
+              )}
+            </button>
+          ) : null}
         </div>
-        <Card className='border border-divider'>
-          <CardBody className='py-8'>
-            <p className='text-center text-default-500'>
-              خطا در بارگذاری اطلاعات
-            </p>
-          </CardBody>
-        </Card>
       </div>
     )
   }
 
   return (
-    <div className='container px-6 py-8 mx-auto' dir='rtl'>
-      <div className='mb-8'>
-        <div className='flex items-center gap-3'>
-          <div className='p-3 bg-gradient-to-r from-blue-400 to-blue-500 rounded-xl'>
-            <Factory className='w-8 h-8 text-white' />
-          </div>
-          <div>
-            <h1 className='text-3xl font-bold text-gray-900 dark:text-gray-100'>
-              تنظیمات پروفایل
-            </h1>
-            <p className='text-gray-600 dark:text-gray-400'>
-              مدیریت اطلاعات ادمین
-            </p>
-          </div>
+    <div className='mx-auto max-w-2xl space-y-6' dir='ltr'>
+      <div>
+        <p className='font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+          Account
+        </p>
+        <h1 className='mt-1 flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground'>
+          <Settings className='h-6 w-6' />
+          Settings
+        </h1>
+        <p className='mt-1 text-sm text-muted-foreground'>
+          Update your admin name, email, and password.
+        </p>
+      </div>
+
+      <div className='border border-border bg-card'>
+        <div className='border-b border-border px-4 py-3'>
+          <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+            Profile
+          </h2>
         </div>
+        <FieldRow label='Name' field='name' />
+        <FieldRow label='Email' field='email' type='email' />
+        <FieldRow label='New password' field='password' />
+        {editingFields.has('password') ? (
+          <FieldRow label='Confirm password' field='passwordConfirm' />
+        ) : null}
       </div>
 
-      <div className='max-w-2xl mx-auto'>
-        <Card className='border border-divider'>
-          <CardBody className='gap-6 p-6'>
-            {renderEditableField('نام', 'name')}
-            {renderEditableField('ایمیل', 'email', 'email')}
-            <Divider className='my-2' />
-
-            {renderEditableField('رمز عبور جدید', 'password', 'password')}
-            {renderEditableField(
-              'تأیید رمز عبور',
-              'passwordConfirm',
-              'password',
+      {editingFields.size > 0 ? (
+        <div className='flex gap-2'>
+          <button
+            type='button'
+            onClick={() => {
+              setFormData(admin)
+              setEditingFields(new Set())
+              setShowPassword(new Set())
+            }}
+            disabled={isSaving}
+            className='inline-flex flex-1 items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:opacity-50'
+          >
+            Cancel
+          </button>
+          <button
+            type='button'
+            onClick={handleSave}
+            disabled={isSaving}
+            className='inline-flex flex-1 items-center justify-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50'
+          >
+            {isSaving ? (
+              'Saving…'
+            ) : (
+              <>
+                <Check className='h-4 w-4' />
+                Save changes
+              </>
             )}
-          </CardBody>
-        </Card>
-      </div>
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }
