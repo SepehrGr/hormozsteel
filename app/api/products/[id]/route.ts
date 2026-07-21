@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { updateProductPrice } from '@/lib/price-updater'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
-import { productInclude, toProductDTO } from '@/lib/product-dto'
+import {
+  productInclude,
+  toProductDTO,
+  resolveManufacturerId,
+} from '@/lib/product-dto'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -58,6 +62,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const updateData: Record<string, unknown> = { ...body }
 
+    // Resolve mill from brand text and/or manufacturerId before stripping brand
+    if (body.brand !== undefined || body.manufacturerId !== undefined) {
+      updateData.manufacturerId = await resolveManufacturerId({
+        manufacturerId: body.manufacturerId,
+        brand: body.brand,
+      })
+    }
+
     // Strip legacy / non-schema fields
     delete updateData.brand
     delete updateData.changeType
@@ -79,6 +91,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     delete updateData.height
     delete updateData.meshSize
     delete updateData.packageType
+    delete updateData.category // relation object if leaked
 
     if (body.weight != null && body.weightKg == null) {
       updateData.weightKg = body.weight
