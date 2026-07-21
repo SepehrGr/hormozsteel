@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ProductUnit, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
-import { productInclude, toProductDTO } from '@/lib/product-dto'
+import {
+  productInclude,
+  toProductDTO,
+  resolveManufacturerId,
+} from '@/lib/product-dto'
 
 export async function GET(request: NextRequest) {
   const rateLimitResponse = checkApiRateLimitAndRespond(request)
@@ -171,6 +175,12 @@ export async function POST(request: NextRequest) {
         ? (body.unit.toUpperCase() as ProductUnit)
         : ProductUnit.KG
 
+    // Form still sends free-text "brand"; map to Manufacturer relation
+    const manufacturerId = await resolveManufacturerId({
+      manufacturerId: body.manufacturerId,
+      brand: body.brand,
+    })
+
     const product = await prisma.product.create({
       data: {
         name: body.name,
@@ -187,7 +197,7 @@ export async function POST(request: NextRequest) {
         features: body.features || [],
         applications: body.applications || [],
         categoryId: body.categoryId,
-        manufacturerId: body.manufacturerId ?? null,
+        manufacturerId,
       },
       include: productInclude,
     })
