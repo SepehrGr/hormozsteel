@@ -1,31 +1,17 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Button } from '@heroui/button'
-import { Input } from '@heroui/input'
-import { Card, CardBody, CardHeader } from '@heroui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@heroui/table'
-import { Chip } from '@heroui/chip'
-import { Select, SelectItem } from '@heroui/select'
-import { Switch } from '@heroui/switch'
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  useDisclosure,
-} from '@heroui/modal'
 import { addToast } from '@heroui/toast'
 import useSWR from 'swr'
-import { Edit, Plus, Shield, Trash2, Users } from 'lucide-react'
+import {
+  Edit,
+  Plus,
+  Shield,
+  Trash2,
+  Users,
+  X,
+  CheckCircle2,
+} from 'lucide-react'
 import { useSession } from 'next-auth/react'
 
 type Role = 'ADMIN' | 'SUPER_ADMIN'
@@ -41,15 +27,30 @@ interface AdminUser {
   updatedAt: string
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+const fetcher = (url: string) => fetch(url).then(res => res.json())
 
-function formatFaDateTime(dateString: string | null) {
+const fieldClass =
+  'mt-1.5 w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground disabled:cursor-not-allowed disabled:opacity-50'
+
+const labelClass =
+  'block text-xs font-medium uppercase tracking-wide text-muted-foreground'
+
+const btnSecondary =
+  'cursor-pointer border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+
+const btnPrimary =
+  'inline-flex cursor-pointer items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'
+
+const btnDanger =
+  'inline-flex cursor-pointer items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 dark:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50'
+
+function formatDateTime(dateString: string | null) {
   if (!dateString) return '—'
   const d = new Date(dateString)
   if (Number.isNaN(d.getTime())) return '—'
-  return d.toLocaleString('fa-IR', {
+  return d.toLocaleString('en-US', {
     year: 'numeric',
-    month: '2-digit',
+    month: 'short',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
@@ -57,7 +58,15 @@ function formatFaDateTime(dateString: string | null) {
 }
 
 function roleLabel(role: Role) {
-  return role === 'SUPER_ADMIN' ? 'مدیر کل' : 'مدیر'
+  return role === 'SUPER_ADMIN' ? 'Super admin' : 'Admin'
+}
+
+function stockBtn(active: boolean) {
+  return `flex-1 cursor-pointer border px-3 py-2.5 text-sm font-medium transition-colors duration-200 ease-out ${
+    active
+      ? 'border-foreground bg-foreground text-background'
+      : 'border-border bg-background text-foreground hover:bg-muted'
+  }`
 }
 
 export default function AdminUsersPage() {
@@ -69,7 +78,6 @@ export default function AdminUsersPage() {
   const users: AdminUser[] = useMemo(() => {
     if (!data) return []
     if (data?.success && data?.data?.users) return data.data.users
-    // Backwards compatibility (in case old response shape exists somewhere)
     if (data?.users) return data.users
     return []
   }, [data])
@@ -78,7 +86,7 @@ export default function AdminUsersPage() {
   const filteredUsers = useMemo(() => {
     const q = searchTerm.trim().toLowerCase()
     if (!q) return users
-    return users.filter((u) => {
+    return users.filter(u => {
       return (
         u.name?.toLowerCase().includes(q) ||
         u.email?.toLowerCase().includes(q) ||
@@ -87,21 +95,9 @@ export default function AdminUsersPage() {
     })
   }, [users, searchTerm])
 
-  const {
-    isOpen: isAddOpen,
-    onOpen: onAddOpen,
-    onOpenChange: onAddOpenChange,
-  } = useDisclosure()
-  const {
-    isOpen: isEditOpen,
-    onOpen: onEditOpen,
-    onOpenChange: onEditOpenChange,
-  } = useDisclosure()
-  const {
-    isOpen: isDeleteOpen,
-    onOpen: onDeleteOpen,
-    onOpenChange: onDeleteOpenChange,
-  } = useDisclosure()
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 
   const [creating, setCreating] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -111,28 +107,17 @@ export default function AdminUsersPage() {
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null)
 
-  const [newUser, setNewUser] = useState<{
-    name: string
-    email: string
-    password: string
-    role: Role
-  }>({
+  const [newUser, setNewUser] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'ADMIN',
+    role: 'ADMIN' as Role,
   })
 
-  const [editForm, setEditForm] = useState<{
-    name: string
-    email: string
-    role: Role
-    isActive: boolean
-    password: string
-  }>({
+  const [editForm, setEditForm] = useState({
     name: '',
     email: '',
-    role: 'ADMIN',
+    role: 'ADMIN' as Role,
     isActive: true,
     password: '',
   })
@@ -151,15 +136,15 @@ export default function AdminUsersPage() {
 
   const openEdit = (u: AdminUser) => {
     setEditingUser(u)
-    onEditOpen()
+    setIsEditOpen(true)
   }
 
   const openDelete = (u: AdminUser) => {
     setDeletingUser(u)
-    onDeleteOpen()
+    setIsDeleteOpen(true)
   }
 
-  const quickPatch = async (u: AdminUser, patch: Record<string, any>) => {
+  const quickPatch = async (u: AdminUser, patch: Record<string, unknown>) => {
     setQuickUpdatingId(u.id)
     try {
       const res = await fetch(`/api/admin/users/${u.id}`, {
@@ -171,24 +156,24 @@ export default function AdminUsersPage() {
 
       if (!res.ok || !json?.success) {
         addToast({
-          title: 'خطا',
-          description: json?.error || 'خطا در بروزرسانی کاربر',
+          title: 'Error',
+          description: json?.error || 'Failed to update user',
           color: 'danger',
         })
         return
       }
 
       addToast({
-        title: 'موفقیت',
-        description: 'کاربر بروزرسانی شد',
+        title: 'Updated',
+        description: 'User updated',
         color: 'success',
       })
       mutate()
     } catch (e) {
       console.error(e)
       addToast({
-        title: 'خطا',
-        description: 'خطا در ارتباط با سرور',
+        title: 'Error',
+        description: 'Server connection failed',
         color: 'danger',
       })
     } finally {
@@ -199,8 +184,8 @@ export default function AdminUsersPage() {
   const handleCreate = async () => {
     if (!newUser.name.trim() || !newUser.email.trim() || !newUser.password) {
       addToast({
-        title: 'خطا',
-        description: 'نام، ایمیل و رمز عبور الزامی هستند',
+        title: 'Missing fields',
+        description: 'Name, email, and password are required',
         color: 'warning',
       })
       return
@@ -222,26 +207,26 @@ export default function AdminUsersPage() {
 
       if (!res.ok || !json?.success) {
         addToast({
-          title: 'خطا',
-          description: json?.error || 'خطا در ایجاد کاربر',
+          title: 'Error',
+          description: json?.error || 'Failed to create user',
           color: 'danger',
         })
         return
       }
 
       addToast({
-        title: 'موفقیت',
-        description: 'کاربر جدید با موفقیت ایجاد شد',
+        title: 'Created',
+        description: 'Admin user created',
         color: 'success',
       })
       setNewUser({ name: '', email: '', password: '', role: 'ADMIN' })
-      onAddOpenChange()
+      setIsAddOpen(false)
       mutate()
     } catch (e) {
       console.error(e)
       addToast({
-        title: 'خطا',
-        description: 'خطا در ارتباط با سرور',
+        title: 'Error',
+        description: 'Server connection failed',
         color: 'danger',
       })
     } finally {
@@ -254,24 +239,27 @@ export default function AdminUsersPage() {
 
     if (!editForm.name.trim() || !editForm.email.trim()) {
       addToast({
-        title: 'خطا',
-        description: 'نام و ایمیل الزامی هستند',
+        title: 'Missing fields',
+        description: 'Name and email are required',
         color: 'warning',
       })
       return
     }
 
-    const payload: any = {}
-    if (editForm.name.trim() !== editingUser.name) payload.name = editForm.name.trim()
-    if (editForm.email.trim() !== editingUser.email) payload.email = editForm.email.trim()
+    const payload: Record<string, unknown> = {}
+    if (editForm.name.trim() !== editingUser.name)
+      payload.name = editForm.name.trim()
+    if (editForm.email.trim() !== editingUser.email)
+      payload.email = editForm.email.trim()
     if (editForm.role !== editingUser.role) payload.role = editForm.role
-    if (editForm.isActive !== editingUser.isActive) payload.isActive = editForm.isActive
+    if (editForm.isActive !== editingUser.isActive)
+      payload.isActive = editForm.isActive
     if (editForm.password) payload.password = editForm.password
 
     if (Object.keys(payload).length === 0) {
       addToast({
-        title: 'بدون تغییر',
-        description: 'چیزی برای ذخیره وجود ندارد',
+        title: 'No changes',
+        description: 'Nothing to save',
         color: 'default',
       })
       return
@@ -288,26 +276,26 @@ export default function AdminUsersPage() {
 
       if (!res.ok || !json?.success) {
         addToast({
-          title: 'خطا',
-          description: json?.error || 'خطا در بروزرسانی کاربر',
+          title: 'Error',
+          description: json?.error || 'Failed to update user',
           color: 'danger',
         })
         return
       }
 
       addToast({
-        title: 'موفقیت',
-        description: 'اطلاعات کاربر بروزرسانی شد',
+        title: 'Saved',
+        description: 'User updated',
         color: 'success',
       })
       setEditingUser(null)
-      onEditOpenChange()
+      setIsEditOpen(false)
       mutate()
     } catch (e) {
       console.error(e)
       addToast({
-        title: 'خطا',
-        description: 'خطا در ارتباط با سرور',
+        title: 'Error',
+        description: 'Server connection failed',
         color: 'danger',
       })
     } finally {
@@ -327,26 +315,26 @@ export default function AdminUsersPage() {
 
       if (!res.ok || !json?.success) {
         addToast({
-          title: 'خطا',
-          description: json?.error || 'خطا در حذف کاربر',
+          title: 'Error',
+          description: json?.error || 'Failed to delete user',
           color: 'danger',
         })
         return
       }
 
       addToast({
-        title: 'موفقیت',
-        description: 'کاربر حذف شد',
+        title: 'Deleted',
+        description: 'User removed',
         color: 'success',
       })
       setDeletingUser(null)
-      onDeleteOpenChange()
+      setIsDeleteOpen(false)
       mutate()
     } catch (e) {
       console.error(e)
       addToast({
-        title: 'خطا',
-        description: 'خطا در ارتباط با سرور',
+        title: 'Error',
+        description: 'Server connection failed',
         color: 'danger',
       })
     } finally {
@@ -354,364 +342,570 @@ export default function AdminUsersPage() {
     }
   }
 
-  const topError = useMemo(() => {
-    if (!error) return null
-    return 'خطا در دریافت لیست کاربران'
-  }, [error])
-
-  const forbidden = useMemo(() => {
-    const errText = data?.error || data?.message
-    return errText === 'Insufficient permissions'
-  }, [data])
+  const topError = error ? 'Failed to load users' : null
+  const forbidden =
+    (data?.error || data?.message) === 'Insufficient permissions'
 
   return (
-    <div className='space-y-6' dir='rtl'>
-      <div className='flex items-center justify-between gap-4'>
+    <div className='space-y-6' dir='ltr'>
+      <div className='flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
         <div>
-          <h1 className='flex items-center gap-3 text-3xl font-bold text-gray-900 dark:text-white'>
-            <Shield className='w-8 h-8 text-primary' />
-            مدیریت کاربران ادمین
+          <p className='font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+            Access
+          </p>
+          <h1 className='flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground'>
+            <Shield className='h-6 w-6' />
+            Admin users
           </h1>
-          <p className='mt-2 text-sm text-gray-500 dark:text-gray-400'>
-            ایجاد، ویرایش، فعال/غیرفعال و حذف کاربران ادمین (فقط مدیر کل)
+          <p className='mt-1 text-sm text-muted-foreground'>
+            Create, edit, activate, and remove admin accounts (super admin
+            only).
           </p>
         </div>
-
-        <Button color='primary' startContent={<Plus className='w-4 h-4' />} onPress={() => {
-          setNewUser({ name: '', email: '', password: '', role: 'ADMIN' })
-          onAddOpen()
-        }}>
-          افزودن کاربر
-        </Button>
+        <button
+          type='button'
+          onClick={() => {
+            setNewUser({ name: '', email: '', password: '', role: 'ADMIN' })
+            setIsAddOpen(true)
+          }}
+          className='inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 cursor-pointer'
+        >
+          <Plus className='h-4 w-4' />
+          Add user
+        </button>
       </div>
 
-      <Card>
-        <CardBody className='py-4'>
-          <div className='flex flex-col gap-3 md:flex-row md:items-center md:justify-between'>
-            <Input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder='جستجو بر اساس نام، ایمیل یا نقش...'
-              variant='bordered'
-              className='md:max-w-md'
-            />
-            <div className='text-sm text-gray-600 dark:text-gray-400'>
-              <span className='font-semibold text-gray-900 dark:text-white'>
-                {filteredUsers.length.toLocaleString('fa-IR')}
-              </span>{' '}
-              کاربر
-            </div>
-          </div>
+      <div className='border border-border bg-card'>
+        <div className='border-b border-border px-4 py-3'>
+          <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+            Filters
+          </h2>
+        </div>
+        <div className='flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between'>
+          <input
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            placeholder='Search name, email, or role…'
+            className='w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground sm:max-w-md'
+          />
+          <p className='text-sm text-muted-foreground'>
+            <span className='font-semibold tabular-nums text-foreground'>
+              {filteredUsers.length}
+            </span>{' '}
+            user{filteredUsers.length === 1 ? '' : 's'}
+          </p>
+        </div>
+        {topError && (
+          <p className='border-t border-border px-4 py-3 text-sm text-red-700 dark:text-red-300'>
+            {topError}
+          </p>
+        )}
+        {forbidden && (
+          <p className='border-t border-border px-4 py-3 text-sm text-red-700 dark:text-red-300'>
+            Super admin access required.
+          </p>
+        )}
+      </div>
 
-          {topError && (
-            <div className='mt-4 text-sm text-red-600 dark:text-red-400'>
-              {topError}
-            </div>
-          )}
-          {forbidden && (
-            <div className='mt-4 text-sm text-red-600 dark:text-red-400'>
-              دسترسی کافی ندارید (Super Admin لازم است).
-            </div>
-          )}
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardHeader className='flex items-center gap-2 pb-3'>
-          <Users className='w-5 h-5 text-primary' />
-          <h3 className='text-lg font-semibold'>لیست کاربران</h3>
-        </CardHeader>
-        <CardBody className='overflow-x-auto'>
-          <Table
-            aria-label='Admin users table'
-            classNames={{
-              wrapper: 'shadow-none',
-              th: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold',
-              td: 'py-4',
-            }}
-          >
-            <TableHeader>
-              <TableColumn>نام</TableColumn>
-              <TableColumn>ایمیل</TableColumn>
-              <TableColumn>نقش</TableColumn>
-              <TableColumn>وضعیت</TableColumn>
-              <TableColumn>آخرین ورود</TableColumn>
-              <TableColumn>تاریخ ایجاد</TableColumn>
-              <TableColumn width={140}>عملیات</TableColumn>
-            </TableHeader>
-            <TableBody
-              isLoading={isLoading}
-              emptyContent='کاربری یافت نشد'
-            >
-              {filteredUsers.map((u) => (
-                <TableRow
-                  key={u.id}
-                  className='transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
-                >
-                  <TableCell>
-                    <div className='flex items-center gap-3'>
-                      <div className='flex items-center justify-center w-9 h-9 font-bold text-white rounded-full bg-gradient-to-br from-blue-700 to-blue-500'>
-                        {u.name?.charAt(0) || 'A'}
-                      </div>
-                      <div className='min-w-0'>
-                        <div className='font-semibold text-gray-900 dark:text-white truncate'>
-                          {u.name}
-                        </div>
-                        <div className='text-xs text-gray-500 dark:text-gray-400'>
-                          {u.id.slice(0, 8)}…
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className='text-gray-700 dark:text-gray-300'>
-                      {u.email}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      aria-label='role'
-                      size='sm'
-                      variant='bordered'
-                      selectedKeys={new Set([u.role])}
-                      isDisabled={
-                        quickUpdatingId === u.id ||
-                        Boolean(currentUserId && u.id === currentUserId)
-                      }
-                      onSelectionChange={(keys) => {
-                        const selected = Array.from(keys)[0] as Role
-                        if (selected && selected !== u.role) {
-                          quickPatch(u, { role: selected })
-                        }
-                      }}
-                      className='w-32'
-                      classNames={{
-                        trigger: 'h-9 min-h-9',
-                      }}
+      <div className='border border-border bg-card'>
+        <div className='flex items-center gap-2 border-b border-border px-4 py-3'>
+          <Users className='h-4 w-4 text-muted-foreground' />
+          <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+            Accounts ({filteredUsers.length})
+          </h3>
+        </div>
+        <div className='overflow-x-auto'>
+          <table className='w-full min-w-[720px] text-left text-sm'>
+            <thead>
+              <tr className='border-b border-border bg-muted/50 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground'>
+                <th className='px-4 py-3 font-semibold'>Name</th>
+                <th className='px-4 py-3 font-semibold'>Email</th>
+                <th className='px-4 py-3 font-semibold'>Role</th>
+                <th className='px-4 py-3 font-semibold'>Status</th>
+                <th className='px-4 py-3 font-semibold'>Last login</th>
+                <th className='px-4 py-3 font-semibold'>Created</th>
+                <th className='px-4 py-3 font-semibold'>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading && (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className='px-4 py-10 text-center text-muted-foreground'
+                  >
+                    Loading…
+                  </td>
+                </tr>
+              )}
+              {!isLoading && filteredUsers.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className='px-4 py-10 text-center text-muted-foreground'
+                  >
+                    No users found
+                  </td>
+                </tr>
+              )}
+              {!isLoading &&
+                filteredUsers.map(u => {
+                  const isSelf = Boolean(
+                    currentUserId && u.id === currentUserId,
+                  )
+                  const busy = quickUpdatingId === u.id
+                  return (
+                    <tr
+                      key={u.id}
+                      className='border-b border-border last:border-b-0 transition-colors duration-200 ease-out hover:bg-muted/40'
                     >
-                      <SelectItem key='ADMIN'>مدیر</SelectItem>
-                      <SelectItem key='SUPER_ADMIN'>مدیر کل</SelectItem>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <div className='flex items-center gap-2'>
-                      <Switch
-                        isSelected={u.isActive}
-                        isDisabled={
-                          quickUpdatingId === u.id ||
-                          Boolean(currentUserId && u.id === currentUserId)
-                        }
-                        onValueChange={(v) => {
-                          if (v !== u.isActive) quickPatch(u, { isActive: v })
-                        }}
-                      />
-                      <Chip size='sm' variant='flat' color={u.isActive ? 'success' : 'danger'}>
-                        {u.isActive ? 'فعال' : 'غیرفعال'}
-                      </Chip>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className='text-sm text-gray-600 dark:text-gray-400'>
-                      {formatFaDateTime(u.lastLogin)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className='text-sm text-gray-600 dark:text-gray-400'>
-                      {formatFaDateTime(u.createdAt)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className='flex gap-1'>
-                      <Button
-                        size='sm'
-                        variant='light'
-                        color='primary'
-                        isIconOnly
-                        onPress={() => openEdit(u)}
-                        aria-label='ویرایش'
-                      >
-                        <Edit className='w-4 h-4' />
-                      </Button>
-                      <Button
-                        size='sm'
-                        variant='light'
-                        color='danger'
-                        isIconOnly
-                        onPress={() => openDelete(u)}
-                        aria-label='حذف'
-                        isDisabled={Boolean(currentUserId && u.id === currentUserId)}
-                      >
-                        <Trash2 className='w-4 h-4' />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardBody>
-      </Card>
+                      <td className='px-4 py-3'>
+                        <div className='min-w-0'>
+                          <p className='truncate font-medium text-foreground'>
+                            {u.name}
+                          </p>
+                          <p className='font-mono text-[11px] text-muted-foreground'>
+                            {u.id.slice(0, 8)}…
+                          </p>
+                        </div>
+                      </td>
+                      <td className='px-4 py-3 text-foreground'>{u.email}</td>
+                      <td className='px-4 py-3'>
+                        <select
+                          aria-label={`Role for ${u.name}`}
+                          value={u.role}
+                          disabled={busy || isSelf}
+                          onChange={e => {
+                            const selected = e.target.value as Role
+                            if (selected !== u.role) {
+                              quickPatch(u, { role: selected })
+                            }
+                          }}
+                          className='cursor-pointer border border-border bg-background px-2 py-1.5 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-50'
+                        >
+                          <option value='ADMIN'>Admin</option>
+                          <option value='SUPER_ADMIN'>Super admin</option>
+                        </select>
+                      </td>
+                      <td className='px-4 py-3'>
+                        <button
+                          type='button'
+                          disabled={busy || isSelf}
+                          onClick={() => {
+                            if (!isSelf)
+                              quickPatch(u, { isActive: !u.isActive })
+                          }}
+                          className={`cursor-pointer border px-2 py-1 text-xs font-medium uppercase tracking-wide transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50 ${
+                            u.isActive
+                              ? 'border-foreground bg-foreground text-background'
+                              : 'border-border bg-background text-muted-foreground hover:bg-muted'
+                          }`}
+                        >
+                          {u.isActive ? 'Active' : 'Inactive'}
+                        </button>
+                      </td>
+                      <td className='px-4 py-3 text-muted-foreground'>
+                        {formatDateTime(u.lastLogin)}
+                      </td>
+                      <td className='px-4 py-3 text-muted-foreground'>
+                        {formatDateTime(u.createdAt)}
+                      </td>
+                      <td className='px-4 py-3'>
+                        <div className='flex gap-1'>
+                          <button
+                            type='button'
+                            onClick={() => openEdit(u)}
+                            className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                            aria-label={`Edit ${u.name}`}
+                          >
+                            <Edit className='h-3.5 w-3.5' />
+                          </button>
+                          <button
+                            type='button'
+                            onClick={() => openDelete(u)}
+                            disabled={isSelf}
+                            className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-card text-red-600 transition-colors duration-200 ease-out hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400'
+                            aria-label={`Delete ${u.name}`}
+                          >
+                            <Trash2 className='h-3.5 w-3.5' />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-      {/* Add user modal */}
-      <Modal isOpen={isAddOpen} onOpenChange={onAddOpenChange} placement='center'>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className='flex flex-col gap-1'>افزودن کاربر ادمین</ModalHeader>
-              <ModalBody className='space-y-3'>
-                <Input
-                  label='نام'
+      {/* Add user */}
+      {isAddOpen && (
+        <div
+          className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+          role='dialog'
+          aria-modal='true'
+          aria-labelledby='add-user-title'
+          dir='ltr'
+          onClick={e => {
+            if (e.target === e.currentTarget && !creating) setIsAddOpen(false)
+          }}
+        >
+          <div className='w-full max-w-md border border-border bg-card shadow-sm'>
+            <div className='flex items-start justify-between border-b border-border px-5 py-3'>
+              <div>
+                <h2
+                  id='add-user-title'
+                  className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+                >
+                  Add user
+                </h2>
+                <p className='mt-1 text-xs text-muted-foreground'>
+                  New admin account
+                </p>
+              </div>
+              <button
+                type='button'
+                onClick={() => !creating && setIsAddOpen(false)}
+                className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                aria-label='Close'
+              >
+                <X className='h-4 w-4' />
+              </button>
+            </div>
+
+            <div className='space-y-4 px-5 py-5'>
+              <div>
+                <label htmlFor='add-user-name' className={labelClass}>
+                  Name *
+                </label>
+                <input
+                  id='add-user-name'
                   value={newUser.name}
-                  onChange={(e) => setNewUser((p) => ({ ...p, name: e.target.value }))}
-                  variant='bordered'
+                  onChange={e =>
+                    setNewUser(p => ({ ...p, name: e.target.value }))
+                  }
+                  className={fieldClass}
+                  placeholder='Full name'
+                  disabled={creating}
                 />
-                <Input
-                  label='ایمیل'
+              </div>
+              <div>
+                <label htmlFor='add-user-email' className={labelClass}>
+                  Email *
+                </label>
+                <input
+                  id='add-user-email'
                   type='email'
                   value={newUser.email}
-                  onChange={(e) => setNewUser((p) => ({ ...p, email: e.target.value }))}
-                  variant='bordered'
+                  onChange={e =>
+                    setNewUser(p => ({ ...p, email: e.target.value }))
+                  }
+                  className={fieldClass}
+                  placeholder='admin@example.com'
+                  disabled={creating}
                 />
-                <Input
-                  label='رمز عبور'
+              </div>
+              <div>
+                <label htmlFor='add-user-password' className={labelClass}>
+                  Password *
+                </label>
+                <input
+                  id='add-user-password'
                   type='password'
                   value={newUser.password}
-                  onChange={(e) => setNewUser((p) => ({ ...p, password: e.target.value }))}
-                  variant='bordered'
+                  onChange={e =>
+                    setNewUser(p => ({ ...p, password: e.target.value }))
+                  }
+                  className={fieldClass}
+                  placeholder='Min. 8 characters'
+                  disabled={creating}
                 />
-                <Select
-                  label='نقش'
-                  selectedKeys={new Set([newUser.role])}
-                  onSelectionChange={(keys) => {
-                    const selected = Array.from(keys)[0] as Role
-                    setNewUser((p) => ({ ...p, role: selected }))
-                  }}
-                  variant='bordered'
+              </div>
+              <div>
+                <label htmlFor='add-user-role' className={labelClass}>
+                  Role
+                </label>
+                <select
+                  id='add-user-role'
+                  value={newUser.role}
+                  onChange={e =>
+                    setNewUser(p => ({
+                      ...p,
+                      role: e.target.value as Role,
+                    }))
+                  }
+                  className={`${fieldClass} cursor-pointer`}
+                  disabled={creating}
                 >
-                  <SelectItem key='ADMIN'>مدیر</SelectItem>
-                  <SelectItem key='SUPER_ADMIN'>مدیر کل</SelectItem>
-                </Select>
-              </ModalBody>
-              <ModalFooter>
-                <Button variant='flat' onPress={onClose} isDisabled={creating}>
-                  انصراف
-                </Button>
-                <Button color='primary' onPress={handleCreate} isLoading={creating}>
-                  ایجاد
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+                  <option value='ADMIN'>Admin</option>
+                  <option value='SUPER_ADMIN'>Super admin</option>
+                </select>
+              </div>
+            </div>
 
-      {/* Edit user modal */}
-      <Modal isOpen={isEditOpen} onOpenChange={onEditOpenChange} placement='center'>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className='flex flex-col gap-1'>ویرایش کاربر</ModalHeader>
-              <ModalBody className='space-y-3'>
-                <Input
-                  label='نام'
+            <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
+              <button
+                type='button'
+                onClick={() => setIsAddOpen(false)}
+                disabled={creating}
+                className={btnSecondary}
+              >
+                Cancel
+              </button>
+              <button
+                type='button'
+                onClick={handleCreate}
+                disabled={creating}
+                className={btnPrimary}
+              >
+                <Plus className='h-4 w-4' />
+                {creating ? 'Creating…' : 'Create user'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit user */}
+      {isEditOpen && editingUser && (
+        <div
+          className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+          role='dialog'
+          aria-modal='true'
+          aria-labelledby='edit-user-title'
+          dir='ltr'
+          onClick={e => {
+            if (e.target === e.currentTarget && !saving) {
+              setEditingUser(null)
+              setIsEditOpen(false)
+            }
+          }}
+        >
+          <div className='w-full max-w-md border border-border bg-card shadow-sm'>
+            <div className='flex items-start justify-between border-b border-border px-5 py-3'>
+              <div>
+                <h2
+                  id='edit-user-title'
+                  className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+                >
+                  Edit user
+                </h2>
+                <p className='mt-1 text-xs text-muted-foreground'>
+                  {editingUser.email}
+                </p>
+              </div>
+              <button
+                type='button'
+                onClick={() => {
+                  if (!saving) {
+                    setEditingUser(null)
+                    setIsEditOpen(false)
+                  }
+                }}
+                className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                aria-label='Close'
+              >
+                <X className='h-4 w-4' />
+              </button>
+            </div>
+
+            <div className='space-y-4 px-5 py-5'>
+              <div>
+                <label htmlFor='edit-user-name' className={labelClass}>
+                  Name *
+                </label>
+                <input
+                  id='edit-user-name'
                   value={editForm.name}
-                  onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
-                  variant='bordered'
+                  onChange={e =>
+                    setEditForm(p => ({ ...p, name: e.target.value }))
+                  }
+                  className={fieldClass}
+                  disabled={saving}
                 />
-                <Input
-                  label='ایمیل'
+              </div>
+              <div>
+                <label htmlFor='edit-user-email' className={labelClass}>
+                  Email *
+                </label>
+                <input
+                  id='edit-user-email'
                   type='email'
                   value={editForm.email}
-                  onChange={(e) => setEditForm((p) => ({ ...p, email: e.target.value }))}
-                  variant='bordered'
+                  onChange={e =>
+                    setEditForm(p => ({ ...p, email: e.target.value }))
+                  }
+                  className={fieldClass}
+                  disabled={saving}
                 />
-                <Select
-                  label='نقش'
-                  selectedKeys={new Set([editForm.role])}
-                  onSelectionChange={(keys) => {
-                    const selected = Array.from(keys)[0] as Role
-                    setEditForm((p) => ({ ...p, role: selected }))
-                  }}
-                  variant='bordered'
+              </div>
+              <div>
+                <label htmlFor='edit-user-role' className={labelClass}>
+                  Role
+                </label>
+                <select
+                  id='edit-user-role'
+                  value={editForm.role}
+                  onChange={e =>
+                    setEditForm(p => ({
+                      ...p,
+                      role: e.target.value as Role,
+                    }))
+                  }
+                  className={`${fieldClass} cursor-pointer`}
+                  disabled={saving}
                 >
-                  <SelectItem key='ADMIN'>مدیر</SelectItem>
-                  <SelectItem key='SUPER_ADMIN'>مدیر کل</SelectItem>
-                </Select>
-
-                <div className='flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2'>
-                  <div className='text-sm text-gray-700 dark:text-gray-300'>
-                    وضعیت فعال
-                  </div>
-                  <Switch
-                    isSelected={editForm.isActive}
-                    onValueChange={(v) => setEditForm((p) => ({ ...p, isActive: v }))}
-                  />
+                  <option value='ADMIN'>Admin</option>
+                  <option value='SUPER_ADMIN'>Super admin</option>
+                </select>
+              </div>
+              <div>
+                <p className={labelClass}>Status</p>
+                <div className='mt-1.5 flex gap-2'>
+                  <button
+                    type='button'
+                    onClick={() => setEditForm(p => ({ ...p, isActive: true }))}
+                    className={stockBtn(editForm.isActive === true)}
+                    disabled={saving}
+                  >
+                    Active
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() =>
+                      setEditForm(p => ({ ...p, isActive: false }))
+                    }
+                    className={stockBtn(editForm.isActive === false)}
+                    disabled={saving}
+                  >
+                    Inactive
+                  </button>
                 </div>
-
-                <Input
-                  label='رمز عبور جدید (اختیاری)'
+              </div>
+              <div>
+                <label htmlFor='edit-user-password' className={labelClass}>
+                  New password
+                </label>
+                <input
+                  id='edit-user-password'
                   type='password'
                   value={editForm.password}
-                  onChange={(e) => setEditForm((p) => ({ ...p, password: e.target.value }))}
-                  variant='bordered'
-                  description='اگر این فیلد خالی باشد، رمز عبور تغییر نمی‌کند.'
+                  onChange={e =>
+                    setEditForm(p => ({ ...p, password: e.target.value }))
+                  }
+                  className={fieldClass}
+                  placeholder='Leave blank to keep current'
+                  disabled={saving}
                 />
-              </ModalBody>
-              <ModalFooter>
-                <Button
-                  variant='flat'
-                  onPress={() => {
-                    setEditingUser(null)
-                    onClose()
-                  }}
-                  isDisabled={saving}
-                >
-                  انصراف
-                </Button>
-                <Button color='primary' onPress={handleSaveEdit} isLoading={saving}>
-                  ذخیره
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+              </div>
+            </div>
 
-      {/* Delete user modal */}
-      <Modal isOpen={isDeleteOpen} onOpenChange={onDeleteOpenChange} placement='center'>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className='flex flex-col gap-1'>حذف کاربر</ModalHeader>
-              <ModalBody>
-                <p className='text-sm text-gray-700 dark:text-gray-300'>
-                  آیا از حذف کاربر{' '}
-                  <span className='font-bold text-gray-900 dark:text-white'>
-                    {deletingUser?.name}
-                  </span>{' '}
-                  مطمئن هستید؟ این عملیات قابل بازگشت نیست.
-                </p>
-              </ModalBody>
-              <ModalFooter>
-                <Button
-                  variant='flat'
-                  onPress={() => {
+            <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
+              <button
+                type='button'
+                onClick={() => {
+                  setEditingUser(null)
+                  setIsEditOpen(false)
+                }}
+                disabled={saving}
+                className={btnSecondary}
+              >
+                Cancel
+              </button>
+              <button
+                type='button'
+                onClick={handleSaveEdit}
+                disabled={saving}
+                className={btnPrimary}
+              >
+                <CheckCircle2 className='h-4 w-4' />
+                {saving ? 'Saving…' : 'Save changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete user */}
+      {isDeleteOpen && deletingUser && (
+        <div
+          className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+          role='dialog'
+          aria-modal='true'
+          aria-labelledby='delete-user-title'
+          dir='ltr'
+          onClick={e => {
+            if (e.target === e.currentTarget && !deleting) {
+              setDeletingUser(null)
+              setIsDeleteOpen(false)
+            }
+          }}
+        >
+          <div className='w-full max-w-md border border-border bg-card shadow-sm'>
+            <div className='flex items-center justify-between border-b border-border px-5 py-3'>
+              <h2
+                id='delete-user-title'
+                className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+              >
+                Delete user
+              </h2>
+              <button
+                type='button'
+                onClick={() => {
+                  if (!deleting) {
                     setDeletingUser(null)
-                    onClose()
-                  }}
-                  isDisabled={deleting}
-                >
-                  انصراف
-                </Button>
-                <Button color='danger' onPress={handleDelete} isLoading={deleting}>
-                  حذف
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+                    setIsDeleteOpen(false)
+                  }
+                }}
+                className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                aria-label='Close'
+              >
+                <X className='h-4 w-4' />
+              </button>
+            </div>
+
+            <div className='space-y-3 px-5 py-5'>
+              <p className='text-sm text-muted-foreground'>
+                Delete{' '}
+                <span className='font-medium text-foreground'>
+                  {deletingUser.name}
+                </span>
+                ?
+              </p>
+              <p className='text-xs text-muted-foreground'>
+                {deletingUser.email} · {roleLabel(deletingUser.role)}
+              </p>
+              <p className='border border-red-600/30 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-100'>
+                This cannot be undone. The account will lose admin access.
+              </p>
+            </div>
+
+            <div className='flex justify-start gap-2 border-t border-border px-5 py-4'>
+              <button
+                type='button'
+                onClick={handleDelete}
+                disabled={deleting}
+                className={btnDanger}
+              >
+                <Trash2 className='h-4 w-4' />
+                {deleting ? 'Deleting…' : 'Yes, delete user'}
+              </button>
+              <button
+                type='button'
+                onClick={() => {
+                  setDeletingUser(null)
+                  setIsDeleteOpen(false)
+                }}
+                disabled={deleting}
+                className={btnSecondary}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-
