@@ -108,7 +108,9 @@ export default function AdminHeader() {
         }
       }
 
-      next.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+      next.sort(
+        (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
+      )
       setNotifications(next.slice(0, 10))
     } catch (error) {
       console.error('Error fetching notifications:', error)
@@ -156,10 +158,10 @@ export default function AdminHeader() {
                 setShowNotifications(v => !v)
                 setShowUserMenu(false)
               }}
-              className='relative flex h-9 w-9 items-center justify-center border border-border bg-card text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
+              className='relative flex h-8 w-8 items-center justify-center border border-border bg-card text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground cursor-pointer'
               aria-label='Notifications'
             >
-              <Bell className='h-4 w-4' />
+              <Bell className='h-4.5 w-4.5' />
               {notificationCount > 0 && (
                 <span className='absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center bg-red-600 px-1 font-mono text-[10px] font-semibold text-white'>
                   {notificationCount > 9 ? '9+' : notificationCount}
@@ -176,10 +178,10 @@ export default function AdminHeader() {
                   <button
                     type='button'
                     onClick={() => setShowNotifications(false)}
-                    className='text-muted-foreground hover:text-foreground'
+                    className='cursor-pointer text-muted-foreground hover:text-foreground'
                     aria-label='Close'
                   >
-                    <X className='h-3.5 w-3.5' />
+                    <X className='h-4 w-4' />
                   </button>
                 </div>
                 <div className='max-h-80 overflow-y-auto'>
@@ -204,7 +206,7 @@ export default function AdminHeader() {
                               setShowNotifications(false)
                               router.push(notif.link)
                             }}
-                            className='flex w-full items-start gap-3 px-3 py-3 text-left transition-colors duration-200 ease-out hover:bg-muted'
+                            className='flex w-full items-start gap-3 px-3 py-3 text-left transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                           >
                             <span className='mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center border border-border bg-background'>
                               {notif.icon === 'mail' ? (
@@ -234,7 +236,7 @@ export default function AdminHeader() {
                       setShowNotifications(false)
                       router.push('/admin/orders')
                     }}
-                    className='w-full border-t border-border px-3 py-2.5 text-center text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                    className='w-full border-t border-border px-3 py-2.5 text-center text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                   >
                     View orders desk
                   </button>
@@ -256,14 +258,16 @@ export default function AdminHeader() {
                   setShowUserMenu(v => !v)
                   setShowNotifications(false)
                 }}
-                className='flex items-center gap-2 border border-border bg-card px-2 py-1.5 transition-colors duration-200 ease-out hover:bg-muted'
+                className='flex items-center gap-2 border border-border bg-card px-2 py-1.5 transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
               >
                 <div className='hidden text-right sm:block'>
                   <p className='text-xs font-semibold text-foreground'>
                     {session.user.name || 'User'}
                   </p>
                   <p className='font-mono text-[10px] uppercase tracking-wide text-muted-foreground'>
-                    {session.user.role === 'SUPER_ADMIN' ? 'Super admin' : 'Admin'}
+                    {session.user.role === 'SUPER_ADMIN'
+                      ? 'Super admin'
+                      : 'Admin'}
                   </p>
                 </div>
                 <div className='relative flex h-8 w-8 items-center justify-center border border-border bg-background font-mono text-xs font-semibold text-foreground'>
@@ -295,7 +299,7 @@ export default function AdminHeader() {
                       setShowUserMenu(false)
                       router.push('/admin/settings')
                     }}
-                    className='flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                    className='flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                   >
                     <Settings className='h-4 w-4 text-muted-foreground' />
                     Settings
@@ -306,7 +310,7 @@ export default function AdminHeader() {
                       setShowUserMenu(false)
                       setShowLogoutModal(true)
                     }}
-                    className='flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-sm text-red-600 transition-colors duration-200 ease-out hover:bg-muted dark:text-red-400'
+                    className='flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-sm text-red-600 transition-colors duration-200 ease-out hover:bg-muted dark:text-red-400 cursor-pointer'
                   >
                     <LogOut className='h-4 w-4' />
                     Sign out
@@ -325,7 +329,9 @@ export default function AdminHeader() {
               <p className='font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
                 Session
               </p>
-              <h3 className='text-base font-semibold text-foreground'>Sign out?</h3>
+              <h3 className='text-base font-semibold text-foreground'>
+                Sign out?
+              </h3>
             </div>
             <div className='px-5 py-5'>
               <p className='text-sm text-muted-foreground'>
