@@ -1,754 +1,903 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react'
 import {
   Package,
-  Phone,
   Mail,
-  User,
-  Building2,
-  MapPin,
-  Calendar,
-  FileText,
-  CheckCircle,
-  Clock,
-  XCircle,
-  Truck,
-  Filter,
   Search,
-  Eye,
   Trash2,
   RefreshCw,
-  X,
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@heroui/input';
-import { Select, SelectItem } from '@heroui/select';
+  Eye,
+  CheckCircle,
+  Clock,
+  ShoppingCart,
+} from 'lucide-react'
+import { addToast } from '@heroui/toast'
 
-// Types
 interface ContactFormSubmission {
-  id: string;
-  name: string;
-  email?: string;
-  phone: string;
-  message: string;
-  createdAt: string;
-  status: 'new' | 'read' | 'replied';
+  id: string
+  name: string
+  email?: string
+  phone: string
+  message: string
+  createdAt: string
+  status: 'new' | 'read' | 'replied'
 }
 
 interface QuickOrderSubmission {
-  id: string;
-  customerName: string;
-  companyName?: string;
-  phoneNumber: string;
-  city: string;
-  productSpecs: string;
-  quantity: string;
-  deliveryDate?: string;
-  deliveryMethod: 'pickup' | 'delivery';
-  additionalNotes?: string;
-  createdAt: string;
-  status: 'pending' | 'confirmed' | 'processing' | 'completed' | 'cancelled';
+  id: string
+  customerName: string
+  companyName?: string
+  phoneNumber: string
+  city: string
+  productSpecs: string
+  quantity: string
+  deliveryDate?: string
+  deliveryMethod: 'pickup' | 'delivery'
+  additionalNotes?: string
+  createdAt: string
+  status: 'pending' | 'confirmed' | 'processing' | 'completed' | 'cancelled'
+}
+
+const fieldClass =
+  'w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
+
+function formatDate(dateString: string) {
+  const date = new Date(dateString)
+  if (Number.isNaN(date.getTime())) return '—'
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
+function StatusPill({ status }: { status: string }) {
+  const labels: Record<string, string> = {
+    new: 'New',
+    read: 'Read',
+    replied: 'Replied',
+    pending: 'Pending',
+    confirmed: 'Confirmed',
+    processing: 'Processing',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+  }
+  const styles: Record<string, string> = {
+    new: 'border-sky-600/30 bg-sky-50 text-sky-900 dark:border-sky-500/30 dark:bg-sky-950/40 dark:text-sky-100',
+    read: 'border-border bg-muted text-muted-foreground',
+    replied:
+      'border-emerald-600/30 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-100',
+    pending:
+      'border-amber-600/30 bg-amber-50 text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-100',
+    confirmed:
+      'border-sky-600/30 bg-sky-50 text-sky-900 dark:border-sky-500/30 dark:bg-sky-950/40 dark:text-sky-100',
+    processing: 'border-border bg-muted text-foreground',
+    completed:
+      'border-emerald-600/30 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-100',
+    cancelled:
+      'border-red-600/30 bg-red-50 text-red-900 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-100',
+  }
+  return (
+    <span
+      className={`inline-flex border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+        styles[status] || styles.read
+      }`}
+    >
+      {labels[status] || status}
+    </span>
+  )
 }
 
 export default function OrdersManagementPage() {
-  const [activeTab, setActiveTab] = useState<'contact' | 'quick'>('quick');
-  const [contactForms, setContactForms] = useState<ContactFormSubmission[]>([]);
-  const [quickOrders, setQuickOrders] = useState<QuickOrderSubmission[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchQuery, setSearchQuery] = useState(''); // برای فیلتر واقعی
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<'contact' | 'quick'>('quick')
+  const [contactForms, setContactForms] = useState<ContactFormSubmission[]>([])
+  const [quickOrders, setQuickOrders] = useState<QuickOrderSubmission[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [detailOrder, setDetailOrder] = useState<QuickOrderSubmission | null>(
+    null,
+  )
+  const [detailContact, setDetailContact] =
+    useState<ContactFormSubmission | null>(null)
 
-  // Fetch contact forms from API
   const fetchContactForms = async () => {
     try {
-      const response = await fetch(`/api/contact?status=${statusFilter}`);
-      const data = await response.json();
-
+      const response = await fetch(
+        `/api/contact?status=${statusFilter === 'all' ? 'all' : statusFilter}`,
+      )
+      const data = await response.json()
       if (data.success) {
-        const forms = data.data.contactForms.map((form: any) => ({
-          id: form.id,
-          name: form.name,
-          email: form.email,
-          phone: form.phone,
-          message: form.message,
-          createdAt: form.createdAt,
-          status: form.status.toLowerCase(),
-        }));
-        setContactForms(forms);
+        setContactForms(
+          data.data.contactForms.map((form: Record<string, string>) => ({
+            id: form.id,
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
+            message: form.message,
+            createdAt: form.createdAt,
+            status: String(form.status).toLowerCase(),
+          })),
+        )
       }
     } catch (error) {
-      console.error('Error fetching contact forms:', error);
+      console.error('Error fetching contact forms:', error)
     }
-  };
+  }
 
-  // Fetch quick orders from API
   const fetchQuickOrders = async () => {
     try {
-      const response = await fetch(`/api/quick-orders?status=${statusFilter}`);
-      const data = await response.json();
-
+      const response = await fetch(
+        `/api/quick-orders?status=${statusFilter === 'all' ? 'all' : statusFilter}`,
+      )
+      const data = await response.json()
       if (data.success) {
-        const orders = data.data.quickOrders.map((order: any) => ({
-          id: order.id,
-          customerName: order.customerName,
-          companyName: order.companyName,
-          phoneNumber: order.phoneNumber,
-          city: order.city,
-          productSpecs: order.productSpecs,
-          quantity: order.quantity,
-          deliveryDate: order.deliveryDate,
-          deliveryMethod: order.deliveryMethod.toLowerCase(),
-          additionalNotes: order.additionalNotes,
-          createdAt: order.createdAt,
-          status: order.status.toLowerCase(),
-        }));
-        setQuickOrders(orders);
+        setQuickOrders(
+          data.data.quickOrders.map((order: Record<string, string>) => ({
+            id: order.id,
+            customerName: order.customerName,
+            companyName: order.companyName,
+            phoneNumber: order.phoneNumber,
+            city: order.city,
+            productSpecs: order.productSpecs,
+            quantity: order.quantity,
+            deliveryDate: order.deliveryDate,
+            deliveryMethod: String(order.deliveryMethod).toLowerCase(),
+            additionalNotes: order.additionalNotes,
+            createdAt: order.createdAt,
+            status: String(order.status).toLowerCase(),
+          })),
+        )
       }
     } catch (error) {
-      console.error('Error fetching quick orders:', error);
+      console.error('Error fetching quick orders:', error)
     }
-  };
+  }
 
-  // Load data on mount and when filters change
+  const loadData = async () => {
+    setLoading(true)
+    await Promise.all([fetchContactForms(), fetchQuickOrders()])
+    setLoading(false)
+  }
+
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await Promise.all([fetchContactForms(), fetchQuickOrders()]);
-      setLoading(false);
-    };
+    loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter])
 
-    loadData();
-  }, [statusFilter]); // Delete contact form
   const handleDeleteContactForm = async (id: string) => {
-    if (!confirm('آیا از حذف این فرم اطمینان دارید؟')) {
-      return;
-    }
-
+    if (!confirm('Delete this contact message?')) return
     try {
       const response = await fetch(`/api/contact?id=${id}`, {
         method: 'DELETE',
-      });
-
-      const data = await response.json();
-
+      })
+      const data = await response.json()
       if (data.success) {
-        await fetchContactForms();
+        addToast({
+          title: 'Deleted',
+          description: 'Message removed',
+          color: 'success',
+        })
+        await fetchContactForms()
+        setDetailContact(null)
       } else {
-        alert('خطا در حذف فرم');
+        addToast({
+          title: 'Error',
+          description: 'Could not delete',
+          color: 'danger',
+        })
       }
-    } catch (error) {
-      console.error('Error deleting contact form:', error);
-      alert('خطا در حذف فرم');
+    } catch {
+      addToast({
+        title: 'Error',
+        description: 'Could not delete',
+        color: 'danger',
+      })
     }
-  };
+  }
 
-  // Mark contact form as read
   const handleMarkAsRead = async (id: string) => {
     try {
       const response = await fetch('/api/contact', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status: 'READ' }),
-      });
+      })
+      const data = await response.json()
+      if (data.success) await fetchContactForms()
+    } catch (error) {
+      console.error('Error updating contact form:', error)
+    }
+  }
 
-      const data = await response.json();
-
+  const handleMarkReplied = async (id: string) => {
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: 'REPLIED' }),
+      })
+      const data = await response.json()
       if (data.success) {
-        await fetchContactForms();
+        await fetchContactForms()
+        setDetailContact(prev =>
+          prev && prev.id === id ? { ...prev, status: 'replied' } : prev,
+        )
       }
     } catch (error) {
-      console.error('Error updating contact form:', error);
+      console.error('Error updating contact form:', error)
     }
-  };
+  }
 
-  // Delete quick order
   const handleDeleteQuickOrder = async (id: string) => {
-    if (!confirm('آیا از حذف این سفارش اطمینان دارید؟')) {
-      return;
-    }
-
+    if (!confirm('Delete this quote request?')) return
     try {
       const response = await fetch(`/api/quick-orders?id=${id}`, {
         method: 'DELETE',
-      });
-
-      const data = await response.json();
-
+      })
+      const data = await response.json()
       if (data.success) {
-        await fetchQuickOrders();
+        addToast({
+          title: 'Deleted',
+          description: 'Request removed',
+          color: 'success',
+        })
+        await fetchQuickOrders()
+        setDetailOrder(null)
       } else {
-        alert('خطا در حذف سفارش');
+        addToast({
+          title: 'Error',
+          description: 'Could not delete',
+          color: 'danger',
+        })
       }
-    } catch (error) {
-      console.error('Error deleting quick order:', error);
-      alert('خطا در حذف سفارش');
+    } catch {
+      addToast({
+        title: 'Error',
+        description: 'Could not delete',
+        color: 'danger',
+      })
     }
-  };
+  }
 
-  // Update quick order status
   const handleUpdateOrderStatus = async (id: string, status: string) => {
     try {
       const response = await fetch('/api/quick-orders', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status }),
-      });
-
-      const data = await response.json();
-
+      })
+      const data = await response.json()
       if (data.success) {
-        await fetchQuickOrders();
+        await fetchQuickOrders()
+        setDetailOrder(prev =>
+          prev && prev.id === id
+            ? {
+                ...prev,
+                status: status.toLowerCase() as QuickOrderSubmission['status'],
+              }
+            : prev,
+        )
       } else {
-        alert('خطا در بروزرسانی وضعیت');
+        addToast({
+          title: 'Error',
+          description: 'Could not update status',
+          color: 'danger',
+        })
       }
-    } catch (error) {
-      console.error('Error updating quick order:', error);
-      alert('خطا در بروزرسانی وضعیت');
+    } catch {
+      addToast({
+        title: 'Error',
+        description: 'Could not update status',
+        color: 'danger',
+      })
     }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      new: { label: 'جدید', color: 'bg-blue-500' },
-      read: { label: 'خوانده شده', color: 'bg-gray-500' },
-      replied: { label: 'پاسخ داده شده', color: 'bg-green-500' },
-      pending: { label: 'در انتظار', color: 'bg-yellow-500' },
-      confirmed: { label: 'تایید شده', color: 'bg-blue-500' },
-      processing: { label: 'در حال پردازش', color: 'bg-purple-500' },
-      completed: { label: 'تکمیل شده', color: 'bg-green-500' },
-      cancelled: { label: 'لغو شده', color: 'bg-red-500' },
-    };
-
-    const config = statusConfig[status as keyof typeof statusConfig];
-    return (
-      <Badge className={`${config.color} text-white border-0`}>
-        {config.label}
-      </Badge>
-    );
-  };
-
-  const getStatusIcon = (status: string) => {
-    const icons = {
-      new: <Mail className="w-4 h-4" />,
-      read: <Eye className="w-4 h-4" />,
-      replied: <CheckCircle className="w-4 h-4" />,
-      pending: <Clock className="w-4 h-4" />,
-      confirmed: <CheckCircle className="w-4 h-4" />,
-      processing: <RefreshCw className="w-4 h-4" />,
-      completed: <Package className="w-4 h-4" />,
-      cancelled: <XCircle className="w-4 h-4" />,
-    };
-
-    return icons[status as keyof typeof icons];
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('fa-IR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
-  };
-
-  const filteredContactForms = contactForms.filter((form) => {
-    const matchesSearch =
-      form.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (form.email &&
-        form.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      form.phone.includes(searchQuery) ||
-      form.message.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === 'all' || form.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const filteredQuickOrders = quickOrders.filter((order) => {
-    const matchesSearch =
-      order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.phoneNumber.includes(searchQuery) ||
-      order.productSpecs.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === 'all' || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <RefreshCw className="w-12 h-12 mx-auto mb-4 text-blue-600 animate-spin" />
-          <p className="text-gray-600">در حال بارگذاری...</p>
-        </div>
-      </div>
-    );
   }
 
+  const filteredContactForms = useMemo(
+    () =>
+      contactForms.filter(form => {
+        const q = searchQuery.toLowerCase()
+        const matchesSearch =
+          !q ||
+          form.name.toLowerCase().includes(q) ||
+          (form.email && form.email.toLowerCase().includes(q)) ||
+          form.phone.includes(searchQuery) ||
+          form.message.toLowerCase().includes(q)
+        const matchesStatus =
+          statusFilter === 'all' || form.status === statusFilter
+        return matchesSearch && matchesStatus
+      }),
+    [contactForms, searchQuery, statusFilter],
+  )
+
+  const filteredQuickOrders = useMemo(
+    () =>
+      quickOrders.filter(order => {
+        const q = searchQuery.toLowerCase()
+        const matchesSearch =
+          !q ||
+          order.customerName.toLowerCase().includes(q) ||
+          order.phoneNumber.includes(searchQuery) ||
+          order.productSpecs.toLowerCase().includes(q) ||
+          (order.companyName && order.companyName.toLowerCase().includes(q))
+        const matchesStatus =
+          statusFilter === 'all' || order.status === statusFilter
+        return matchesSearch && matchesStatus
+      }),
+    [quickOrders, searchQuery, statusFilter],
+  )
+
+  const pendingCount = quickOrders.filter(o => o.status === 'pending').length
+  const newMessages = contactForms.filter(f => f.status === 'new').length
+
+  const applySearch = () => setSearchQuery(searchTerm)
+
   return (
-    <div className="container px-6 py-8 mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-3 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 rounded-xl">
-            <Package className="w-8 h-8 text-white" />
+    <div className='space-y-6' dir='ltr'>
+      <div className='flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
+        <div>
+          <p className='font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+            Desk
+          </p>
+          <h1 className='flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground'>
+            <ShoppingCart className='h-6 w-6' />
+            Orders &amp; inquiries
+          </h1>
+          <p className='mt-1 text-sm text-muted-foreground'>
+            Quote requests and contact form submissions from the public site.
+          </p>
+        </div>
+        <button
+          type='button'
+          onClick={loadData}
+          className='inline-flex items-center gap-2 border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+        >
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div className='grid grid-cols-2 gap-px overflow-hidden border border-border bg-border sm:grid-cols-4'>
+        {[
+          {
+            label: 'Quote requests',
+            value: quickOrders.length,
+            icon: Package,
+          },
+          {
+            label: 'Contact forms',
+            value: contactForms.length,
+            icon: Mail,
+          },
+          {
+            label: 'Pending quotes',
+            value: pendingCount,
+            icon: Clock,
+          },
+          {
+            label: 'New messages',
+            value: newMessages,
+            icon: Mail,
+          },
+        ].map(stat => {
+          const Icon = stat.icon
+          return (
+            <div key={stat.label} className='bg-card px-4 py-4'>
+              <div className='flex items-start justify-between gap-2'>
+                <p className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+                  {stat.label}
+                </p>
+                <Icon className='h-4 w-4 text-muted-foreground' />
+              </div>
+              <p className='mt-2 font-mono text-2xl font-semibold tabular-nums text-foreground'>
+                {loading ? '—' : stat.value.toLocaleString('en-US')}
+              </p>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Tabs + filters */}
+      <div className='border border-border bg-card'>
+        <div className='flex flex-wrap items-center gap-0 border-b border-border'>
+          <button
+            type='button'
+            onClick={() => {
+              setActiveTab('quick')
+              setStatusFilter('all')
+            }}
+            className={`px-4 py-3 text-sm font-medium transition-colors duration-200 ease-out ${
+              activeTab === 'quick'
+                ? 'border-b-2 border-foreground text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Quote requests
+            <span className='ml-2 font-mono text-xs tabular-nums text-muted-foreground'>
+              {quickOrders.length}
+            </span>
+          </button>
+          <button
+            type='button'
+            onClick={() => {
+              setActiveTab('contact')
+              setStatusFilter('all')
+            }}
+            className={`px-4 py-3 text-sm font-medium transition-colors duration-200 ease-out ${
+              activeTab === 'contact'
+                ? 'border-b-2 border-foreground text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Contact forms
+            <span className='ml-2 font-mono text-xs tabular-nums text-muted-foreground'>
+              {contactForms.length}
+            </span>
+          </button>
+        </div>
+
+        <div className='flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center'>
+          <div className='relative min-w-0 flex-1 sm:max-w-md'>
+            <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+            <input
+              type='search'
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && applySearch()}
+              placeholder={
+                activeTab === 'quick'
+                  ? 'Search name, phone, specs…'
+                  : 'Search name, phone, message…'
+              }
+              className={`${fieldClass} pl-9`}
+            />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              مدیریت سفارشات
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              مشاهده و مدیریت سفارشات دریافتی
-            </p>
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+            className={`${fieldClass} sm:w-44`}
+          >
+            <option value='all'>All statuses</option>
+            {activeTab === 'quick' ? (
+              <>
+                <option value='pending'>Pending</option>
+                <option value='confirmed'>Confirmed</option>
+                <option value='processing'>Processing</option>
+                <option value='completed'>Completed</option>
+                <option value='cancelled'>Cancelled</option>
+              </>
+            ) : (
+              <>
+                <option value='new'>New</option>
+                <option value='read'>Read</option>
+                <option value='replied'>Replied</option>
+              </>
+            )}
+          </select>
+          <div className='flex gap-2'>
+            <button
+              type='button'
+              onClick={applySearch}
+              className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+            >
+              <Search className='h-4 w-4' />
+              Search
+            </button>
+            {(searchTerm || searchQuery) && (
+              <button
+                type='button'
+                onClick={() => {
+                  setSearchTerm('')
+                  setSearchQuery('')
+                }}
+                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+              >
+                Clear
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-4">
-        <Card className="border-l-4 border-l-blue-500">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  سفارشات سریع
-                </p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                  {quickOrders.length}
-                </p>
-              </div>
-              <Package className="w-12 h-12 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-green-500">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  فرم‌های تماس
-                </p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                  {contactForms.length}
-                </p>
-              </div>
-              <Mail className="w-12 h-12 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-yellow-500">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  در انتظار پردازش
-                </p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                  {quickOrders.filter((o) => o.status === 'pending').length}
-                </p>
-              </div>
-              <Clock className="w-12 h-12 text-yellow-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-purple-500">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  تکمیل شده امروز
-                </p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                  0
-                </p>
-              </div>
-              <CheckCircle className="w-12 h-12 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-4 mb-6">
-        <button
-          onClick={() => setActiveTab('quick')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
-            activeTab === 'quick'
-              ? 'bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 text-white shadow-lg shadow-blue-500/50'
-              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-          }`}
-        >
-          <Package className="w-5 h-5" />
-          سفارشات سریع
-          <Badge className="text-white border-0 bg-white/20">
-            {quickOrders.length}
-          </Badge>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('contact')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
-            activeTab === 'contact'
-              ? 'bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/50'
-              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-          }`}
-        >
-          <Mail className="w-5 h-5" />
-          فرم‌های تماس
-          <Badge className="text-white border-0 bg-white/20">
-            {contactForms.length}
-          </Badge>
-        </button>
-      </div>
-
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {/* Search */}
-            <div className="md:col-span-2">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="جستجو..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      setSearchQuery(searchTerm);
-                    }
-                  }}
-                  startContent={<Search className="w-4 h-4 text-gray-400" />}
-                  variant="bordered"
-                  classNames={{
-                    input: 'text-right',
-                    inputWrapper: 'border-gray-300 hover:border-blue-500 h-10',
-                  }}
-                />
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => setSearchQuery(searchTerm)}
-                  className="w-10 h-10"
-                >
-                  <Search className="w-4 h-4" />
-                </Button>
-                {searchTerm && (
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => {
-                      setSearchTerm('');
-                      setSearchQuery('');
-                    }}
-                    className="w-10 h-10"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <Select
-                placeholder="فیلتر وضعیت"
-                selectedKeys={[statusFilter]}
-                onSelectionChange={(keys) => {
-                  const selected = Array.from(keys)[0];
-                  setStatusFilter(selected as string);
-                }}
-                startContent={<Filter className="w-4 h-4 text-gray-400" />}
-                variant="bordered"
-                classNames={{
-                  trigger: 'border-gray-300 hover:border-blue-500 h-10',
-                  value: 'text-right',
-                }}
-              >
-                <SelectItem key="all">همه وضعیت‌ها</SelectItem>
-                {activeTab === 'quick' ? (
-                  <>
-                    <SelectItem key="pending">در انتظار</SelectItem>
-                    <SelectItem key="confirmed">تایید شده</SelectItem>
-                    <SelectItem key="processing">در حال پردازش</SelectItem>
-                    <SelectItem key="completed">تکمیل شده</SelectItem>
-                    <SelectItem key="cancelled">لغو شده</SelectItem>
-                  </>
-                ) : (
-                  <>
-                    <SelectItem key="new">جدید</SelectItem>
-                    <SelectItem key="read">خوانده شده</SelectItem>
-                    <SelectItem key="replied">پاسخ داده شده</SelectItem>
-                  </>
-                )}
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Content */}
-      {activeTab === 'quick' ? (
-        /* Quick Orders List */
-        <div className="space-y-4">
-          {filteredQuickOrders.length === 0 ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-600 dark:text-gray-400">
-                  هیچ سفارش سریعی یافت نشد
-                </p>
-              </CardContent>
-            </Card>
+      {/* Content board */}
+      <div className='border border-border bg-card'>
+        <div className='flex items-center gap-2 border-b border-border px-4 py-3'>
+          {activeTab === 'quick' ? (
+            <Package className='h-4 w-4 text-muted-foreground' />
           ) : (
-            filteredQuickOrders.map((order) => (
-              <Card
-                key={order.id}
-                className="transition-all border-r-4 hover:shadow-lg border-r-blue-500"
-              >
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    {/* Customer Info */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 mb-4">
-                        {getStatusIcon(order.status)}
-                        {getStatusBadge(order.status)}
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                        <User className="w-4 h-4 text-blue-500" />
-                        <span className="font-semibold">
+            <Mail className='h-4 w-4 text-muted-foreground' />
+          )}
+          <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+            {activeTab === 'quick' ? 'Quote requests' : 'Contact forms'} (
+            {activeTab === 'quick'
+              ? filteredQuickOrders.length
+              : filteredContactForms.length}
+            )
+          </h3>
+        </div>
+
+        {loading ? (
+          <div className='flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground'>
+            <RefreshCw className='h-4 w-4 animate-spin' />
+            Loading…
+          </div>
+        ) : activeTab === 'quick' ? (
+          filteredQuickOrders.length === 0 ? (
+            <div className='px-4 py-16 text-center text-sm text-muted-foreground'>
+              No quote requests match your filters.
+            </div>
+          ) : (
+            <div className='overflow-x-auto'>
+              <table className='w-full min-w-[880px] text-sm'>
+                <thead>
+                  <tr className='border-b border-border bg-muted/50 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground'>
+                    <th className='px-4 py-2.5'>Customer</th>
+                    <th className='px-4 py-2.5'>Specs / qty</th>
+                    <th className='px-4 py-2.5'>Delivery</th>
+                    <th className='px-4 py-2.5'>Status</th>
+                    <th className='px-4 py-2.5'>Received</th>
+                    <th className='px-4 py-2.5 text-right'>Actions</th>
+                  </tr>
+                </thead>
+                <tbody className='divide-y divide-border'>
+                  {filteredQuickOrders.map(order => (
+                    <tr
+                      key={order.id}
+                      className='transition-colors duration-200 ease-out hover:bg-muted/40'
+                    >
+                      <td className='px-4 py-3'>
+                        <p className='font-medium text-foreground'>
                           {order.customerName}
-                        </span>
-                      </div>
-                      {order.companyName && (
-                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                          <Building2 className="w-4 h-4 text-gray-500" />
-                          <span>{order.companyName}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <Phone className="w-4 h-4 text-green-500" />
-                        <span className="dir-ltr">{order.phoneNumber}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <MapPin className="w-4 h-4 text-red-500" />
-                        <span>{order.city}</span>
-                      </div>
-                    </div>
-
-                    {/* Order Details */}
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-2 text-gray-700 dark:text-gray-300">
-                        <Package className="w-4 h-4 mt-1 text-purple-500" />
-                        <div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            مشخصات محصول
-                          </p>
-                          <p className="font-semibold">{order.productSpecs}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <FileText className="w-4 h-4 text-orange-500" />
-                        <span>مقدار: {order.quantity}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <Truck className="w-4 h-4 text-cyan-500" />
-                        <span>
+                        </p>
+                        <p className='mt-0.5 text-xs text-muted-foreground'>
+                          {order.companyName ? `${order.companyName} · ` : ''}
+                          {order.phoneNumber}
+                          {order.city ? ` · ${order.city}` : ''}
+                        </p>
+                      </td>
+                      <td className='px-4 py-3'>
+                        <p className='line-clamp-2 max-w-xs text-foreground'>
+                          {order.productSpecs}
+                        </p>
+                        <p className='mt-0.5 text-xs text-muted-foreground'>
+                          Qty: {order.quantity}
+                        </p>
+                      </td>
+                      <td className='px-4 py-3 text-xs text-muted-foreground'>
+                        <p>
                           {order.deliveryMethod === 'delivery'
-                            ? 'ارسال به آدرس'
-                            : 'تحویل حضوری'}
-                        </span>
-                      </div>
-                      {order.deliveryDate && (
-                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                          <Calendar className="w-4 h-4 text-pink-500" />
-                          <span>{formatDate(order.deliveryDate)}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Actions & Notes */}
-                    <div className="space-y-3">
-                      <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                        <p className="mb-1 text-xs text-gray-500 dark:text-gray-400">
-                          تاریخ ثبت
+                            ? 'Delivery'
+                            : 'Pickup'}
                         </p>
-                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                          {formatDate(order.createdAt)}
-                        </p>
-                      </div>
-                      {order.additionalNotes && (
-                        <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
-                          <p className="mb-1 text-xs text-yellow-700 dark:text-yellow-400">
-                            یادداشت
+                        {order.deliveryDate ? (
+                          <p className='mt-0.5 font-mono tabular-nums'>
+                            {formatDate(order.deliveryDate)}
                           </p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                            {order.additionalNotes}
-                          </p>
-                        </div>
-                      )}
-                      <div className="flex flex-col gap-2">
-                        {/* Status Change Buttons */}
-                        {order.status === 'pending' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-blue-700 bg-blue-50 hover:bg-blue-100"
-                            onClick={() =>
-                              handleUpdateOrderStatus(order.id, 'CONFIRMED')
-                            }
+                        ) : null}
+                      </td>
+                      <td className='px-4 py-3'>
+                        <StatusPill status={order.status} />
+                      </td>
+                      <td className='px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground'>
+                        {formatDate(order.createdAt)}
+                      </td>
+                      <td className='px-4 py-3'>
+                        <div className='flex items-center justify-end gap-1'>
+                          <button
+                            type='button'
+                            onClick={() => setDetailOrder(order)}
+                            className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                            aria-label='View'
                           >
-                            <CheckCircle className="w-4 h-4 ml-2" />
-                            تایید سفارش
-                          </Button>
-                        )}
-                        {order.status === 'confirmed' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-purple-700 bg-purple-50 hover:bg-purple-100"
-                            onClick={() =>
-                              handleUpdateOrderStatus(order.id, 'PROCESSING')
-                            }
-                          >
-                            <RefreshCw className="w-4 h-4 ml-2" />
-                            شروع پردازش
-                          </Button>
-                        )}
-                        {order.status === 'processing' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-green-700 bg-green-50 hover:bg-green-100"
-                            onClick={() =>
-                              handleUpdateOrderStatus(order.id, 'COMPLETED')
-                            }
-                          >
-                            <CheckCircle className="w-4 h-4 ml-2" />
-                            تکمیل سفارش
-                          </Button>
-                        )}
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            <Eye className='h-3.5 w-3.5' />
+                          </button>
+                          {order.status === 'pending' && (
+                            <button
+                              type='button'
+                              onClick={() =>
+                                handleUpdateOrderStatus(order.id, 'CONFIRMED')
+                              }
+                              className='inline-flex h-8 items-center gap-1 border border-border bg-background px-2 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                            >
+                              <CheckCircle className='h-3.5 w-3.5' />
+                              Confirm
+                            </button>
+                          )}
+                          {order.status === 'confirmed' && (
+                            <button
+                              type='button'
+                              onClick={() =>
+                                handleUpdateOrderStatus(order.id, 'PROCESSING')
+                              }
+                              className='inline-flex h-8 items-center border border-border bg-background px-2 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                            >
+                              Process
+                            </button>
+                          )}
+                          {order.status === 'processing' && (
+                            <button
+                              type='button'
+                              onClick={() =>
+                                handleUpdateOrderStatus(order.id, 'COMPLETED')
+                              }
+                              className='inline-flex h-8 items-center border border-border bg-background px-2 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                            >
+                              Complete
+                            </button>
+                          )}
+                          <button
+                            type='button'
                             onClick={() => handleDeleteQuickOrder(order.id)}
+                            className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-red-700 transition-colors duration-200 ease-out hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
+                            aria-label='Delete'
                           >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                            <Trash2 className='h-3.5 w-3.5' />
+                          </button>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
-      ) : (
-        /* Contact Forms List */
-        <div className="space-y-4">
-          {filteredContactForms.length === 0 ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Mail className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-600 dark:text-gray-400">
-                  هیچ فرم تماسی یافت نشد
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredContactForms.map((form) => (
-              <Card
-                key={form.id}
-                className="transition-all border-r-4 hover:shadow-lg border-r-green-500"
-              >
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    {/* User Info */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 mb-4">
-                        {getStatusIcon(form.status)}
-                        {getStatusBadge(form.status)}
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                        <User className="w-4 h-4 text-blue-500" />
-                        <span className="font-semibold">{form.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <Phone className="w-4 h-4 text-green-500" />
-                        <span className="dir-ltr">{form.phone}</span>
-                      </div>
-                      {form.email && (
-                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                          <Mail className="w-4 h-4 text-purple-500" />
-                          <span className="dir-ltr">{form.email}</span>
-                        </div>
-                      )}
-                      <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                        <p className="mb-1 text-xs text-gray-500 dark:text-gray-400">
-                          تاریخ ارسال
-                        </p>
-                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                          {formatDate(form.createdAt)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Message */}
-                    <div className="space-y-3 lg:col-span-2">
-                      <div>
-                        <p className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                          پیام:
-                        </p>
-                        <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
-                          <p className="leading-relaxed text-gray-700 dark:text-gray-300">
-                            {form.message}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => handleMarkAsRead(form.id)}
-                          disabled={form.status !== 'new'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        ) : filteredContactForms.length === 0 ? (
+          <div className='px-4 py-16 text-center text-sm text-muted-foreground'>
+            No contact messages match your filters.
+          </div>
+        ) : (
+          <div className='overflow-x-auto'>
+            <table className='w-full min-w-[720px] text-sm'>
+              <thead>
+                <tr className='border-b border-border bg-muted/50 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground'>
+                  <th className='px-4 py-2.5'>From</th>
+                  <th className='px-4 py-2.5'>Message</th>
+                  <th className='px-4 py-2.5'>Status</th>
+                  <th className='px-4 py-2.5'>Received</th>
+                  <th className='px-4 py-2.5 text-right'>Actions</th>
+                </tr>
+              </thead>
+              <tbody className='divide-y divide-border'>
+                {filteredContactForms.map(form => (
+                  <tr
+                    key={form.id}
+                    className='transition-colors duration-200 ease-out hover:bg-muted/40'
+                  >
+                    <td className='px-4 py-3'>
+                      <p className='font-medium text-foreground'>{form.name}</p>
+                      <p className='mt-0.5 text-xs text-muted-foreground'>
+                        {form.phone}
+                        {form.email ? ` · ${form.email}` : ''}
+                      </p>
+                    </td>
+                    <td className='px-4 py-3'>
+                      <p className='line-clamp-2 max-w-md text-muted-foreground'>
+                        {form.message}
+                      </p>
+                    </td>
+                    <td className='px-4 py-3'>
+                      <StatusPill status={form.status} />
+                    </td>
+                    <td className='px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground'>
+                      {formatDate(form.createdAt)}
+                    </td>
+                    <td className='px-4 py-3'>
+                      <div className='flex items-center justify-end gap-1'>
+                        <button
+                          type='button'
+                          onClick={() => {
+                            setDetailContact(form)
+                            if (form.status === 'new') handleMarkAsRead(form.id)
+                          }}
+                          className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                          aria-label='View'
                         >
-                          <Eye className="w-4 h-4 ml-2" />
-                          {form.status === 'new'
-                            ? 'علامت به عنوان خوانده شده'
-                            : 'خوانده شده'}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          <Eye className='h-3.5 w-3.5' />
+                        </button>
+                        <button
+                          type='button'
                           onClick={() => handleDeleteContactForm(form.id)}
+                          className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-red-700 transition-colors duration-200 ease-out hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
+                          aria-label='Delete'
                         >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                          <Trash2 className='h-3.5 w-3.5' />
+                        </button>
                       </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Quote detail modal */}
+      {detailOrder && (
+        <DetailModal title='Quote request' onClose={() => setDetailOrder(null)}>
+          <dl className='grid gap-3 text-sm sm:grid-cols-2'>
+            <DetailRow label='Customer' value={detailOrder.customerName} />
+            <DetailRow label='Company' value={detailOrder.companyName || '—'} />
+            <DetailRow label='Phone' value={detailOrder.phoneNumber} />
+            <DetailRow label='City' value={detailOrder.city} />
+            <DetailRow
+              label='Delivery'
+              value={
+                detailOrder.deliveryMethod === 'delivery'
+                  ? 'Delivery'
+                  : 'Pickup'
+              }
+            />
+            <DetailRow
+              label='Status'
+              value={<StatusPill status={detailOrder.status} />}
+            />
+            <div className='sm:col-span-2'>
+              <DetailRow
+                label='Product specs'
+                value={detailOrder.productSpecs}
+              />
+            </div>
+            <DetailRow label='Quantity' value={detailOrder.quantity} />
+            <DetailRow
+              label='Received'
+              value={formatDate(detailOrder.createdAt)}
+            />
+            {detailOrder.additionalNotes ? (
+              <div className='sm:col-span-2'>
+                <DetailRow label='Notes' value={detailOrder.additionalNotes} />
+              </div>
+            ) : null}
+          </dl>
+          <div className='mt-6 flex flex-wrap justify-end gap-2 border-t border-border pt-4'>
+            {detailOrder.status === 'pending' && (
+              <button
+                type='button'
+                onClick={() =>
+                  handleUpdateOrderStatus(detailOrder.id, 'CONFIRMED')
+                }
+                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted'
+              >
+                Confirm
+              </button>
+            )}
+            {detailOrder.status === 'confirmed' && (
+              <button
+                type='button'
+                onClick={() =>
+                  handleUpdateOrderStatus(detailOrder.id, 'PROCESSING')
+                }
+                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted'
+              >
+                Start processing
+              </button>
+            )}
+            {detailOrder.status === 'processing' && (
+              <button
+                type='button'
+                onClick={() =>
+                  handleUpdateOrderStatus(detailOrder.id, 'COMPLETED')
+                }
+                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted'
+              >
+                Mark completed
+              </button>
+            )}
+            <button
+              type='button'
+              onClick={() => handleDeleteQuickOrder(detailOrder.id)}
+              className='bg-red-700 px-3 py-2 text-sm font-medium text-white hover:opacity-90 dark:bg-red-600'
+            >
+              Delete
+            </button>
+          </div>
+        </DetailModal>
+      )}
+
+      {/* Contact detail modal */}
+      {detailContact && (
+        <DetailModal
+          title='Contact message'
+          onClose={() => setDetailContact(null)}
+        >
+          <dl className='grid gap-3 text-sm sm:grid-cols-2'>
+            <DetailRow label='Name' value={detailContact.name} />
+            <DetailRow label='Phone' value={detailContact.phone} />
+            <DetailRow label='Email' value={detailContact.email || '—'} />
+            <DetailRow
+              label='Status'
+              value={<StatusPill status={detailContact.status} />}
+            />
+            <DetailRow
+              label='Received'
+              value={formatDate(detailContact.createdAt)}
+            />
+            <div className='sm:col-span-2'>
+              <p className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+                Message
+              </p>
+              <p className='mt-1.5 whitespace-pre-wrap border border-border bg-muted/30 px-3 py-3 text-sm leading-relaxed text-foreground'>
+                {detailContact.message}
+              </p>
+            </div>
+          </dl>
+          <div className='mt-6 flex flex-wrap justify-end gap-2 border-t border-border pt-4'>
+            {detailContact.status !== 'replied' && (
+              <button
+                type='button'
+                onClick={() => handleMarkReplied(detailContact.id)}
+                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted'
+              >
+                Mark replied
+              </button>
+            )}
+            <button
+              type='button'
+              onClick={() => handleDeleteContactForm(detailContact.id)}
+              className='bg-red-700 px-3 py-2 text-sm font-medium text-white hover:opacity-90 dark:bg-red-600'
+            >
+              Delete
+            </button>
+          </div>
+        </DetailModal>
       )}
     </div>
-  );
+  )
+}
+
+function DetailRow({
+  label,
+  value,
+}: {
+  label: string
+  value: React.ReactNode
+}) {
+  return (
+    <div>
+      <dt className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+        {label}
+      </dt>
+      <dd className='mt-1 text-foreground'>{value}</dd>
+    </div>
+  )
+}
+
+function DetailModal({
+  title,
+  onClose,
+  children,
+}: {
+  title: string
+  onClose: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+      role='dialog'
+      aria-modal='true'
+    >
+      <div className='max-h-[90vh] w-full max-w-lg overflow-y-auto border border-border bg-card shadow-sm'>
+        <div className='flex items-center justify-between border-b border-border px-5 py-3'>
+          <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+            {title}
+          </h2>
+          <button
+            type='button'
+            onClick={onClose}
+            className='border border-border bg-background px-2 py-1 text-xs font-medium text-foreground hover:bg-muted'
+          >
+            Close
+          </button>
+        </div>
+        <div className='px-5 py-5'>{children}</div>
+      </div>
+    </div>
+  )
 }
