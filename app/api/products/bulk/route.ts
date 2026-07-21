@@ -1,11 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireAuth, logAdminAction } from '@/lib/admin-auth'
+import { getAuthSession, logAdminAction } from '@/lib/admin-auth'
+import { PriceDirection } from '@prisma/client'
+
+async function requireApiAuth() {
+  const session = await getAuthSession()
+  if (!session?.user?.id) {
+    return {
+      error: NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 },
+      ),
+    }
+  }
+  return { session }
+}
 
 // Bulk update products
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await requireAuth()
+    const auth = await requireApiAuth()
+    if ('error' in auth && auth.error) return auth.error
+    const session = auth.session!
+
     const body = await request.json()
     const { productIds, updateData } = body as {
       productIds?: string[]
@@ -30,8 +47,17 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    // Prepare update data for Product table
-    const updates: any = {}
+    const updates: {
+      price?: number
+      inStock?: boolean
+      categoryId?: string
+      previousPrice?: number
+      priceDirection?: PriceDirection
+      priceDelta?: number
+      priceUpdatedAt?: Date
+      updatedAt?: Date
+    } = {}
+
     if (updateData.price !== undefined) updates.price = updateData.price
     if (updateData.inStock !== undefined) updates.inStock = updateData.inStock
     if (updateData.categoryId) updates.categoryId = updateData.categoryId
@@ -43,62 +69,49 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    // If price is being changed, record price history entries
+    // Price history uses current schema fields (direction / delta)
     if (updateData.price !== undefined) {
       const currentProducts = await prisma.product.findMany({
-        where: {
-          id: {
-            in: productIds,
-          },
-        },
-        select: {
-          id: true,
-          price: true,
-        },
+        where: { id: { in: productIds } },
+        select: { id: true, price: true },
       })
 
       const now = new Date()
       const historyData = currentProducts
-        .filter((p) => p.price !== updateData.price)
-        .map((p) => {
+        .filter(p => p.price !== updateData.price)
+        .map(p => {
           const oldPrice = p.price
           const newPrice = updateData.price as number
           const diff = newPrice - oldPrice
-          let changeType = 'ثابت'
-          if (diff > 0) changeType = 'افزایش'
-          else if (diff < 0) changeType = 'کاهش'
+          let direction: PriceDirection = PriceDirection.STABLE
+          if (diff > 0) direction = PriceDirection.UP
+          else if (diff < 0) direction = PriceDirection.DOWN
 
           return {
             productId: p.id,
             oldPrice,
             newPrice,
-            changeType,
-            changeAmount: Math.abs(diff),
+            direction,
+            delta: Math.abs(diff),
             changedAt: now,
           }
         })
 
       if (historyData.length > 0) {
-        await prisma.priceHistory.createMany({
-          data: historyData,
-        })
+        await prisma.priceHistory.createMany({ data: historyData })
       }
+
+      updates.priceUpdatedAt = now
+      // Per-product previousPrice/direction need individual updates; leave to single-product path
     }
 
-    // Add updated timestamp
     updates.updatedAt = new Date()
 
-    // Perform bulk update for products
     const result = await prisma.product.updateMany({
-      where: {
-        id: {
-          in: productIds,
-        },
-      },
+      where: { id: { in: productIds } },
       data: updates,
     })
 
-    // Log admin action
     await logAdminAction(
       session.user.id,
       'BULK_UPDATE',
@@ -129,63 +142,82 @@ export async function PATCH(request: NextRequest) {
 // Bulk delete products
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await requireAuth()
-    const body = await request.json()
-    const { productIds } = body
+    const auth = await requireApiAuth()
+    if ('error' in auth && auth.error) return auth.error
+    const session = auth.session!
 
-    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+    let body: { productIds?: string[] }
+    try {
+      body = await request.json()
+    } catch {
       return NextResponse.json(
-        { error: 'Product IDs array is required' },
+        { success: false, error: 'Invalid JSON body' },
         { status: 400 },
       )
     }
 
-    // Get product details before deletion for logging
+    const { productIds } = body
+
+    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Product IDs array is required' },
+        { status: 400 },
+      )
+    }
+
+    // Snapshot for audit log — only fields that exist on Product
     const productsToDelete = await prisma.product.findMany({
-      where: {
-        id: {
-          in: productIds,
-        },
-      },
+      where: { id: { in: productIds } },
       select: {
         id: true,
         name: true,
-        brand: true,
+        slug: true,
+        size: true,
       },
     })
 
-    // Delete the products
-    const result = await prisma.product.deleteMany({
-      where: {
-        id: {
-          in: productIds,
-        },
-      },
-    })
+    if (productsToDelete.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'No matching products found' },
+        { status: 404 },
+      )
+    }
 
-    // Log admin action
+    const ids = productsToDelete.map(p => p.id)
+
+    // Explicit cleanup is safe even with onDelete: Cascade
+    await prisma.$transaction([
+      prisma.priceHistory.deleteMany({ where: { productId: { in: ids } } }),
+      prisma.orderItem.deleteMany({ where: { productId: { in: ids } } }),
+      prisma.product.deleteMany({ where: { id: { in: ids } } }),
+    ])
+
     await logAdminAction(
       session.user.id,
       'BULK_DELETE',
       'PRODUCT',
       undefined,
       {
-        productIds,
+        productIds: ids,
         deletedProducts: productsToDelete,
-        affectedCount: result.count,
+        affectedCount: productsToDelete.length,
       },
       request,
     )
 
     return NextResponse.json({
       success: true,
-      message: `Successfully deleted ${result.count} products`,
-      affectedCount: result.count,
+      message: `Successfully deleted ${productsToDelete.length} products`,
+      affectedCount: productsToDelete.length,
     })
   } catch (error) {
     console.error('Bulk delete error:', error)
     return NextResponse.json(
-      { error: 'Failed to delete products' },
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Failed to delete products',
+      },
       { status: 500 },
     )
   }
