@@ -14,6 +14,7 @@ import {
   Shield,
   ChevronLeft,
   ChevronRight,
+  ArrowLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -65,7 +66,9 @@ export default function AdminSidebar({
       )}
       aria-label='Admin sidebar'
     >
-      <div className='flex h-14 items-center justify-between border-b border-border px-3'>
+      <div
+        className={`flex h-14 items-center  border-b border-border px-3 ${collapsed ? 'justify-center' : 'justify-between'}`}
+      >
         <Link
           href='/admin/dashboard'
           className={cn(
@@ -73,16 +76,13 @@ export default function AdminSidebar({
             collapsed && 'justify-center',
           )}
         >
-          <div className='flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-background'>
-            <Package className='h-4 w-4 text-foreground' />
-          </div>
           {!collapsed && (
             <div className='min-w-0'>
               <p className='truncate text-sm font-semibold tracking-tight text-foreground'>
                 Hormoz Steel
               </p>
               <p className='font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground'>
-                Admin
+                Admin Panel
               </p>
             </div>
           )}
@@ -92,7 +92,7 @@ export default function AdminSidebar({
           type='button'
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           onClick={() => setCollapsed(v => !v)}
-          className='flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-background text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
+          className='flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-background text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground cursor-pointer'
         >
           {collapsed ? (
             <ChevronRight className='h-4 w-4' />
@@ -118,7 +118,9 @@ export default function AdminSidebar({
                 {session?.user?.name || 'Admin'}
               </p>
               <p className='truncate font-mono text-[10px] uppercase tracking-wide text-muted-foreground'>
-                {session?.user?.role === 'SUPER_ADMIN' ? 'Super admin' : 'Admin'}
+                {session?.user?.role === 'SUPER_ADMIN'
+                  ? 'Super admin'
+                  : 'Admin'}
               </p>
             </div>
           )}
@@ -142,7 +144,7 @@ export default function AdminSidebar({
                         : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                     )}
                   >
-                    <Icon className='h-4 w-4 shrink-0' />
+                    <Icon className='h-5 w-5 shrink-0' />
                     {!collapsed && <span>{item.title}</span>}
                   </Link>
                 </li>
@@ -156,9 +158,10 @@ export default function AdminSidebar({
         <div className='border-t border-border px-3 py-3'>
           <Link
             href='/'
-            className='text-xs font-medium text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground'
+            className='text-sm font-medium text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground flex items-center gap-1.5'
           >
-            ← Public site
+            <ArrowLeft className='h-5 w-5' />
+            Public site
           </Link>
         </div>
       )}
