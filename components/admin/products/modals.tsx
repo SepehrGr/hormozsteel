@@ -1,35 +1,20 @@
-import React, { Fragment } from 'react'
 import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from '@heroui/modal'
-import { Button } from '@heroui/button'
-import { Input } from '@heroui/input'
-import { Switch } from '@heroui/switch'
-import { Divider } from '@heroui/divider'
-import { Chip } from '@heroui/chip'
-import { Listbox, Transition } from '@headlessui/react'
-import {
-  DollarSign,
-  Edit,
-  Eye,
-  EyeOff,
   Plus,
   Trash2,
-  AlertCircle,
-  Package,
-  Tag,
-  Ruler,
-  Layers,
   CheckCircle2,
   X,
-  ChevronDown,
-  Check,
 } from 'lucide-react'
 
+const productFieldClass =
+  'mt-1.5 w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground tabular-nums placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground disabled:cursor-not-allowed disabled:opacity-50'
+
+const productLabelClass =
+  'block text-xs font-medium uppercase tracking-wide text-muted-foreground'
+
+/**
+ * Bulk edit — board-style modal (matches Add/Edit product).
+ * Empty fields are left unchanged.
+ */
 export function BulkUpdateModal({
   isOpen,
   onOpenChange,
@@ -39,390 +24,390 @@ export function BulkUpdateModal({
   categories,
   onUpdate,
 }: any) {
+  if (!isOpen) return null
+
+  const close = () => onOpenChange(false)
+  const update = (patch: Record<string, unknown>) =>
+    setBulkUpdateData({ ...bulkUpdateData, ...patch })
+
+  const stockBtn = (active: boolean) =>
+    `flex-1 cursor-pointer border px-3 py-2.5 text-sm font-medium transition-colors duration-200 ease-out ${
+      active
+        ? 'border-foreground bg-foreground text-background'
+        : 'border-border bg-background text-foreground hover:bg-muted'
+    }`
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      size='2xl'
-      backdrop='blur'
-      classNames={{
-        backdrop:
-          'bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20',
+    <div
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+      role='dialog'
+      aria-modal='true'
+      aria-labelledby='bulk-update-title'
+      dir='ltr'
+      onClick={e => {
+        if (e.target === e.currentTarget) close()
       }}
     >
-      <ModalContent>
-        {(onClose: any) => (
-          <>
-            <ModalHeader className='flex flex-col gap-1 pb-4 border-b border-divider'>
-              <div className='flex items-center gap-3'>
-                <div className='p-2 rounded-lg bg-primary/10'>
-                  <Edit className='w-5 h-5 text-primary' />
-                </div>
-                <div>
-                  <h3 className='text-xl font-bold'>ویرایش گروهی محصولات</h3>
-                  <p className='text-sm font-normal text-default-500'>
-                    {selectedCount} محصول انتخاب شده
-                  </p>
-                </div>
-              </div>
-            </ModalHeader>
-            <ModalBody className='py-6'>
-              <div className='space-y-5'>
-                {/* Price Section */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    <DollarSign className='w-4 h-4 text-success' />
-                    قیمت جدید (تومان)
-                  </label>
-                  <Input
-                    type='number'
-                    placeholder='قیمت جدید را وارد کنید'
-                    value={bulkUpdateData.price?.toString() || ''}
-                    onChange={(e: any) =>
-                      setBulkUpdateData({
-                        ...bulkUpdateData,
-                        price: e.target.value
-                          ? parseFloat(e.target.value)
-                          : undefined,
-                      })
-                    }
-                    variant='bordered'
-                    size='lg'
-                    startContent={
-                      <DollarSign className='w-4 h-4 text-default-400' />
-                    }
-                    classNames={{
-                      input: 'text-lg',
-                      inputWrapper: 'border-default-200 hover:border-primary',
-                    }}
-                  />
-                </div>
+      <div className='max-h-[90vh] w-full max-w-lg overflow-y-auto border border-border bg-card shadow-sm'>
+        <div className='flex items-start justify-between border-b border-border px-5 py-3'>
+          <div>
+            <h2
+              id='bulk-update-title'
+              className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+            >
+              Bulk edit
+            </h2>
+            <p className='mt-1 text-xs text-muted-foreground'>
+              <span className='font-semibold tabular-nums text-foreground'>
+                {selectedCount}
+              </span>{' '}
+              selected · empty fields stay unchanged
+            </p>
+          </div>
+          <button
+            type='button'
+            onClick={close}
+            className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+            aria-label='Close'
+          >
+            <X className='h-4 w-4' />
+          </button>
+        </div>
 
-                <Divider />
+        <div className='space-y-5 px-5 py-5'>
+          <div>
+            <label htmlFor='bulk-price' className={productLabelClass}>
+              New price (USD)
+            </label>
+            <input
+              id='bulk-price'
+              type='number'
+              min={0}
+              step='0.01'
+              value={bulkUpdateData.price?.toString() ?? ''}
+              onChange={e =>
+                update({
+                  price: e.target.value ? parseFloat(e.target.value) : undefined,
+                })
+              }
+              className={productFieldClass}
+              placeholder='Leave blank to keep current'
+            />
+          </div>
 
-                {/* Stock Status Section */}
-                <div className='space-y-3'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    <Package className='w-4 h-4 text-warning' />
-                    وضعیت موجودی
-                  </label>
-                  <div className='flex gap-3'>
-                    <Button
-                      variant={
-                        bulkUpdateData.inStock === true ? 'solid' : 'bordered'
-                      }
-                      color={
-                        bulkUpdateData.inStock === true ? 'success' : 'default'
-                      }
-                      className='flex-1'
-                      startContent={<Eye className='w-4 h-4' />}
-                      onPress={() =>
-                        setBulkUpdateData({ ...bulkUpdateData, inStock: true })
-                      }
-                    >
-                      موجود
-                    </Button>
-                    <Button
-                      variant={
-                        bulkUpdateData.inStock === false ? 'solid' : 'bordered'
-                      }
-                      color={
-                        bulkUpdateData.inStock === false ? 'danger' : 'default'
-                      }
-                      className='flex-1'
-                      onPress={() =>
-                        setBulkUpdateData({ ...bulkUpdateData, inStock: false })
-                      }
-                    >
-                      ناموجود
-                    </Button>
-                    <Button
-                      variant={
-                        bulkUpdateData.inStock === undefined
-                          ? 'solid'
-                          : 'bordered'
-                      }
-                      color={
-                        bulkUpdateData.inStock === undefined
-                          ? 'primary'
-                          : 'default'
-                      }
-                      className='flex-1'
-                      startContent={<X className='w-4 h-4' />}
-                      onPress={() =>
-                        setBulkUpdateData({
-                          ...bulkUpdateData,
-                          inStock: undefined,
-                        })
-                      }
-                    >
-                      بدون تغییر
-                    </Button>
-                  </div>
-                </div>
-
-                <Divider />
-
-                {/* Category Section */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    <Layers className='w-4 h-4 text-secondary' />
-                    دسته‌بندی
-                  </label>
-                  <Listbox
-                    value={bulkUpdateData.categoryId || ''}
-                    onChange={(value: string) => {
-                      setBulkUpdateData({
-                        ...bulkUpdateData,
-                        categoryId: value || undefined,
-                      })
-                    }}
-                  >
-                    <div className='relative'>
-                      <Listbox.Button className='relative w-full py-3 pl-10 pr-3 text-right transition-colors bg-transparent border-2 rounded-lg cursor-pointer border-default-200 hover:border-primary'>
-                        <span className='block truncate text-foreground'>
-                          {bulkUpdateData.categoryId
-                            ? categories?.find(
-                                (cat: any) =>
-                                  cat.id === bulkUpdateData.categoryId,
-                              )?.name || 'انتخاب دسته‌بندی'
-                            : 'انتخاب دسته‌بندی'}
-                        </span>
-                        <span className='absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none'>
-                          <ChevronDown
-                            className='w-5 h-5 text-default-400'
-                            aria-hidden='true'
-                          />
-                        </span>
-                      </Listbox.Button>
-                      <Transition
-                        as={Fragment}
-                        leave='transition ease-in duration-100'
-                        leaveFrom='opacity-100'
-                        leaveTo='opacity-0'
-                      >
-                        <Listbox.Options className='absolute z-50 w-full py-1 mt-1 overflow-auto border rounded-lg shadow-lg max-h-44 bg-content1 border-divider'>
-                          {categories?.map((category: any) => (
-                            <Listbox.Option
-                              key={category.id}
-                              value={category.id}
-                              className={({ active }) =>
-                                `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                                  active
-                                    ? 'bg-primary/10 text-primary'
-                                    : 'text-foreground'
-                                }`
-                              }
-                            >
-                              {({ selected, active }) => (
-                                <>
-                                  <span
-                                    className={`absolute inset-y-0 left-0 flex items-center pl-3 text-primary ${selected ? '' : 'opacity-0'}`}
-                                  >
-                                    <Check
-                                      className='w-5 h-5'
-                                      aria-hidden='true'
-                                    />
-                                  </span>
-                                  <span
-                                    className={`block truncate pl-10 ${selected ? 'font-medium' : 'font-normal'}`}
-                                  >
-                                    {category.name}
-                                  </span>
-                                </>
-                              )}
-                            </Listbox.Option>
-                          ))}
-                        </Listbox.Options>
-                      </Transition>
-                    </div>
-                  </Listbox>
-                </div>
-
-                {/* Info Banner */}
-                <div className='flex items-start gap-3 p-4 border rounded-lg bg-primary/5 border-primary/20'>
-                  <AlertCircle className='w-5 h-5 text-primary mt-0.5 flex-shrink-0' />
-                  <div className='text-sm text-default-700'>
-                    <p className='mb-1 font-semibold'>توجه:</p>
-                    <p>
-                      فقط فیلدهایی که مقدار دارند، برای محصولات انتخاب شده
-                      به‌روزرسانی خواهند شد.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </ModalBody>
-            <ModalFooter className='pt-4 border-t border-divider'>
-              <Button variant='light' onPress={onClose} size='lg'>
-                انصراف
-              </Button>
-              <Button
-                color='primary'
-                onPress={onUpdate}
-                size='lg'
-                startContent={<CheckCircle2 className='w-4 h-4' />}
+          <div>
+            <p className={productLabelClass}>Stock</p>
+            <div className='mt-1.5 flex gap-2'>
+              <button
+                type='button'
+                onClick={() => update({ inStock: true })}
+                className={stockBtn(bulkUpdateData.inStock === true)}
               >
-                اعمال تغییرات
-              </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+                In stock
+              </button>
+              <button
+                type='button'
+                onClick={() => update({ inStock: false })}
+                className={stockBtn(bulkUpdateData.inStock === false)}
+              >
+                On inquiry
+              </button>
+              <button
+                type='button'
+                onClick={() => update({ inStock: undefined })}
+                className={stockBtn(bulkUpdateData.inStock === undefined)}
+              >
+                No change
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor='bulk-category' className={productLabelClass}>
+              Category
+            </label>
+            <select
+              id='bulk-category'
+              value={bulkUpdateData.categoryId || ''}
+              onChange={e =>
+                update({ categoryId: e.target.value || undefined })
+              }
+              className={`${productFieldClass} cursor-pointer`}
+            >
+              <option value=''>No change</option>
+              {categories?.map((cat: any) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <p className='border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground'>
+            Only filled fields are applied to the selected products.
+          </p>
+        </div>
+
+        <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
+          <button
+            type='button'
+            onClick={close}
+            className='cursor-pointer border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+          >
+            Cancel
+          </button>
+          <button
+            type='button'
+            onClick={onUpdate}
+            className='inline-flex cursor-pointer items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
+          >
+            <CheckCircle2 className='h-4 w-4' />
+            Apply to {selectedCount} product{selectedCount === 1 ? '' : 's'}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
+/**
+ * Bulk delete confirmation — board-style modal.
+ */
 export function BulkDeleteModal({
   isOpen,
   onOpenChange,
   selectedCount,
   onDelete,
 }: any) {
+  if (!isOpen) return null
+
+  const close = () => onOpenChange(false)
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      backdrop='blur'
-      classNames={{
-        backdrop:
-          'bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20',
+    <div
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+      role='dialog'
+      aria-modal='true'
+      aria-labelledby='bulk-delete-title'
+      dir='ltr'
+      onClick={e => {
+        if (e.target === e.currentTarget) close()
       }}
     >
-      <ModalContent>
-        {(onClose: any) => (
-          <>
-            <ModalHeader className='flex flex-col gap-1 pb-4 border-b border-divider'>
-              <div className='flex items-center gap-3'>
-                <div className='p-2 rounded-lg bg-danger/10'>
-                  <Trash2 className='w-5 h-5 text-danger' />
-                </div>
-                <div>
-                  <h3 className='text-xl font-bold'>حذف گروهی محصولات</h3>
-                  <p className='text-sm font-normal text-default-500'>
-                    تأیید حذف دسته‌جمعی
-                  </p>
-                </div>
-              </div>
-            </ModalHeader>
-            <ModalBody className='py-6'>
-              <div className='space-y-4'>
-                <div className='flex items-center justify-center p-6 rounded-lg bg-danger/5'>
-                  <div className='space-y-3 text-center'>
-                    <div className='flex justify-center'>
-                      <div className='p-3 rounded-full bg-danger/10'>
-                        <AlertCircle className='w-8 h-8 text-danger' />
-                      </div>
-                    </div>
-                    <p className='text-lg'>
-                      آیا از حذف{' '}
-                      <span className='font-extrabold'>
-                        {selectedCount} محصول
-                      </span>{' '}
-                      مطمئن هستید؟
-                    </p>
-                    <p className='text-sm text-default-500'>
-                      این عمل قابل بازگشت نیست و تمام اطلاعات محصولات حذف خواهند
-                      شد.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </ModalBody>
-            <ModalFooter className='pt-4 border-t border-divider'>
-              <Button variant='light' onPress={onClose} size='lg'>
-                انصراف
-              </Button>
-              <Button
-                color='danger'
-                onPress={onDelete}
-                size='lg'
-                startContent={<Trash2 className='w-4 h-4' />}
-              >
-                حذف محصولات
-              </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+      <div className='w-full max-w-md border border-border bg-card shadow-sm'>
+        <div className='flex items-center justify-between border-b border-border px-5 py-3'>
+          <h2
+            id='bulk-delete-title'
+            className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+          >
+            Delete products
+          </h2>
+          <button
+            type='button'
+            onClick={close}
+            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+            aria-label='Close'
+          >
+            <X className='h-4 w-4' />
+          </button>
+        </div>
+
+        <div className='space-y-3 px-5 py-5'>
+          <p className='text-sm text-muted-foreground'>
+            Delete{' '}
+            <span className='font-semibold tabular-nums text-foreground'>
+              {selectedCount}
+            </span>{' '}
+            selected product{selectedCount === 1 ? '' : 's'}?
+          </p>
+          <p className='border border-red-600/30 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-100'>
+            This cannot be undone. Catalog lines and related history for these
+            items will be removed.
+          </p>
+        </div>
+
+        <div className='flex justify-start gap-2 border-t border-border px-5 py-4'>
+          <button
+            type='button'
+            onClick={onDelete}
+            className='inline-flex items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 dark:bg-red-600'
+          >
+            <Trash2 className='h-4 w-4' />
+            Delete {selectedCount} product{selectedCount > 1 && 's'}
+          </button>
+          <button
+            type='button'
+            onClick={close}
+            className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
+/**
+ * Single product delete confirmation — board-style modal.
+ */
 export function DeleteSingleModal({
   isOpen,
   onOpenChange,
   product,
   onConfirm,
 }: any) {
+  if (!isOpen) return null
+
+  const close = () => onOpenChange(false)
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      backdrop='blur'
-      classNames={{
-        backdrop:
-          'bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20',
+    <div
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+      role='dialog'
+      aria-modal='true'
+      aria-labelledby='delete-product-title'
+      dir='ltr'
+      onClick={e => {
+        if (e.target === e.currentTarget) close()
       }}
     >
-      <ModalContent>
-        {(onClose: any) => (
-          <>
-            <ModalHeader className='flex flex-col gap-1 pb-4 border-b border-divider'>
-              <div className='flex items-center gap-3'>
-                <div className='p-2 rounded-lg bg-danger/10'>
-                  <Trash2 className='w-5 h-5 text-danger' />
-                </div>
-                <div>
-                  <h3 className='text-xl font-bold'>حذف محصول</h3>
-                  <p className='text-sm font-normal text-default-500'>
-                    تأیید حذف محصول
-                  </p>
-                </div>
-              </div>
-            </ModalHeader>
-            <ModalBody className='py-6'>
-              <div className='space-y-4'>
-                <div className='p-5 border rounded-lg bg-danger/5 border-danger/20'>
-                  <div className='flex items-start gap-3'>
-                    <AlertCircle className='w-5 h-5 text-danger mt-0.5 flex-shrink-0' />
-                    <div className='space-y-2'>
-                      <p className='font-semibold text-foreground'>
-                        در حال حذف محصول:
-                      </p>
-                      <Chip
-                        color='primary'
-                        variant='flat'
-                        size='lg'
-                        startContent={<Package className='w-4 h-4' />}
-                      >
-                        {product?.name}
-                      </Chip>
-                      <p className='mt-3 text-sm text-default-500'>
-                        این عمل قابل بازگشت نیست. تمام اطلاعات مربوط به این
-                        محصول به طور کامل حذف خواهد شد.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </ModalBody>
-            <ModalFooter className='pt-4 border-t border-divider'>
-              <Button variant='light' onPress={onClose} size='lg'>
-                انصراف
-              </Button>
-              <Button
-                color='danger'
-                onPress={onConfirm}
-                size='lg'
-                startContent={<Trash2 className='w-4 h-4' />}
-              >
-                حذف قطعی
-              </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+      <div className='w-full max-w-md border border-border bg-card shadow-sm'>
+        <div className='flex items-center justify-between border-b border-border px-5 py-3'>
+          <h2
+            id='delete-product-title'
+            className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+          >
+            Delete product
+          </h2>
+          <button
+            type='button'
+            onClick={close}
+            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+            aria-label='Close'
+          >
+            <X className='h-4 w-4' />
+          </button>
+        </div>
+
+        <div className='space-y-3 px-5 py-5'>
+          <p className='text-sm text-muted-foreground'>
+            Delete{' '}
+            <span className='font-medium text-foreground'>
+              {product?.name || 'this product'}
+            </span>
+            ?
+          </p>
+          {(product?.size || product?.brand) && (
+            <p className='text-xs text-muted-foreground'>
+              {[product.brand, product.size].filter(Boolean).join(' · ')}
+            </p>
+          )}
+          <p className='border border-red-600/30 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-100'>
+            This cannot be undone. The line will be removed from the catalog.
+          </p>
+        </div>
+
+        <div className='flex justify-start gap-2 border-t border-border px-5 py-4'>
+          <button
+            type='button'
+            onClick={onConfirm}
+            className='inline-flex items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 dark:bg-red-600'
+          >
+            <Trash2 className='h-4 w-4' />
+            Yes, delete the product
+          </button>
+          <button
+            type='button'
+            onClick={close}
+            className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Edit product — board-style modal (matches Add product).
+ */
+function MillField({
+  manufacturers = [],
+  manufacturerId,
+  brand,
+  onChange,
+  idPrefix,
+}: {
+  manufacturers?: { id: string; name: string }[]
+  manufacturerId?: string
+  brand?: string
+  onChange: (patch: { manufacturerId?: string; brand?: string }) => void
+  idPrefix: string
+}) {
+  const isCustom =
+    !manufacturerId ||
+    manufacturerId === '__custom__' ||
+    !manufacturers.some(m => m.id === manufacturerId)
+
+  return (
+    <div className='space-y-2'>
+      <div>
+        <label htmlFor={`${idPrefix}-mill`} className={productLabelClass}>
+          Mill *
+        </label>
+        <select
+          id={`${idPrefix}-mill`}
+          value={
+            manufacturerId && manufacturers.some(m => m.id === manufacturerId)
+              ? manufacturerId
+              : manufacturerId === '__custom__' || (brand && isCustom)
+                ? '__custom__'
+                : ''
+          }
+          onChange={e => {
+            const v = e.target.value
+            if (!v) {
+              onChange({ manufacturerId: '', brand: '' })
+              return
+            }
+            if (v === '__custom__') {
+              onChange({ manufacturerId: '__custom__', brand: brand || '' })
+              return
+            }
+            const mill = manufacturers.find(m => m.id === v)
+            onChange({ manufacturerId: v, brand: mill?.name || '' })
+          }}
+          className={productFieldClass}
+        >
+          <option value=''>Select mill…</option>
+          {manufacturers.map(m => (
+            <option key={m.id} value={m.id}>
+              {m.name}
+            </option>
+          ))}
+          <option value='__custom__'>Other (type name)</option>
+        </select>
+      </div>
+      {(manufacturerId === '__custom__' ||
+        (isCustom && brand && !manufacturers.some(m => m.id === manufacturerId))) && (
+        <div>
+          <label htmlFor={`${idPrefix}-brand`} className={productLabelClass}>
+            New mill name *
+          </label>
+          <input
+            id={`${idPrefix}-brand`}
+            value={brand || ''}
+            onChange={e =>
+              onChange({ manufacturerId: '__custom__', brand: e.target.value })
+            }
+            className={productFieldClass}
+            placeholder='e.g. Caspian Steel Mills'
+          />
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -433,781 +418,471 @@ export function EditProductModal({
   editProductData,
   setEditProductData,
   categories,
+  manufacturers = [],
   onSave,
 }: any) {
+  if (!isOpen) return null
+
+  const selectedCategory = categories?.find(
+    (cat: any) => cat.id === editProductData.categoryId,
+  )
+  const subcategories: string[] = selectedCategory?.subcategories || []
+
+  const close = () => onOpenChange(false)
+
+  const update = (patch: Record<string, unknown>) =>
+    setEditProductData({ ...editProductData, ...patch })
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      size='3xl'
-      scrollBehavior='inside'
-      backdrop='blur'
-      classNames={{
-        backdrop:
-          'bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20',
+    <div
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+      role='dialog'
+      aria-modal='true'
+      aria-labelledby='edit-product-title'
+      dir='ltr'
+      onClick={e => {
+        if (e.target === e.currentTarget) close()
       }}
     >
-      <ModalContent>
-        {(onClose: any) => (
-          <>
-            <ModalHeader className='flex flex-col gap-1 pb-4 border-b border-divider'>
-              <div className='flex items-center gap-3'>
-                <div className='p-2 rounded-lg bg-primary/10'>
-                  <Edit className='w-5 h-5 text-primary' />
-                </div>
-                <div>
-                  <h3 className='text-xl font-bold'>ویرایش محصول</h3>
-                  <p className='text-sm font-normal text-default-500'>
-                    ویرایش اطلاعات "{editingProduct?.name}"
-                  </p>
-                </div>
-              </div>
-            </ModalHeader>
-            <ModalBody className='py-6'>
-              <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                {/* Product Name */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    <Package className='w-4 h-4 text-primary' />
-                    نام محصول <span className='text-danger'>*</span>
-                  </label>
-                  <Input
-                    value={editProductData.name}
-                    onChange={(e: any) =>
-                      setEditProductData({
-                        ...editProductData,
-                        name: e.target.value,
-                      })
-                    }
-                    placeholder='نام محصول را وارد کنید'
-                    variant='bordered'
-                    size='lg'
-                    isRequired
-                    classNames={{
-                      inputWrapper: 'border-default-200 hover:border-primary',
-                    }}
-                  />
-                </div>
+      <div className='max-h-[90vh] w-full max-w-2xl overflow-y-auto border border-border bg-card shadow-sm'>
+        <div className='flex items-start justify-between border-b border-border px-5 py-3'>
+          <div className='min-w-0'>
+            <h2
+              id='edit-product-title'
+              className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+            >
+              Edit product
+            </h2>
+            <p className='mt-1 truncate text-xs text-muted-foreground'>
+              {editingProduct?.name
+                ? `Editing “${editingProduct.name}”`
+                : 'Update catalog line'}
+            </p>
+          </div>
+          <button
+            type='button'
+            onClick={close}
+            className='flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+            aria-label='Close'
+          >
+            <X className='h-4 w-4' />
+          </button>
+        </div>
 
-                {/* Brand */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    <Tag className='w-4 h-4 text-secondary' />
-                    برند <span className='text-danger'>*</span>
-                  </label>
-                  <Input
-                    value={editProductData.brand}
-                    onChange={(e: any) =>
-                      setEditProductData({
-                        ...editProductData,
-                        brand: e.target.value,
-                      })
-                    }
-                    placeholder='نام برند را وارد کنید'
-                    variant='bordered'
-                    size='lg'
-                    isRequired
-                    classNames={{
-                      inputWrapper: 'border-default-200 hover:border-primary',
-                    }}
-                  />
-                </div>
+        <div className='space-y-5 px-5 py-5'>
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+            <div className='sm:col-span-2'>
+              <label htmlFor='edit-name' className={productLabelClass}>
+                Name *
+              </label>
+              <input
+                id='edit-name'
+                value={editProductData.name}
+                onChange={e => update({ name: e.target.value })}
+                className={productFieldClass}
+                placeholder='e.g. Ribbed rebar 16mm'
+              />
+            </div>
 
-                {/* Size */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    <Ruler className='w-4 h-4 text-warning' />
-                    سایز <span className='text-danger'>*</span>
-                  </label>
-                  <Input
-                    value={editProductData.size}
-                    onChange={(e: any) =>
-                      setEditProductData({
-                        ...editProductData,
-                        size: e.target.value,
-                      })
-                    }
-                    placeholder='مثال: 12، 16، 20'
-                    variant='bordered'
-                    size='lg'
-                    isRequired
-                    classNames={{
-                      inputWrapper: 'border-default-200 hover:border-primary',
-                    }}
-                  />
-                </div>
+            <MillField
+              manufacturers={manufacturers}
+              manufacturerId={editProductData.manufacturerId}
+              brand={editProductData.brand}
+              onChange={patch => update(patch)}
+              idPrefix='edit'
+            />
 
-                {/* Weight */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    <Ruler className='w-4 h-4 text-info' />
-                    وزن
-                  </label>
-                  <Input
-                    type='number'
-                    value={editProductData.weight?.toString() || ''}
-                    onChange={(e: any) =>
-                      setEditProductData({
-                        ...editProductData,
-                        weight: e.target.value
-                          ? parseFloat(e.target.value)
-                          : undefined,
-                      })
-                    }
-                    placeholder='وزن را وارد کنید (بر حسب kg یا ton)'
-                    variant='bordered'
-                    size='lg'
-                    step='0.1'
-                    classNames={{
-                      inputWrapper: 'border-default-200 hover:border-primary',
-                    }}
-                  />
-                </div>
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    <DollarSign className='w-4 h-4 text-success' />
-                    قیمت (تومان) <span className='text-danger'>*</span>
-                  </label>
-                  <Input
-                    type='number'
-                    value={editProductData.price.toString()}
-                    onChange={(e: any) =>
-                      setEditProductData({
-                        ...editProductData,
-                        price: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    placeholder='قیمت را وارد کنید'
-                    variant='bordered'
-                    size='lg'
-                    isRequired
-                    startContent={
-                      <DollarSign className='w-4 h-4 text-default-400' />
-                    }
-                    classNames={{
-                      inputWrapper: 'border-default-200 hover:border-primary',
-                    }}
-                  />
-                </div>
+            <div>
+              <label htmlFor='edit-size' className={productLabelClass}>
+                Size *
+              </label>
+              <input
+                id='edit-size'
+                value={editProductData.size}
+                onChange={e => update({ size: e.target.value })}
+                className={productFieldClass}
+                placeholder='e.g. 16mm, IPE 200'
+              />
+            </div>
 
-                {/* Category */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    <Layers className='w-4 h-4 text-secondary' />
-                    دسته‌بندی <span className='text-danger'>*</span>
-                  </label>
-                  <Listbox
-                    value={editProductData.categoryId}
-                    onChange={(value: string) => {
-                      setEditProductData({
-                        ...editProductData,
-                        categoryId: value,
-                        subcategory: '',
-                      })
-                    }}
-                  >
-                    <div className='relative'>
-                      <Listbox.Button className='relative w-full py-3 pl-10 pr-3 text-right transition-colors bg-transparent border-2 rounded-lg cursor-pointer border-default-200 hover:border-primary'>
-                        <span className='block truncate text-foreground'>
-                          {editProductData.categoryId
-                            ? categories?.find(
-                                (cat: any) =>
-                                  cat.id === editProductData.categoryId,
-                              )?.name || 'دسته‌بندی را انتخاب کنید'
-                            : 'دسته‌بندی را انتخاب کنید'}
-                        </span>
-                        <span className='absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none'>
-                          <ChevronDown
-                            className='w-5 h-5 text-default-400'
-                            aria-hidden='true'
-                          />
-                        </span>
-                      </Listbox.Button>
-                      <Transition
-                        as={Fragment}
-                        leave='transition ease-in duration-100'
-                        leaveFrom='opacity-100'
-                        leaveTo='opacity-0'
-                      >
-                        <Listbox.Options className='absolute z-50 w-full py-1 mt-1 overflow-auto border rounded-lg shadow-lg max-h-44 bg-content1 border-divider'>
-                          {categories?.map((category: any) => (
-                            <Listbox.Option
-                              key={category.id}
-                              value={category.id}
-                              className={({ active }) =>
-                                `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                                  active
-                                    ? 'bg-primary/10 text-primary'
-                                    : 'text-foreground'
-                                }`
-                              }
-                            >
-                              {({ selected }) => (
-                                <>
-                                  <span
-                                    className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}
-                                  >
-                                    {category.name}
-                                  </span>
-                                  {selected && (
-                                    <span className='absolute inset-y-0 right-0 flex items-center pr-3 text-primary'>
-                                      <Check
-                                        className='w-5 h-5'
-                                        aria-hidden='true'
-                                      />
-                                    </span>
-                                  )}
-                                </>
-                              )}
-                            </Listbox.Option>
-                          ))}
-                        </Listbox.Options>
-                      </Transition>
-                    </div>
-                  </Listbox>
-                </div>
+            <div>
+              <label htmlFor='edit-price' className={productLabelClass}>
+                Unit price (USD) *
+              </label>
+              <input
+                id='edit-price'
+                type='number'
+                inputMode='decimal'
+                step='0.01'
+                min='0'
+                value={editProductData.price ?? ''}
+                onChange={e =>
+                  update({ price: parseFloat(e.target.value) || 0 })
+                }
+                className={productFieldClass}
+                placeholder='0.00'
+              />
+            </div>
 
-                {/* Subcategory */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    <Layers className='w-4 h-4 text-secondary' />
-                    زیر دسته‌بندی <span className='text-danger'>*</span>
-                  </label>
-                  <Listbox
-                    value={editProductData.subcategory}
-                    onChange={(value: string) => {
-                      setEditProductData({
-                        ...editProductData,
-                        subcategory: value,
-                      })
-                    }}
-                    disabled={!editProductData.categoryId}
-                  >
-                    <div className='relative'>
-                      <Listbox.Button
-                        className={`relative w-full cursor-pointer rounded-lg border-2 border-default-200 bg-transparent py-3 pl-10 pr-3 text-right transition-colors ${
-                          !editProductData.categoryId
-                            ? 'opacity-50 cursor-not-allowed'
-                            : 'hover:border-primary'
-                        }`}
-                      >
-                        <span className='block truncate text-foreground'>
-                          {editProductData.subcategory ||
-                            (editProductData.categoryId
-                              ? 'انتخاب کنید'
-                              : 'ابتدا دسته‌بندی را انتخاب کنید')}
-                        </span>
-                        <span className='absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none'>
-                          <ChevronDown
-                            className='w-5 h-5 text-default-400'
-                            aria-hidden='true'
-                          />
-                        </span>
-                      </Listbox.Button>
-                      {editProductData.categoryId && (
-                        <Transition
-                          as={Fragment}
-                          leave='transition ease-in duration-100'
-                          leaveFrom='opacity-100'
-                          leaveTo='opacity-0'
-                        >
-                          <Listbox.Options className='absolute z-50 w-full py-1 mt-1 overflow-auto border rounded-lg shadow-lg max-h-44 bg-content1 border-divider'>
-                            {categories
-                              ?.find(
-                                (cat: any) =>
-                                  cat.id === editProductData.categoryId,
-                              )
-                              ?.subcategories?.map((subcategory: string) => (
-                                <Listbox.Option
-                                  key={subcategory}
-                                  value={subcategory}
-                                  className={({ active }) =>
-                                    `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                                      active
-                                        ? 'bg-primary/10 text-primary'
-                                        : 'text-foreground'
-                                    }`
-                                  }
-                                >
-                                  {({ selected }) => (
-                                    <>
-                                      <span
-                                        className={`absolute inset-y-0 left-0 flex items-center pl-3 text-primary ${selected ? '' : 'opacity-0'}`}
-                                      >
-                                        <Check
-                                          className='w-5 h-5'
-                                          aria-hidden='true'
-                                        />
-                                      </span>
-                                      <span
-                                        className={`block truncate pl-10 ${selected ? 'font-medium' : 'font-normal'}`}
-                                      >
-                                        {subcategory}
-                                      </span>
-                                    </>
-                                  )}
-                                </Listbox.Option>
-                              )) || []}
-                          </Listbox.Options>
-                        </Transition>
-                      )}
-                    </div>
-                  </Listbox>
-                </div>
+            <div>
+              <label htmlFor='edit-weight' className={productLabelClass}>
+                Weight (kg)
+              </label>
+              <input
+                id='edit-weight'
+                type='number'
+                inputMode='decimal'
+                step='0.01'
+                min='0'
+                value={editProductData.weight?.toString() || ''}
+                onChange={e =>
+                  update({
+                    weight: e.target.value
+                      ? parseFloat(e.target.value)
+                      : undefined,
+                  })
+                }
+                className={productFieldClass}
+                placeholder='Optional'
+              />
+            </div>
 
-                {/* Stock Status */}
-                <div className='space-y-3 md:col-span-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    <Package className='w-4 h-4 text-warning' />
-                    وضعیت موجودی
-                  </label>
-                  <div className='flex gap-3'>
-                    <Button
-                      variant={
-                        editProductData.inStock === true ? 'solid' : 'bordered'
-                      }
-                      color={
-                        editProductData.inStock === true ? 'success' : 'default'
-                      }
-                      className='flex-1'
-                      size='lg'
-                      onPress={() =>
-                        setEditProductData({
-                          ...editProductData,
-                          inStock: true,
-                        })
-                      }
-                    >
-                      موجود
-                    </Button>
-                    <Button
-                      variant={
-                        editProductData.inStock === false ? 'solid' : 'bordered'
-                      }
-                      color={
-                        editProductData.inStock === false ? 'danger' : 'default'
-                      }
-                      className='flex-1'
-                      size='lg'
-                      onPress={() =>
-                        setEditProductData({
-                          ...editProductData,
-                          inStock: false,
-                        })
-                      }
-                    >
-                      ناموجود
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </ModalBody>
-            <ModalFooter className='pt-4 border-t border-divider'>
-              <Button variant='light' onPress={onClose} size='lg'>
-                انصراف
-              </Button>
-              <Button
-                color='primary'
-                onPress={onSave}
-                size='lg'
-                startContent={<CheckCircle2 className='w-4 h-4' />}
+            <div>
+              <label htmlFor='edit-category' className={productLabelClass}>
+                Category *
+              </label>
+              <select
+                id='edit-category'
+                value={editProductData.categoryId}
+                onChange={e =>
+                  update({ categoryId: e.target.value, subcategory: '' })
+                }
+                className={productFieldClass}
               >
-                ذخیره تغییرات
-              </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+                <option value=''>Select category</option>
+                {categories?.map((category: any) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor='edit-sub' className={productLabelClass}>
+                Sub-line *
+              </label>
+              <select
+                id='edit-sub'
+                value={editProductData.subcategory}
+                onChange={e => update({ subcategory: e.target.value })}
+                disabled={!editProductData.categoryId}
+                className={productFieldClass}
+              >
+                <option value=''>
+                  {editProductData.categoryId
+                    ? 'Select sub-line'
+                    : 'Select category first'}
+                </option>
+                {subcategories.map((sub: string) => (
+                  <option key={sub} value={sub}>
+                    {sub}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className='sm:col-span-2'>
+              <p className={productLabelClass}>Stock</p>
+              <div className='mt-1.5 flex gap-2'>
+                <button
+                  type='button'
+                  onClick={() => update({ inStock: true })}
+                  className={`flex-1 border px-3 py-2.5 text-sm font-medium transition-colors duration-200 ease-out ${
+                    editProductData.inStock === true
+                      ? 'border-foreground bg-foreground text-background'
+                      : 'border-border bg-background text-foreground hover:bg-muted'
+                  }`}
+                >
+                  In stock
+                </button>
+                <button
+                  type='button'
+                  onClick={() => update({ inStock: false })}
+                  className={`flex-1 border px-3 py-2.5 text-sm font-medium transition-colors duration-200 ease-out ${
+                    editProductData.inStock === false
+                      ? 'border-foreground bg-foreground text-background'
+                      : 'border-border bg-background text-foreground hover:bg-muted'
+                  }`}
+                >
+                  On inquiry
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p className='border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground'>
+            Required fields marked *. Price is a unit rate in USD.
+          </p>
+        </div>
+
+        <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
+          <button
+            type='button'
+            onClick={close}
+            className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+          >
+            Cancel
+          </button>
+          <button
+            type='button'
+            onClick={onSave}
+            className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
+          >
+            <CheckCircle2 className='h-4 w-4' />
+            Save changes
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
+/**
+ * Add product — board-style modal (matches Edit product).
+ * Props kept compatible with products page usage.
+ */
 export function AddProductModal({
   isOpen,
   onOpenChange,
   newProductData,
   setNewProductData,
   categories,
+  manufacturers = [],
   onSave,
 }: any) {
+  if (!isOpen) return null
+
+  const selectedCategory = categories?.find(
+    (cat: any) => cat.id === newProductData.categoryId,
+  )
+  const subcategories: string[] = selectedCategory?.subcategories || []
+
+  const close = () => onOpenChange(false)
+
+  const update = (patch: Record<string, unknown>) =>
+    setNewProductData({ ...newProductData, ...patch })
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      size='3xl'
-      scrollBehavior='inside'
-      backdrop='blur'
-      classNames={{
-        backdrop:
-          'bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20',
+    <div
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+      role='dialog'
+      aria-modal='true'
+      aria-labelledby='add-product-title'
+      dir='ltr'
+      onClick={e => {
+        if (e.target === e.currentTarget) close()
       }}
     >
-      <ModalContent>
-        {(onClose: any) => (
-          <>
-            <ModalHeader className='flex flex-col gap-1 pb-4 border-b border-divider'>
-              <div className='flex items-center gap-3'>
-                <div className='p-2 rounded-lg bg-success/10'>
-                  <Plus className='w-5 h-5 text-success' />
-                </div>
-                <div>
-                  <h3 className='text-xl font-bold'>افزودن محصول جدید</h3>
-                  <p className='text-sm font-normal text-default-500'>
-                    اطلاعات محصول را با دقت وارد کنید
-                  </p>
-                </div>
-              </div>
-            </ModalHeader>
-            <ModalBody className='py-6'>
-              <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                {/* Product Name */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    نام محصول <span className='text-danger'>*</span>
-                  </label>
-                  <Input
-                    placeholder='نام محصول را وارد کنید'
-                    value={newProductData.name}
-                    onChange={(e: any) =>
-                      setNewProductData({
-                        ...newProductData,
-                        name: e.target.value,
-                      })
-                    }
-                    variant='bordered'
-                    size='lg'
-                    isRequired
-                    classNames={{
-                      inputWrapper: 'border-default-200 hover:border-primary',
-                    }}
-                  />
-                </div>
+      <div className='max-h-[90vh] w-full max-w-2xl overflow-y-auto border border-border bg-card shadow-sm'>
+        <div className='flex items-start justify-between border-b border-border px-5 py-3'>
+          <div>
+            <h2
+              id='add-product-title'
+              className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+            >
+              Add product
+            </h2>
+            <p className='mt-1 text-xs text-muted-foreground'>
+              New catalog line · unit price in USD
+            </p>
+          </div>
+          <button
+            type='button'
+            onClick={close}
+            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+            aria-label='Close'
+          >
+            <X className='h-4 w-4' />
+          </button>
+        </div>
 
-                {/* Brand */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    برند <span className='text-danger'>*</span>
-                  </label>
-                  <Input
-                    placeholder='نام برند را وارد کنید'
-                    value={newProductData.brand}
-                    onChange={(e: any) =>
-                      setNewProductData({
-                        ...newProductData,
-                        brand: e.target.value,
-                      })
-                    }
-                    variant='bordered'
-                    size='lg'
-                    isRequired
-                    classNames={{
-                      inputWrapper: 'border-default-200 hover:border-primary',
-                    }}
-                  />
-                </div>
+        <div className='space-y-5 px-5 py-5'>
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+            <div className='sm:col-span-2'>
+              <label htmlFor='add-name' className={productLabelClass}>
+                Name *
+              </label>
+              <input
+                id='add-name'
+                value={newProductData.name}
+                onChange={e => update({ name: e.target.value })}
+                className={productFieldClass}
+                placeholder='e.g. Ribbed rebar 16mm'
+              />
+            </div>
 
-                {/* Size */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    سایز <span className='text-danger'>*</span>
-                  </label>
-                  <Input
-                    placeholder='مثال: 12، 16، 20'
-                    value={newProductData.size}
-                    onChange={(e: any) =>
-                      setNewProductData({
-                        ...newProductData,
-                        size: e.target.value,
-                      })
-                    }
-                    variant='bordered'
-                    size='lg'
-                    isRequired
-                    classNames={{
-                      inputWrapper: 'border-default-200 hover:border-primary',
-                    }}
-                  />
-                </div>
+            <MillField
+              manufacturers={manufacturers}
+              manufacturerId={newProductData.manufacturerId}
+              brand={newProductData.brand}
+              onChange={patch => update(patch)}
+              idPrefix='add'
+            />
 
-                {/* Weight */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    وزن
-                  </label>
-                  <Input
-                    type='number'
-                    placeholder='وزن را وارد کنید'
-                    value={newProductData.weight?.toString() || ''}
-                    onChange={(e: any) =>
-                      setNewProductData({
-                        ...newProductData,
-                        weight: e.target.value
-                          ? parseFloat(e.target.value)
-                          : undefined,
-                      })
-                    }
-                    variant='bordered'
-                    size='lg'
-                    step='0.1'
-                    classNames={{
-                      inputWrapper: 'border-default-200 hover:border-primary',
-                    }}
-                  />
-                </div>
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    قیمت (تومان) <span className='text-danger'>*</span>
-                  </label>
-                  <Input
-                    type='number'
-                    placeholder='قیمت را وارد کنید'
-                    value={newProductData.price.toString()}
-                    onChange={(e: any) =>
-                      setNewProductData({
-                        ...newProductData,
-                        price: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    variant='bordered'
-                    size='lg'
-                    isRequired
-                    classNames={{
-                      inputWrapper: 'border-default-200 hover:border-primary',
-                    }}
-                  />
-                </div>
+            <div>
+              <label htmlFor='add-size' className={productLabelClass}>
+                Size *
+              </label>
+              <input
+                id='add-size'
+                value={newProductData.size}
+                onChange={e => update({ size: e.target.value })}
+                className={productFieldClass}
+                placeholder='e.g. 16mm, IPE 200'
+              />
+            </div>
 
-                {/* Category */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    دسته‌بندی <span className='text-danger'>*</span>
-                  </label>
-                  <Listbox
-                    value={newProductData.categoryId}
-                    onChange={(value: string) => {
-                      setNewProductData({
-                        ...newProductData,
-                        categoryId: value,
-                        subcategory: '',
-                      })
-                    }}
-                  >
-                    <div className='relative'>
-                      <Listbox.Button className='relative w-full py-3 pl-10 pr-3 text-right transition-colors bg-transparent border-2 rounded-lg cursor-pointer border-default-200 hover:border-primary'>
-                        <span className='block truncate text-foreground'>
-                          {newProductData.categoryId
-                            ? categories?.find(
-                                (cat: any) =>
-                                  cat.id === newProductData.categoryId,
-                              )?.name || 'دسته‌بندی را انتخاب کنید'
-                            : 'دسته‌بندی را انتخاب کنید'}
-                        </span>
-                        <span className='absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none'>
-                          <ChevronDown
-                            className='w-5 h-5 text-default-400'
-                            aria-hidden='true'
-                          />
-                        </span>
-                      </Listbox.Button>
-                      <Transition
-                        as={Fragment}
-                        leave='transition ease-in duration-100'
-                        leaveFrom='opacity-100'
-                        leaveTo='opacity-0'
-                      >
-                        <Listbox.Options className='absolute z-50 w-full py-1 mt-1 overflow-auto border rounded-lg shadow-lg max-h-55 bg-content1 border-divider'>
-                          {categories?.map((category: any) => (
-                            <Listbox.Option
-                              key={category.id}
-                              value={category.id}
-                              className={({ active }) =>
-                                `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                                  active
-                                    ? 'bg-primary/10 text-primary'
-                                    : 'text-foreground'
-                                }`
-                              }
-                            >
-                              {({ selected }) => (
-                                <>
-                                  <span
-                                    className={`absolute inset-y-0 left-0 flex items-center pl-3 text-primary ${selected ? '' : 'opacity-0'}`}
-                                  >
-                                    <Check
-                                      className='w-5 h-5'
-                                      aria-hidden='true'
-                                    />
-                                  </span>
-                                  <span
-                                    className={`block truncate pl-10 ${selected ? 'font-medium' : 'font-normal'}`}
-                                  >
-                                    {category.name}
-                                  </span>
-                                </>
-                              )}
-                            </Listbox.Option>
-                          ))}
-                        </Listbox.Options>
-                      </Transition>
-                    </div>
-                  </Listbox>
-                </div>
+            <div>
+              <label htmlFor='add-price' className={productLabelClass}>
+                Unit price (USD) *
+              </label>
+              <input
+                id='add-price'
+                type='number'
+                inputMode='decimal'
+                step='0.01'
+                min='0'
+                value={newProductData.price || ''}
+                onChange={e =>
+                  update({ price: parseFloat(e.target.value) || 0 })
+                }
+                className={productFieldClass}
+                placeholder='0.00'
+              />
+            </div>
 
-                {/* Subcategory */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    زیر دسته‌بندی <span className='text-danger'>*</span>
-                  </label>
-                  <Listbox
-                    value={newProductData.subcategory}
-                    onChange={(value: string) => {
-                      setNewProductData({
-                        ...newProductData,
-                        subcategory: value,
-                      })
-                    }}
-                    disabled={!newProductData.categoryId}
-                  >
-                    <div className='relative'>
-                      <Listbox.Button
-                        className={`relative w-full cursor-pointer rounded-lg border-2 border-default-200 bg-transparent py-3 pl-10 pr-3 text-right transition-colors ${
-                          !newProductData.categoryId
-                            ? 'opacity-50 cursor-not-allowed'
-                            : 'hover:border-primary'
-                        }`}
-                      >
-                        <span className='block truncate text-foreground'>
-                          {newProductData.subcategory ||
-                            (newProductData.categoryId
-                              ? 'انتخاب کنید'
-                              : 'ابتدا دسته‌بندی را انتخاب کنید')}
-                        </span>
-                        <span className='absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none'>
-                          <ChevronDown
-                            className='w-5 h-5 text-default-400'
-                            aria-hidden='true'
-                          />
-                        </span>
-                      </Listbox.Button>
-                      {newProductData.categoryId && (
-                        <Transition
-                          as={Fragment}
-                          leave='transition ease-in duration-100'
-                          leaveFrom='opacity-100'
-                          leaveTo='opacity-0'
-                        >
-                          <Listbox.Options className='absolute z-50 w-full py-1 mt-1 overflow-auto border rounded-lg shadow-lg max-h-55 bg-content1 border-divider'>
-                            {categories
-                              ?.find(
-                                (cat: any) =>
-                                  cat.id === newProductData.categoryId,
-                              )
-                              ?.subcategories?.map((subcategory: string) => (
-                                <Listbox.Option
-                                  key={subcategory}
-                                  value={subcategory}
-                                  className={({ active }) =>
-                                    `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                                      active
-                                        ? 'bg-primary/10 text-primary'
-                                        : 'text-foreground'
-                                    }`
-                                  }
-                                >
-                                  {({ selected }) => (
-                                    <>
-                                      <span
-                                        className={`absolute inset-y-0 left-0 flex items-center pl-3 text-primary ${selected ? '' : 'opacity-0'}`}
-                                      >
-                                        <Check
-                                          className='w-5 h-5'
-                                          aria-hidden='true'
-                                        />
-                                      </span>
-                                      <span
-                                        className={`block truncate pl-10 ${selected ? 'font-medium' : 'font-normal'}`}
-                                      >
-                                        {subcategory}
-                                      </span>
-                                    </>
-                                  )}
-                                </Listbox.Option>
-                              )) || []}
-                          </Listbox.Options>
-                        </Transition>
-                      )}
-                    </div>
-                  </Listbox>
-                </div>
+            <div>
+              <label htmlFor='add-weight' className={productLabelClass}>
+                Weight (kg)
+              </label>
+              <input
+                id='add-weight'
+                type='number'
+                inputMode='decimal'
+                step='0.01'
+                min='0'
+                value={newProductData.weight?.toString() || ''}
+                onChange={e =>
+                  update({
+                    weight: e.target.value
+                      ? parseFloat(e.target.value)
+                      : undefined,
+                  })
+                }
+                className={productFieldClass}
+                placeholder='Optional'
+              />
+            </div>
 
-                {/* Stock Status */}
-                <div className='space-y-3 md:col-span-2'>
-                  <label className='flex items-center gap-2 text-sm font-semibold text-foreground'>
-                    وضعیت موجودی
-                  </label>
-                  <div className='flex gap-3'>
-                    <Button
-                      variant={
-                        newProductData.inStock === true ? 'solid' : 'bordered'
-                      }
-                      color={
-                        newProductData.inStock === true ? 'success' : 'default'
-                      }
-                      className='flex-1'
-                      size='lg'
-                      onPress={() =>
-                        setNewProductData({ ...newProductData, inStock: true })
-                      }
-                    >
-                      موجود
-                    </Button>
-                    <Button
-                      variant={
-                        newProductData.inStock === false ? 'solid' : 'bordered'
-                      }
-                      color={
-                        newProductData.inStock === false ? 'danger' : 'default'
-                      }
-                      className='flex-1'
-                      size='lg'
-                      onPress={() =>
-                        setNewProductData({ ...newProductData, inStock: false })
-                      }
-                    >
-                      ناموجود
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Info Banner */}
-                <div className='flex items-start gap-3 p-4 border rounded-lg md:col-span-2 bg-primary/5 border-primary/20'>
-                  <AlertCircle className='w-5 h-5 text-primary mt-0.5 flex-shrink-0' />
-                  <div className='text-sm text-default-700'>
-                    <p className='mb-1 font-semibold'>نکته مهم:</p>
-                    <p>
-                      لطفاً تمام فیلدهای ستاره‌دار را با دقت تکمیل کنید. این
-                      اطلاعات برای مدیریت صحیح محصولات ضروری است.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </ModalBody>
-            <ModalFooter className='pt-4 border-t border-divider'>
-              <Button variant='light' onPress={onClose} size='lg'>
-                انصراف
-              </Button>
-              <Button
-                color='success'
-                onPress={onSave}
-                size='lg'
-                startContent={<Plus className='w-4 h-4' />}
+            <div>
+              <label htmlFor='add-category' className={productLabelClass}>
+                Category *
+              </label>
+              <select
+                id='add-category'
+                value={newProductData.categoryId}
+                onChange={e =>
+                  update({ categoryId: e.target.value, subcategory: '' })
+                }
+                className={productFieldClass}
               >
-                افزودن محصول
-              </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+                <option value=''>Select category</option>
+                {categories?.map((category: any) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor='add-sub' className={productLabelClass}>
+                Sub-line *
+              </label>
+              <select
+                id='add-sub'
+                value={newProductData.subcategory}
+                onChange={e => update({ subcategory: e.target.value })}
+                disabled={!newProductData.categoryId}
+                className={productFieldClass}
+              >
+                <option value=''>
+                  {newProductData.categoryId
+                    ? 'Select sub-line'
+                    : 'Select category first'}
+                </option>
+                {subcategories.map((sub: string) => (
+                  <option key={sub} value={sub}>
+                    {sub}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className='sm:col-span-2'>
+              <p className={productLabelClass}>Stock</p>
+              <div className='mt-1.5 flex gap-2'>
+                <button
+                  type='button'
+                  onClick={() => update({ inStock: true })}
+                  className={`flex-1 border px-3 py-2.5 text-sm font-medium transition-colors duration-200 ease-out ${
+                    newProductData.inStock === true
+                      ? 'border-foreground bg-foreground text-background'
+                      : 'border-border bg-background text-foreground hover:bg-muted'
+                  }`}
+                >
+                  In stock
+                </button>
+                <button
+                  type='button'
+                  onClick={() => update({ inStock: false })}
+                  className={`flex-1 border px-3 py-2.5 text-sm font-medium transition-colors duration-200 ease-out ${
+                    newProductData.inStock === false
+                      ? 'border-foreground bg-foreground text-background'
+                      : 'border-border bg-background text-foreground hover:bg-muted'
+                  }`}
+                >
+                  On inquiry
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p className='border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground'>
+            Required fields marked *. Price is a unit rate in USD (per kg / ton
+            / piece as set on the product).
+          </p>
+        </div>
+
+        <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
+          <button
+            type='button'
+            onClick={close}
+            className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+          >
+            Cancel
+          </button>
+          <button
+            type='button'
+            onClick={onSave}
+            className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
+          >
+            <Plus className='h-4 w-4' />
+            Add product
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
