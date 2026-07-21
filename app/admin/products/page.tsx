@@ -1,9 +1,7 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
-import { Button } from '@heroui/button'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Input } from '@heroui/input'
-import { Card, CardBody, CardHeader } from '@heroui/card'
 import {
   Table,
   TableHeader,
@@ -13,13 +11,10 @@ import {
   TableCell,
 } from '@heroui/table'
 import { Checkbox } from '@heroui/checkbox'
-import { Chip } from '@heroui/chip'
-import { Select, SelectItem } from '@heroui/select'
 import { useDisclosure } from '@heroui/modal'
 import { addToast } from '@heroui/toast'
 import { Package, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useProducts, useCategories } from '@/hooks/use-api'
-import { PRODUCT_CATEGORIES } from '@/types/products'
+import { useProducts, useCategories, useManufacturers } from '@/hooks/use-api'
 import { useProductExcel } from '@/hooks/use-product-excel'
 import HeaderActions from '@/components/admin/products/header-actions'
 import StatsCards from '@/components/admin/products/stats-cards'
@@ -58,6 +53,7 @@ interface BulkUpdateData {
 interface EditProductData {
   name: string
   brand: string
+  manufacturerId?: string
   size: string
   price: number
   inStock: boolean
@@ -88,6 +84,7 @@ export default function AdminProducts() {
   const [editProductData, setEditProductData] = useState<EditProductData>({
     name: '',
     brand: '',
+    manufacturerId: '',
     size: '',
     price: 0,
     inStock: true,
@@ -98,6 +95,7 @@ export default function AdminProducts() {
   const [newProductData, setNewProductData] = useState<EditProductData>({
     name: '',
     brand: '',
+    manufacturerId: '',
     size: '',
     price: 0,
     inStock: true,
@@ -124,6 +122,11 @@ export default function AdminProducts() {
     const t = setTimeout(() => setSearchQuery(searchTerm), 800)
     return () => clearTimeout(t)
   }, [searchTerm])
+
+  // Filters shrink the result set — don't keep requesting a page that no longer exists
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, categoryFilter, stockFilter])
 
   const formatPersianDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -169,14 +172,17 @@ export default function AdminProducts() {
     search: searchQuery,
     category: categoryFilter,
     inStock:
-      stockFilter === 'true' ? true : stockFilter === 'false' ? false : undefined,
+      stockFilter === 'true'
+        ? true
+        : stockFilter === 'false'
+          ? false
+          : undefined,
     page: currentPage,
     limit: itemsPerPage,
   })
 
-  console.log(products)
-
   const { categories } = useCategories()
+  const { manufacturers } = useManufacturers({ limit: 200 })
 
   const sortedProducts = useMemo(() => {
     if (!products) return []
@@ -192,8 +198,8 @@ export default function AdminProducts() {
           bValue = b.name.toLowerCase()
           break
         case 'brand':
-          aValue = a.brand.toLowerCase()
-          bValue = b.brand.toLowerCase()
+          aValue = (a.brand || '').toLowerCase()
+          bValue = (b.brand || '').toLowerCase()
           break
         case 'size':
           aValue = a.size?.toLowerCase() || ''
@@ -307,31 +313,45 @@ export default function AdminProducts() {
         }),
       })
 
-      if (response.ok) {
-        mutateProducts()
-        const count = selectedProducts.length
+      const data = await response.json().catch(() => ({}))
+
+      if (response.ok && data.success !== false) {
+        const count = data.affectedCount ?? selectedProducts.length
         setSelectedProducts([])
+        mutateProducts()
         onDeleteModalOpenChange()
         addToast({
-          title: 'موفقیت',
-          description: `${count} محصول با موفقیت حذف شدند`,
+          title: 'Deleted',
+          description: `${count} product${count === 1 ? '' : 's'} removed`,
           color: 'success',
         })
       } else {
-        const error = await response.json()
         addToast({
-          title: 'خطا',
-          description: error.error || 'خطا در حذف محصولات',
+          title: 'Error',
+          description: data.error || 'Could not delete products',
           color: 'danger',
         })
       }
     } catch (error) {
       console.error('Bulk delete failed:', error)
       addToast({
-        title: 'خطا',
-        description: 'خطا در ارتباط با سرور',
+        title: 'Error',
+        description: 'Server connection failed',
         color: 'danger',
       })
+    }
+  }
+
+  const millPayload = (data: EditProductData) => {
+    const manufacturerId =
+      data.manufacturerId && data.manufacturerId !== '__custom__'
+        ? data.manufacturerId
+        : undefined
+    return {
+      ...data,
+      manufacturerId: manufacturerId || undefined,
+      brand: data.brand?.trim() || undefined,
+      weight: data.weight,
     }
   }
 
@@ -340,13 +360,14 @@ export default function AdminProducts() {
     setEditingProduct(product)
     setEditProductData({
       name: product.name,
-      brand: product.brand,
+      brand: product.brand || product.manufacturer?.name || '',
+      manufacturerId: product.manufacturerId || product.manufacturer?.id || '',
       size: product.size || '',
       price: product.price,
       inStock: product.inStock,
-      categoryId: product.category?.id || '',
+      categoryId: product.category?.id || product.categoryId || '',
       subcategory: product.subcategory || '',
-      weight: product.weight || undefined,
+      weight: product.weightKg ?? product.weight ?? undefined,
     })
     onEditModalOpen()
   }
@@ -354,16 +375,20 @@ export default function AdminProducts() {
   const handleSaveEdit = async () => {
     if (!editingProduct) return
 
-    // Validate required fields
+    const hasMill =
+      (editProductData.manufacturerId &&
+        editProductData.manufacturerId !== '__custom__') ||
+      editProductData.brand?.trim()
+
     if (
       !editProductData.name ||
-      !editProductData.brand ||
+      !hasMill ||
       !editProductData.categoryId ||
       !editProductData.subcategory
     ) {
       addToast({
-        title: 'خطا',
-        description: 'لطفاً تمام فیلدهای اجباری را پر کنید',
+        title: 'Validation',
+        description: 'Name, mill, category, and sub-line are required',
         color: 'warning',
       })
       return
@@ -375,7 +400,7 @@ export default function AdminProducts() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(editProductData),
+        body: JSON.stringify(millPayload(editProductData)),
       })
 
       if (response.ok) {
@@ -419,27 +444,29 @@ export default function AdminProducts() {
       })
 
       if (response.ok) {
-        mutateProducts()
+        const deletedId = productToDelete.id
+        setSelectedProducts(prev => prev.filter(id => id !== deletedId))
         setProductToDelete(null)
+        mutateProducts()
         onDeleteSingleModalOpenChange()
         addToast({
-          title: 'موفقیت',
-          description: 'محصول با موفقیت حذف شد',
+          title: 'Deleted',
+          description: 'Product removed from catalog',
           color: 'success',
         })
       } else {
         const error = await response.json()
         addToast({
-          title: 'خطا',
-          description: error.error || 'خطا در حذف محصول',
+          title: 'Error',
+          description: error.error || 'Could not delete product',
           color: 'danger',
         })
       }
     } catch (error) {
       console.error('Delete product failed:', error)
       addToast({
-        title: 'خطا',
-        description: 'خطا در ارتباط با سرور',
+        title: 'Error',
+        description: 'Server connection failed',
         color: 'danger',
       })
     }
@@ -450,6 +477,7 @@ export default function AdminProducts() {
     setNewProductData({
       name: '',
       brand: '',
+      manufacturerId: '',
       size: '',
       price: 0,
       inStock: true,
@@ -460,16 +488,20 @@ export default function AdminProducts() {
   }
 
   const handleSaveNewProduct = async () => {
-    // Validate required fields
+    const hasMill =
+      (newProductData.manufacturerId &&
+        newProductData.manufacturerId !== '__custom__') ||
+      newProductData.brand?.trim()
+
     if (
       !newProductData.name ||
-      !newProductData.brand ||
+      !hasMill ||
       !newProductData.categoryId ||
       !newProductData.subcategory
     ) {
       addToast({
-        title: 'خطا',
-        description: 'لطفاً تمام فیلدهای اجباری را پر کنید',
+        title: 'Validation',
+        description: 'Name, mill, category, and sub-line are required',
         color: 'warning',
       })
       return
@@ -481,7 +513,7 @@ export default function AdminProducts() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(newProductData),
+        body: JSON.stringify(millPayload(newProductData)),
       })
 
       const data = await response.json()
@@ -491,6 +523,7 @@ export default function AdminProducts() {
         setNewProductData({
           name: '',
           brand: '',
+          manufacturerId: '',
           size: '',
           price: 0,
           inStock: true,
@@ -499,15 +532,15 @@ export default function AdminProducts() {
         })
         onAddModalOpenChange()
         addToast({
-          title: 'موفقیت',
-          description: 'محصول با موفقیت اضافه شد',
+          title: 'Created',
+          description: 'Product added to catalog',
           color: 'success',
         })
       } else {
         console.error('Error response:', data)
         addToast({
-          title: 'خطا',
-          description: data.error || 'خطا در افزودن محصول',
+          title: 'Error',
+          description: data.error || 'Could not add product',
           color: 'danger',
         })
         if (data.details) {
@@ -517,28 +550,45 @@ export default function AdminProducts() {
     } catch (error) {
       console.error('Add product failed:', error)
       addToast({
-        title: 'خطا',
-        description: 'خطا در ارتباط با سرور',
+        title: 'Error',
+        description: 'Server connection failed',
         color: 'danger',
       })
     }
   }
 
-  // Inline price editing handlers
+  // Inline price editing — avoid Enter+blur double-submit (was flashing error UI)
+  const priceSaveLock = useRef(false)
+
   const handlePriceClick = (product: Product) => {
+    priceSaveLock.current = false
     setEditingPriceId(product.id)
     setTempPrice(product.price.toString())
   }
 
-  const handlePriceBlur = async (product: Product) => {
+  const cancelPriceEdit = () => {
+    priceSaveLock.current = false
+    setEditingPriceId(null)
+    setTempPrice('')
+  }
+
+  const handlePriceSave = async (product: Product) => {
+    if (priceSaveLock.current) return
+    if (editingPriceId !== product.id) return
+
     const newPrice = parseFloat(tempPrice)
 
-    // If price hasn't changed or is invalid, just cancel editing
-    if (isNaN(newPrice) || newPrice === product.price || newPrice <= 0) {
-      setEditingPriceId(null)
-      setTempPrice('')
+    // Unchanged / invalid — leave quietly (no error toast)
+    if (Number.isNaN(newPrice) || newPrice <= 0 || newPrice === product.price) {
+      cancelPriceEdit()
       return
     }
+
+    priceSaveLock.current = true
+    // Exit edit mode immediately so the input (and any validation chrome) unmounts
+    setEditingPriceId(null)
+    const savedPrice = newPrice
+    setTempPrice('')
 
     try {
       const response = await fetch(`/api/products/${product.id}`, {
@@ -547,47 +597,51 @@ export default function AdminProducts() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          price: newPrice,
+          price: savedPrice,
         }),
       })
 
-      if (response.ok) {
-        mutateProducts()
-        setEditingPriceId(null)
-        setTempPrice('')
+      const data = await response.json().catch(() => ({}))
+
+      if (response.ok && data.success !== false) {
+        await mutateProducts()
         addToast({
-          title: 'موفقیت',
-          description: 'قیمت با موفقیت بروزرسانی شد',
+          title: 'Updated',
+          description: 'Unit price saved',
           color: 'success',
         })
       } else {
-        const error = await response.json()
+        await mutateProducts()
         addToast({
-          title: 'خطا',
-          description: error.error || 'خطا در بروزرسانی قیمت',
+          title: 'Error',
+          description: data.error || 'Could not update price',
           color: 'danger',
         })
-        setEditingPriceId(null)
-        setTempPrice('')
       }
     } catch (error) {
       console.error('Failed to update price:', error)
+      await mutateProducts()
       addToast({
-        title: 'خطا',
-        description: 'خطا در ارتباط با سرور',
+        title: 'Error',
+        description: 'Server connection failed',
         color: 'danger',
       })
-      setEditingPriceId(null)
-      setTempPrice('')
+    } finally {
+      priceSaveLock.current = false
     }
   }
 
-  const handlePriceKeyDown = (e: React.KeyboardEvent, product: Product) => {
+  const handlePriceKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    product: Product,
+  ) => {
     if (e.key === 'Enter') {
-      handlePriceBlur(product)
+      e.preventDefault()
+      // Blur once — onBlur will save (avoids double PATCH from Enter + blur)
+      e.currentTarget.blur()
     } else if (e.key === 'Escape') {
-      setEditingPriceId(null)
-      setTempPrice('')
+      e.preventDefault()
+      cancelPriceEdit()
     }
   }
 
@@ -642,7 +696,8 @@ export default function AdminProducts() {
     if (stockFilter) params.inStock = stockFilter
     if (sortDescriptor.column) {
       params.sortBy = String(sortDescriptor.column)
-      params.sortOrder = sortDescriptor.direction === 'ascending' ? 'asc' : 'desc'
+      params.sortOrder =
+        sortDescriptor.direction === 'ascending' ? 'asc' : 'desc'
     }
     return new URLSearchParams({ ...params, ...override }).toString()
   }
@@ -749,7 +804,7 @@ export default function AdminProducts() {
             Products
           </h1>
           <p className='mt-1 text-sm text-muted-foreground'>
-            View, edit, and manage catalog line items (USD unit prices).
+            View, edit, and manage catalog line items.
           </p>
         </div>
         <HeaderActions
@@ -869,7 +924,9 @@ export default function AdminProducts() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className='text-muted-foreground'>{product.brand}</span>
+                    <span className='text-muted-foreground'>
+                      {product.brand}
+                    </span>
                   </TableCell>
                   <TableCell>
                     <span className='font-mono text-xs tabular-nums text-foreground'>
@@ -905,19 +962,18 @@ export default function AdminProducts() {
                   </TableCell>
                   <TableCell>
                     {editingPriceId === product.id ? (
-                      <Input
+                      <input
                         type='number'
+                        inputMode='decimal'
+                        step='0.01'
+                        min='0'
                         value={tempPrice}
                         onChange={e => setTempPrice(e.target.value)}
-                        onBlur={() => handlePriceBlur(product)}
+                        onBlur={() => handlePriceSave(product)}
                         onKeyDown={e => handlePriceKeyDown(e, product)}
                         autoFocus
-                        size='sm'
-                        variant='bordered'
-                        classNames={{
-                          input: 'font-mono font-semibold tabular-nums',
-                          inputWrapper: 'h-8 min-h-8',
-                        }}
+                        className='h-8 w-28 border border-border bg-background px-2 font-mono text-sm font-semibold tabular-nums text-foreground outline-none focus:border-foreground focus:ring-1 focus:ring-foreground'
+                        aria-label='Edit unit price'
                       />
                     ) : (
                       <span
@@ -926,7 +982,7 @@ export default function AdminProducts() {
                         title='Click to edit'
                       >
                         $
-                        {product.price.toLocaleString('en-US', {
+                        {Number(product.price).toLocaleString('en-US', {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}
@@ -937,7 +993,7 @@ export default function AdminProducts() {
                     <button
                       type='button'
                       onClick={() => handleStockToggle(product)}
-                      className={`border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide transition-colors duration-200 ease-out ${
+                      className={`border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide transition-colors duration-200 ease-out cursor-pointer ${
                         product.inStock
                           ? 'border-emerald-600/30 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-200'
                           : 'border-red-600/30 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200'
@@ -962,7 +1018,7 @@ export default function AdminProducts() {
                       <button
                         type='button'
                         onClick={() => handleEditProduct(product)}
-                        className='inline-flex h-8 w-8 items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                        className='inline-flex h-8 w-8 items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                         title='Edit'
                       >
                         <Edit className='h-3.5 w-3.5' />
@@ -970,7 +1026,7 @@ export default function AdminProducts() {
                       <button
                         type='button'
                         onClick={() => handleDeleteProduct(product)}
-                        className='inline-flex h-8 w-8 items-center justify-center border border-border bg-card text-red-600 transition-colors duration-200 ease-out hover:bg-muted dark:text-red-400'
+                        className='inline-flex h-8 w-8 items-center justify-center border border-border bg-card text-red-600 transition-colors duration-200 ease-out hover:bg-muted dark:text-red-400 cursor-pointer'
                         title='Delete'
                       >
                         <Trash2 className='h-3.5 w-3.5' />
@@ -1030,19 +1086,22 @@ export default function AdminProducts() {
               <ChevronLeft className='h-4 w-4' />
             </button>
             {pagination &&
-              Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                let pageNum: number
-                if (pagination.totalPages <= 5) {
-                  pageNum = i + 1
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1
-                } else if (currentPage >= pagination.totalPages - 2) {
-                  pageNum = pagination.totalPages - 4 + i
-                } else {
-                  pageNum = currentPage - 2 + i
-                }
-                return pageNum
-              }).map(pageNum => (
+              Array.from(
+                { length: Math.min(5, pagination.totalPages) },
+                (_, i) => {
+                  let pageNum: number
+                  if (pagination.totalPages <= 5) {
+                    pageNum = i + 1
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1
+                  } else if (currentPage >= pagination.totalPages - 2) {
+                    pageNum = pagination.totalPages - 4 + i
+                  } else {
+                    pageNum = currentPage - 2 + i
+                  }
+                  return pageNum
+                },
+              ).map(pageNum => (
                 <button
                   key={pageNum}
                   type='button'
@@ -1065,7 +1124,9 @@ export default function AdminProducts() {
                 )
               }
               disabled={
-                !pagination || currentPage === pagination.totalPages || isLoading
+                !pagination ||
+                currentPage === pagination.totalPages ||
+                isLoading
               }
               className='inline-flex h-9 w-9 items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:opacity-50'
               aria-label='Next page'
@@ -1100,6 +1161,7 @@ export default function AdminProducts() {
         editProductData={editProductData}
         setEditProductData={setEditProductData}
         categories={categories}
+        manufacturers={manufacturers}
         onSave={handleSaveEdit}
       />
 
@@ -1116,6 +1178,7 @@ export default function AdminProducts() {
         newProductData={newProductData}
         setNewProductData={setNewProductData}
         categories={categories}
+        manufacturers={manufacturers}
         onSave={handleSaveNewProduct}
       />
     </div>
