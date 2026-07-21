@@ -10,10 +10,10 @@ interface Props {
 }
 
 const secondaryBtn =
-  'inline-flex items-center gap-2 border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+  'inline-flex cursor-pointer items-center gap-2 border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
 
 const primaryBtn =
-  'inline-flex items-center gap-2 bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
+  'inline-flex cursor-pointer items-center gap-2 bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
 
 export default function HeaderActions({
   fileInputRef,
