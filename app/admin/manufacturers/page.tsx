@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   Search,
   Plus,
@@ -15,12 +14,7 @@ import {
   Mail,
   Phone,
   MapPin,
-  AlertCircle,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@heroui/input'
 import { addToast } from '@heroui/toast'
 
 interface Manufacturer {
@@ -33,41 +27,54 @@ interface Manufacturer {
   email: string | null
   phone: string | null
   address: string | null
-  products: string[]
+  products?: string[] | { id: string }[]
+  _count?: { products: number }
   createdAt: string
   updatedAt: string
 }
 
-export default function ManufacturersPage() {
-  const router = useRouter()
+const emptyForm = {
+  name: '',
+  slug: '',
+  description: '',
+  website: '',
+  email: '',
+  phone: '',
+  address: '',
+}
 
+const fieldClass =
+  'mt-1.5 w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground disabled:opacity-50'
+
+const labelClass =
+  'block text-xs font-medium uppercase tracking-wide text-muted-foreground'
+
+function productCount(m: Manufacturer) {
+  if (typeof m._count?.products === 'number') return m._count.products
+  if (Array.isArray(m.products)) return m.products.length
+  return 0
+}
+
+export default function ManufacturersPage() {
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedManufacturer, setSelectedManufacturer] =
-    useState<Manufacturer | null>(null)
+  const [selected, setSelected] = useState<Manufacturer | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
+  const [addModalOpen, setAddModalOpen] = useState(false)
   const [saveLoading, setSaveLoading] = useState(false)
-  const [editForm, setEditForm] = useState({
-    name: '',
-    slug: '',
-    description: '',
-    website: '',
-    email: '',
-    phone: '',
-    address: '',
-  })
+  const [addLoading, setAddLoading] = useState(false)
+  const [editForm, setEditForm] = useState(emptyForm)
+  const [addForm, setAddForm] = useState(emptyForm)
 
-  // Fetch manufacturers
   const fetchManufacturers = async (search = '') => {
     try {
       setLoading(true)
       const params = new URLSearchParams({
         ...(search && { search }),
       })
-
       const response = await fetch(`/api/manufacturers?${params}`)
       const result = await response.json()
 
@@ -75,16 +82,16 @@ export default function ManufacturersPage() {
         setManufacturers(result.data.manufacturers || result.data)
       } else {
         addToast({
-          title: 'خطا',
-          description: 'خطا در دریافت اطلاعات کارخانه‌ها',
+          title: 'Error',
+          description: 'Could not load manufacturers',
           color: 'danger',
         })
       }
     } catch (error) {
       console.error('Error fetching manufacturers:', error)
       addToast({
-        title: 'خطا',
-        description: 'خطا در برقراری ارتباط با سرور',
+        title: 'Error',
+        description: 'Server connection failed',
         color: 'danger',
       })
     } finally {
@@ -96,83 +103,70 @@ export default function ManufacturersPage() {
     fetchManufacturers()
   }, [])
 
-  // Handle search
-  const handleSearch = () => {
-    fetchManufacturers(searchQuery)
-  }
+  const handleSearch = () => fetchManufacturers(searchQuery)
 
-  // Handle edit
-  const handleEditClick = (manufacturer: Manufacturer) => {
-    setSelectedManufacturer(manufacturer)
+  const handleEditClick = (m: Manufacturer) => {
+    setSelected(m)
     setEditForm({
-      name: manufacturer.name,
-      slug: manufacturer.slug,
-      description: manufacturer.description || '',
-      website: manufacturer.website || '',
-      email: manufacturer.email || '',
-      phone: manufacturer.phone || '',
-      address: manufacturer.address || '',
+      name: m.name,
+      slug: m.slug,
+      description: m.description || '',
+      website: m.website || '',
+      email: m.email || '',
+      phone: m.phone || '',
+      address: m.address || '',
     })
     setEditModalOpen(true)
   }
 
   const handleSaveEdit = async () => {
-    if (!selectedManufacturer) return
-
-    // Validation
+    if (!selected) return
     if (!editForm.name.trim()) {
       addToast({
-        title: 'خطا',
-        description: 'نام کارخانه الزامی است',
-        color: 'danger',
+        title: 'Validation',
+        description: 'Name is required',
+        color: 'warning',
       })
       return
     }
-
     try {
       setSaveLoading(true)
-      const response = await fetch(
-        `/api/manufacturers/${selectedManufacturer.id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: editForm.name.trim(),
-            slug:
-              editForm.slug.trim() || editForm.name.trim().replace(/\s+/g, '-'),
-            description: editForm.description.trim() || null,
-            website: editForm.website.trim() || null,
-            email: editForm.email.trim() || null,
-            phone: editForm.phone.trim() || null,
-            address: editForm.address.trim() || null,
-          }),
-        },
-      )
-
+      const response = await fetch(`/api/manufacturers/${selected.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editForm.name.trim(),
+          slug:
+            editForm.slug.trim() ||
+            editForm.name.trim().toLowerCase().replace(/\s+/g, '-'),
+          description: editForm.description.trim() || null,
+          website: editForm.website.trim() || null,
+          email: editForm.email.trim() || null,
+          phone: editForm.phone.trim() || null,
+          address: editForm.address.trim() || null,
+        }),
+      })
       const result = await response.json()
-
       if (result.success) {
         addToast({
-          title: 'موفقیت',
-          description: 'کارخانه با موفقیت بروزرسانی شد',
+          title: 'Saved',
+          description: 'Manufacturer updated',
           color: 'success',
         })
         setEditModalOpen(false)
         fetchManufacturers(searchQuery)
       } else {
         addToast({
-          title: 'خطا',
-          description: result.error || 'خطا در بروزرسانی کارخانه',
+          title: 'Error',
+          description: result.error || 'Update failed',
           color: 'danger',
         })
       }
     } catch (error) {
       console.error('Error updating manufacturer:', error)
       addToast({
-        title: 'خطا',
-        description: 'خطا در ارتباط با سرور',
+        title: 'Error',
+        description: 'Server connection failed',
         color: 'danger',
       })
     } finally {
@@ -180,46 +174,98 @@ export default function ManufacturersPage() {
     }
   }
 
-  // Handle delete
-  const handleDeleteClick = (manufacturer: Manufacturer) => {
-    setSelectedManufacturer(manufacturer)
+  const handleAddClick = () => {
+    setAddForm(emptyForm)
+    setAddModalOpen(true)
+  }
+
+  const handleSaveAdd = async () => {
+    if (!addForm.name.trim()) {
+      addToast({
+        title: 'Validation',
+        description: 'Name is required',
+        color: 'warning',
+      })
+      return
+    }
+    try {
+      setAddLoading(true)
+      const response = await fetch('/api/manufacturers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: addForm.name.trim(),
+          slug:
+            addForm.slug.trim() ||
+            addForm.name.trim().toLowerCase().replace(/\s+/g, '-'),
+          description: addForm.description.trim() || null,
+          website: addForm.website.trim() || null,
+          email: addForm.email.trim() || null,
+          phone: addForm.phone.trim() || null,
+          address: addForm.address.trim() || null,
+        }),
+      })
+      const result = await response.json()
+      if (result.success) {
+        addToast({
+          title: 'Created',
+          description: 'Manufacturer added',
+          color: 'success',
+        })
+        setAddModalOpen(false)
+        fetchManufacturers(searchQuery)
+      } else {
+        addToast({
+          title: 'Error',
+          description: result.error || 'Create failed',
+          color: 'danger',
+        })
+      }
+    } catch (error) {
+      console.error('Error creating manufacturer:', error)
+      addToast({
+        title: 'Error',
+        description: 'Server connection failed',
+        color: 'danger',
+      })
+    } finally {
+      setAddLoading(false)
+    }
+  }
+
+  const handleDeleteClick = (m: Manufacturer) => {
+    setSelected(m)
     setDeleteModalOpen(true)
   }
 
   const confirmDelete = async () => {
-    if (!selectedManufacturer) return
-
+    if (!selected) return
     try {
       setDeleteLoading(true)
-      const response = await fetch(
-        `/api/manufacturers/${selectedManufacturer.id}`,
-        {
-          method: 'DELETE',
-        },
-      )
-
+      const response = await fetch(`/api/manufacturers/${selected.id}`, {
+        method: 'DELETE',
+      })
       const result = await response.json()
-
       if (result.success) {
         addToast({
-          title: 'موفقیت',
-          description: 'کارخانه با موفقیت حذف شد',
+          title: 'Deleted',
+          description: 'Manufacturer removed',
           color: 'success',
         })
         setDeleteModalOpen(false)
         fetchManufacturers(searchQuery)
       } else {
         addToast({
-          title: 'خطا',
-          description: result.error || 'خطا در حذف کارخانه',
+          title: 'Error',
+          description: result.error || 'Delete failed',
           color: 'danger',
         })
       }
     } catch (error) {
       console.error('Error deleting manufacturer:', error)
       addToast({
-        title: 'خطا',
-        description: 'خطا در حذف کارخانه',
+        title: 'Error',
+        description: 'Delete failed',
         color: 'danger',
       })
     } finally {
@@ -227,415 +273,496 @@ export default function ManufacturersPage() {
     }
   }
 
+  const withContact = manufacturers.filter(
+    m => m.website || m.email || m.phone,
+  ).length
+
   return (
-    <div className='container px-6 py-8 mx-auto' dir='rtl'>
+    <div className='space-y-6' dir='ltr'>
       {/* Header */}
-      <div className='mb-8'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-3'>
-            <div className='p-3 bg-gradient-to-r from-blue-400 to-blue-500 rounded-xl'>
-              <Factory className='w-8 h-8 text-white' />
-            </div>
-            <div>
-              <h1 className='text-3xl font-bold text-gray-900 dark:text-gray-100'>
-                مدیریت تولیدکنندگان
-              </h1>
-              <p className='text-gray-600 dark:text-gray-400'>
-                مدیریت اطلاعات تولیدکنندگان و کارخانه‌های فولاد
-              </p>
-            </div>
-          </div>
-          <Button
-            onClick={() => router.push('/admin/manufacturers/new')}
-            className='bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
-          >
-            <Plus className='w-4 h-4 ml-2' />
-            افزودن کارخانه
-          </Button>
+      <div className='flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
+        <div>
+          <p className='font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+            Catalog
+          </p>
+          <h1 className='flex items-center gap-2 text-2xl font-semibold tracking-tight text-foreground'>
+            <Factory className='h-6 w-6' />
+            Manufacturers
+          </h1>
+          <p className='mt-1 text-sm text-muted-foreground'>
+            Mills and suppliers linked to catalog products.
+          </p>
+        </div>
+        <button
+          type='button'
+          onClick={handleAddClick}
+          className='inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
+        >
+          <Plus className='h-4 w-4' />
+          Add manufacturer
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div className='grid grid-cols-2 gap-px overflow-hidden border border-border bg-border sm:grid-cols-3'>
+        <div className='bg-card px-4 py-4'>
+          <p className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+            Total
+          </p>
+          <p className='mt-2 font-mono text-2xl font-semibold tabular-nums text-foreground'>
+            {manufacturers.length.toLocaleString('en-US')}
+          </p>
+        </div>
+        <div className='bg-card px-4 py-4'>
+          <p className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+            With contact
+          </p>
+          <p className='mt-2 font-mono text-2xl font-semibold tabular-nums text-foreground'>
+            {withContact.toLocaleString('en-US')}
+          </p>
+        </div>
+        <div className='col-span-2 bg-card px-4 py-4 sm:col-span-1'>
+          <p className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+            Listed
+          </p>
+          <p className='mt-2 font-mono text-2xl font-semibold tabular-nums text-foreground'>
+            {loading ? '—' : manufacturers.length.toLocaleString('en-US')}
+          </p>
         </div>
       </div>
 
-      {/* Search & Actions */}
-      <Card className='mb-6'>
-        <CardContent className='p-6'>
-          <div className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
-            <div className='flex-1 max-w-md'>
-              <Input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder='جستجو در کارخانه‌ها...'
-                startContent={<Search className='w-4 h-4 text-gray-400' />}
-                variant='bordered'
-                classNames={{
-                  input: 'text-right',
-                  inputWrapper: 'border-gray-300 hover:border-blue-500 h-10',
-                }}
-              />
-            </div>
-            <div className='flex gap-2'>
-              <Button onClick={handleSearch} variant='outline'>
-                <Search className='w-4 h-4 ml-2' />
-                جستجو
-              </Button>
-              {searchQuery && (
-                <Button
-                  variant='outline'
-                  onClick={() => {
-                    setSearchQuery('')
-                    fetchManufacturers('')
-                  }}
-                >
-                  <X className='w-4 h-4 ml-2' />
-                  پاک کردن
-                </Button>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Manufacturers List */}
-      {loading ? (
-        <div className='flex items-center justify-center py-20'>
-          <RefreshCw className='w-8 h-8 text-blue-500 animate-spin' />
+      {/* Filters */}
+      <div className='border border-border bg-card'>
+        <div className='border-b border-border px-4 py-3'>
+          <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+            Filters
+          </h2>
         </div>
-      ) : manufacturers.length === 0 ? (
-        <Card>
-          <CardContent className='py-20 text-center'>
-            <div className='inline-flex items-center justify-center w-20 h-20 mb-4 bg-blue-100 rounded-full dark:bg-blue-900/20'>
-              <Factory className='w-10 h-10 text-blue-500' />
-            </div>
-            <h3 className='mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100'>
-              هیچ کارخانه‌ای یافت نشد
-            </h3>
-            <p className='mb-6 text-gray-500 dark:text-gray-400'>
-              {searchQuery
-                ? 'نتیجه‌ای برای جستجوی شما یافت نشد'
-                : 'برای شروع، اولین کارخانه را اضافه کنید'}
-            </p>
-            <Button
-              onClick={() => router.push('/admin/manufacturers/new')}
-              className='bg-gradient-to-r from-blue-500 to-purple-600'
+        <div className='flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center'>
+          <div className='relative min-w-0 flex-1 sm:max-w-md'>
+            <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+            <input
+              type='search'
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              placeholder='Search manufacturers…'
+              className={`${fieldClass} !mt-0 pl-9`}
+            />
+          </div>
+          <div className='flex flex-wrap gap-2'>
+            <button
+              type='button'
+              onClick={handleSearch}
+              className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
-              <Plus className='w-4 h-4 ml-2' />
-              افزودن کارخانه جدید
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className='grid grid-cols-2 gap-4'>
-          {manufacturers.map(manufacturer => (
-            <Card
-              key={manufacturer.id}
-              className='transition-all hover:shadow-md'
+              <Search className='h-4 w-4' />
+              Search
+            </button>
+            {searchQuery ? (
+              <button
+                type='button'
+                onClick={() => {
+                  setSearchQuery('')
+                  fetchManufacturers('')
+                }}
+                className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+              >
+                Clear
+              </button>
+            ) : null}
+            <button
+              type='button'
+              onClick={() => fetchManufacturers(searchQuery)}
+              className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
-              <CardContent className='p-6'>
-                <div className='flex items-start justify-between gap-4'>
-                  {/* Logo & Info */}
-                  <div className='flex items-start flex-1 gap-4'>
-                    {manufacturer.logo ? (
-                      <img
-                        src={manufacturer.logo}
-                        alt={manufacturer.name}
-                        className='object-cover w-16 h-16 border-2 border-gray-100 rounded-lg dark:border-gray-700'
-                      />
-                    ) : (
-                      <div className='flex items-center justify-center w-16 h-16 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20'>
-                        <Factory className='w-8 h-8 text-blue-600 dark:text-blue-400' />
-                      </div>
-                    )}
+              <RefreshCw className='h-4 w-4' />
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
 
-                    <div className='flex-1 min-w-0'>
-                      <div className='flex items-start justify-between gap-4 mb-3'>
-                        <div className='flex-1'>
-                          <h3 className='mb-1 text-xl font-bold text-gray-900 dark:text-gray-100'>
-                            {manufacturer.name}
-                          </h3>
-                          <Badge variant='outline' className='text-xs'>
-                            {manufacturer.slug}
-                          </Badge>
+      {/* Table */}
+      <div className='border border-border bg-card'>
+        <div className='flex items-center gap-2 border-b border-border px-4 py-3'>
+          <Factory className='h-4 w-4 text-muted-foreground' />
+          <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+            Mills ({manufacturers.length})
+          </h3>
+        </div>
+
+        {loading ? (
+          <div className='flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground'>
+            <RefreshCw className='h-4 w-4 animate-spin' />
+            Loading manufacturers…
+          </div>
+        ) : manufacturers.length === 0 ? (
+          <div className='px-4 py-16 text-center'>
+            <Factory className='mx-auto mb-3 h-10 w-10 text-muted-foreground' />
+            <p className='text-sm font-medium text-foreground'>
+              No manufacturers found
+            </p>
+            <p className='mt-1 text-sm text-muted-foreground'>
+              {searchQuery
+                ? 'Try a different search.'
+                : 'Add a mill to link products.'}
+            </p>
+            {!searchQuery ? (
+              <button
+                type='button'
+                onClick={handleAddClick}
+                className='mt-4 inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
+              >
+                <Plus className='h-4 w-4' />
+                Add manufacturer
+              </button>
+            ) : null}
+          </div>
+        ) : (
+          <div className='overflow-x-auto'>
+            <table className='w-full min-w-[800px] text-sm'>
+              <thead>
+                <tr className='border-b border-border bg-muted/50 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground'>
+                  <th className='px-4 py-2.5'>Manufacturer</th>
+                  <th className='px-4 py-2.5'>Slug</th>
+                  <th className='px-4 py-2.5'>Contact</th>
+                  <th className='px-4 py-2.5 text-center'>Products</th>
+                  <th className='px-4 py-2.5 text-right'>Actions</th>
+                </tr>
+              </thead>
+              <tbody className='divide-y divide-border'>
+                {manufacturers.map(m => (
+                  <tr
+                    key={m.id}
+                    className='transition-colors duration-200 ease-out hover:bg-muted/40'
+                  >
+                    <td className='px-4 py-3'>
+                      <div className='flex items-center gap-3'>
+                        {m.logo ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={m.logo}
+                            alt=''
+                            className='h-9 w-9 border border-border object-cover'
+                          />
+                        ) : (
+                          <span className='flex h-9 w-9 shrink-0 items-center justify-center border border-border bg-muted/50 text-muted-foreground'>
+                            <Factory className='h-4 w-4' />
+                          </span>
+                        )}
+                        <div className='min-w-0'>
+                          <p className='font-medium text-foreground'>
+                            {m.name}
+                          </p>
+                          {m.description ? (
+                            <p className='mt-0.5 line-clamp-1 text-xs text-muted-foreground'>
+                              {m.description}
+                            </p>
+                          ) : null}
                         </div>
                       </div>
-
-                      {/* Contact Info Grid */}
-                      <div className='grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4'>
-                        {manufacturer.website && (
-                          <div className='flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400'>
-                            <Globe className='flex-shrink-0 w-4 h-4' />
-                            <span className='truncate'>
-                              {manufacturer.website}
+                    </td>
+                    <td className='px-4 py-3 font-mono text-xs text-muted-foreground'>
+                      {m.slug}
+                    </td>
+                    <td className='px-4 py-3'>
+                      <div className='flex flex-col gap-0.5 text-xs text-muted-foreground'>
+                        {m.website ? (
+                          <span className='inline-flex items-center gap-1.5 truncate'>
+                            <Globe className='h-3 w-3 shrink-0' />
+                            <span className='truncate max-w-[12rem]'>
+                              {m.website.replace(/^https?:\/\//, '')}
                             </span>
-                          </div>
-                        )}
-                        {manufacturer.email && (
-                          <div className='flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400'>
-                            <Mail className='flex-shrink-0 w-4 h-4' />
-                            <span className='truncate'>
-                              {manufacturer.email}
+                          </span>
+                        ) : null}
+                        {m.email ? (
+                          <span className='inline-flex items-center gap-1.5 truncate'>
+                            <Mail className='h-3 w-3 shrink-0' />
+                            <span className='truncate max-w-[12rem]'>
+                              {m.email}
                             </span>
-                          </div>
-                        )}
-                        {manufacturer.phone && (
-                          <div className='flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400'>
-                            <Phone className='flex-shrink-0 w-4 h-4' />
-                            <span className='truncate'>
-                              {manufacturer.phone}
-                            </span>
-                          </div>
-                        )}
-                        {manufacturer.address && (
-                          <div className='flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400'>
-                            <MapPin className='flex-shrink-0 w-4 h-4' />
-                            <span className='truncate'>
-                              {manufacturer.address}
-                            </span>
-                          </div>
-                        )}
+                          </span>
+                        ) : null}
+                        {m.phone ? (
+                          <span className='inline-flex items-center gap-1.5'>
+                            <Phone className='h-3 w-3 shrink-0' />
+                            {m.phone}
+                          </span>
+                        ) : null}
+                        {!m.website && !m.email && !m.phone ? (
+                          <span>—</span>
+                        ) : null}
                       </div>
-                    </div>
-                  </div>
+                    </td>
+                    <td className='px-4 py-3 text-center tabular-nums text-foreground'>
+                      {productCount(m)}
+                    </td>
+                    <td className='px-4 py-3'>
+                      <div className='flex items-center justify-end gap-1'>
+                        <button
+                          type='button'
+                          onClick={() => handleEditClick(m)}
+                          className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                          aria-label='Edit'
+                        >
+                          <Edit className='h-3.5 w-3.5' />
+                        </button>
+                        <button
+                          type='button'
+                          onClick={() => handleDeleteClick(m)}
+                          className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-red-700 transition-colors duration-200 ease-out hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
+                          aria-label='Delete'
+                        >
+                          <Trash2 className='h-3.5 w-3.5' />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
-                  {/* Actions */}
-                  <div className='flex gap-2'>
-                    <Button
-                      size='sm'
-                      variant='outline'
-                      onClick={() => handleEditClick(manufacturer)}
-                    >
-                      <Edit className='w-4 h-4 ml-2' />
-                      ویرایش
-                    </Button>
-                    <Button
-                      size='sm'
-                      variant='outline'
-                      className='text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
-                      onClick={() => handleDeleteClick(manufacturer)}
-                    >
-                      <Trash2 className='w-4 h-4' />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Delete Modal */}
-      {deleteModalOpen && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm'>
-          <Card className='w-full max-w-md'>
-            <CardHeader className='border-b'>
-              <div className='flex items-center gap-3'>
-                <div className='p-2 bg-red-100 rounded-lg dark:bg-red-900/20'>
-                  <AlertCircle className='w-5 h-5 text-red-600 dark:text-red-400' />
-                </div>
-                <h2 className='text-xl font-bold'>حذف کارخانه</h2>
-              </div>
-            </CardHeader>
-            <CardContent className='p-6'>
-              <p className='mb-2'>
-                آیا از حذف کارخانه{' '}
-                <strong className='text-red-600'>
-                  {selectedManufacturer?.name}
-                </strong>{' '}
-                اطمینان دارید؟
-              </p>
-
-              {selectedManufacturer?.products &&
-                selectedManufacturer.products.length > 0 && (
-                  <p className='mb-4 text-sm text-amber-600 dark:text-amber-400'>
-                    ⚠️ این کارخانه دارای {selectedManufacturer.products.length}{' '}
-                    محصول است
-                  </p>
-                )}
-
-              <p className='mb-6 text-sm text-gray-500'>
-                این عملیات قابل بازگشت نیست.
-              </p>
-
-              <div className='flex justify-end gap-3'>
-                <Button
-                  variant='outline'
-                  onClick={() => setDeleteModalOpen(false)}
-                >
-                  انصراف
-                </Button>
-                <Button
-                  className='bg-red-600 hover:bg-red-700'
-                  onClick={confirmDelete}
-                  disabled={deleteLoading}
-                >
-                  {deleteLoading ? (
-                    <RefreshCw className='w-4 h-4 ml-2 animate-spin' />
-                  ) : (
-                    <Trash2 className='w-4 h-4 ml-2' />
-                  )}
-                  حذف
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Edit Modal */}
       {editModalOpen && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm'>
-          <Card className='w-full max-w-2xl max-h-[90vh] overflow-y-auto'>
-            <CardHeader className='sticky top-0 z-10 bg-white border-b dark:bg-gray-800'>
-              <div className='flex items-center justify-between'>
-                <h2 className='flex items-center gap-2 text-xl font-bold'>
-                  <Edit className='w-5 h-5' />
-                  ویرایش کارخانه
-                </h2>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => setEditModalOpen(false)}
-                >
-                  <X className='w-4 h-4' />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className='p-6'>
-              <div className='space-y-4'>
-                {/* Name Field */}
-                <div>
-                  <label className='block mb-2 text-sm font-medium'>
-                    نام کارخانه <span className='text-red-500'>*</span>
-                  </label>
-                  <Input
-                    value={editForm.name}
-                    onChange={e =>
-                      setEditForm({ ...editForm, name: e.target.value })
-                    }
-                    placeholder='نام کارخانه را وارد کنید'
-                  />
-                </div>
-
-                {/* Slug Field */}
-                <div>
-                  <label className='block mb-2 text-sm font-medium'>
-                    شناسه (Slug)
-                  </label>
-                  <Input
-                    value={editForm.slug}
-                    onChange={e =>
-                      setEditForm({ ...editForm, slug: e.target.value })
-                    }
-                    placeholder='slug-example'
-                    dir='ltr'
-                  />
-                </div>
-
-                {/* Description Field */}
-                <div>
-                  <label className='block mb-2 text-sm font-medium'>
-                    توضیحات
-                  </label>
-                  <textarea
-                    value={editForm.description}
-                    onChange={e =>
-                      setEditForm({ ...editForm, description: e.target.value })
-                    }
-                    placeholder='توضیحات کارخانه را وارد کنید'
-                    className='w-full min-h-[100px] px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700'
-                  />
-                </div>
-
-                {/* Website Field */}
-                <div>
-                  <label className='block mb-2 text-sm font-medium'>
-                    <Globe className='inline w-4 h-4 ml-1' />
-                    وب‌سایت
-                  </label>
-                  <Input
-                    value={editForm.website}
-                    onChange={e =>
-                      setEditForm({ ...editForm, website: e.target.value })
-                    }
-                    placeholder='https://example.com'
-                    dir='ltr'
-                  />
-                </div>
-
-                {/* Email Field */}
-                <div>
-                  <label className='block mb-2 text-sm font-medium'>
-                    <Mail className='inline w-4 h-4 ml-1' />
-                    ایمیل
-                  </label>
-                  <Input
-                    value={editForm.email}
-                    onChange={e =>
-                      setEditForm({ ...editForm, email: e.target.value })
-                    }
-                    placeholder='info@example.com'
-                    type='email'
-                    dir='ltr'
-                  />
-                </div>
-
-                {/* Phone Field */}
-                <div>
-                  <label className='block mb-2 text-sm font-medium'>
-                    <Phone className='inline w-4 h-4 ml-1' />
-                    تلفن
-                  </label>
-                  <Input
-                    value={editForm.phone}
-                    onChange={e =>
-                      setEditForm({ ...editForm, phone: e.target.value })
-                    }
-                    placeholder='021-12345678'
-                    dir='ltr'
-                  />
-                </div>
-
-                {/* Address Field */}
-                <div>
-                  <label className='block mb-2 text-sm font-medium'>
-                    <MapPin className='inline w-4 h-4 ml-1' />
-                    آدرس
-                  </label>
-                  <textarea
-                    value={editForm.address}
-                    onChange={e =>
-                      setEditForm({ ...editForm, address: e.target.value })
-                    }
-                    placeholder='آدرس کامل کارخانه را وارد کنید'
-                    className='w-full min-h-[80px] px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700'
-                  />
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className='flex justify-end gap-3 pt-6 mt-6 border-t'>
-                <Button
-                  variant='outline'
-                  onClick={() => setEditModalOpen(false)}
-                  disabled={saveLoading}
-                >
-                  انصراف
-                </Button>
-                <Button
-                  className='bg-blue-600 hover:bg-blue-700'
-                  onClick={handleSaveEdit}
-                  disabled={saveLoading}
-                >
-                  {saveLoading ? (
-                    <RefreshCw className='w-4 h-4 ml-2 animate-spin' />
-                  ) : (
-                    <Save className='w-4 h-4 ml-2' />
-                  )}
-                  ذخیره تغییرات
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <ModalShell
+          title='Edit manufacturer'
+          onClose={() => setEditModalOpen(false)}
+        >
+          <ManufacturerForm form={editForm} setForm={setEditForm} />
+          <div className='mt-6 flex justify-end gap-2 border-t border-border pt-4'>
+            <button
+              type='button'
+              onClick={() => setEditModalOpen(false)}
+              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+            >
+              Cancel
+            </button>
+            <button
+              type='button'
+              onClick={handleSaveEdit}
+              disabled={saveLoading}
+              className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50'
+            >
+              <Save className='h-4 w-4' />
+              {saveLoading ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </ModalShell>
       )}
+
+      {addModalOpen && (
+        <ModalShell
+          title='Add manufacturer'
+          onClose={() => setAddModalOpen(false)}
+        >
+          <ManufacturerForm form={addForm} setForm={setAddForm} />
+          <div className='mt-6 flex justify-end gap-2 border-t border-border pt-4'>
+            <button
+              type='button'
+              onClick={() => setAddModalOpen(false)}
+              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+            >
+              Cancel
+            </button>
+            <button
+              type='button'
+              onClick={handleSaveAdd}
+              disabled={addLoading}
+              className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50'
+            >
+              <Plus className='h-4 w-4' />
+              {addLoading ? 'Creating…' : 'Create'}
+            </button>
+          </div>
+        </ModalShell>
+      )}
+
+      {deleteModalOpen && selected && (
+        <ModalShell
+          title='Delete manufacturer'
+          onClose={() => setDeleteModalOpen(false)}
+        >
+          <p className='text-sm text-muted-foreground'>
+            Delete{' '}
+            <span className='font-medium text-foreground'>{selected.name}</span>
+            ? This cannot be undone.
+          </p>
+          {productCount(selected) > 0 ? (
+            <p className='mt-3 border border-amber-600/30 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-100'>
+              {productCount(selected)} product
+              {productCount(selected) === 1 ? '' : 's'} may still reference this
+              mill.
+            </p>
+          ) : null}
+          {selected.address ? (
+            <p className='mt-3 flex items-start gap-2 text-xs text-muted-foreground'>
+              <MapPin className='mt-0.5 h-3.5 w-3.5 shrink-0' />
+              {selected.address}
+            </p>
+          ) : null}
+          <div className='mt-6 flex justify-end gap-2 border-t border-border pt-4'>
+            <button
+              type='button'
+              onClick={() => setDeleteModalOpen(false)}
+              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+            >
+              Cancel
+            </button>
+            <button
+              type='button'
+              onClick={confirmDelete}
+              disabled={deleteLoading}
+              className='inline-flex items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50 dark:bg-red-600'
+            >
+              <Trash2 className='h-4 w-4' />
+              {deleteLoading ? 'Deleting…' : 'Delete'}
+            </button>
+          </div>
+        </ModalShell>
+      )}
+    </div>
+  )
+}
+
+function ModalShell({
+  title,
+  onClose,
+  children,
+}: {
+  title: string
+  onClose: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+      role='dialog'
+      aria-modal='true'
+    >
+      <div className='max-h-[90vh] w-full max-w-lg overflow-y-auto border border-border bg-card shadow-sm'>
+        <div className='flex items-center justify-between border-b border-border px-5 py-3'>
+          <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+            {title}
+          </h2>
+          <button
+            type='button'
+            onClick={onClose}
+            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+            aria-label='Close'
+          >
+            <X className='h-4 w-4' />
+          </button>
+        </div>
+        <div className='px-5 py-5'>{children}</div>
+      </div>
+    </div>
+  )
+}
+
+function ManufacturerForm({
+  form,
+  setForm,
+}: {
+  form: typeof emptyForm
+  setForm: React.Dispatch<React.SetStateAction<typeof emptyForm>>
+}) {
+  return (
+    <div className='space-y-4'>
+      <div>
+        <label htmlFor='mfr-name' className={labelClass}>
+          Name *
+        </label>
+        <input
+          id='mfr-name'
+          value={form.name}
+          onChange={e => setForm({ ...form, name: e.target.value })}
+          className={fieldClass}
+          placeholder='e.g. Caspian Steel Mills'
+        />
+      </div>
+      <div>
+        <label htmlFor='mfr-slug' className={labelClass}>
+          Slug
+        </label>
+        <input
+          id='mfr-slug'
+          value={form.slug}
+          onChange={e => setForm({ ...form, slug: e.target.value })}
+          className={fieldClass}
+          placeholder='auto from name if empty'
+          dir='ltr'
+        />
+      </div>
+      <div>
+        <label htmlFor='mfr-desc' className={labelClass}>
+          Description
+        </label>
+        <textarea
+          id='mfr-desc'
+          rows={3}
+          value={form.description}
+          onChange={e => setForm({ ...form, description: e.target.value })}
+          className={`${fieldClass} resize-y`}
+          placeholder='Short note about the mill'
+        />
+      </div>
+      <div className='grid gap-4 sm:grid-cols-2'>
+        <div>
+          <label htmlFor='mfr-web' className={labelClass}>
+            Website
+          </label>
+          <input
+            id='mfr-web'
+            value={form.website}
+            onChange={e => setForm({ ...form, website: e.target.value })}
+            className={fieldClass}
+            placeholder='https://…'
+            dir='ltr'
+          />
+        </div>
+        <div>
+          <label htmlFor='mfr-email' className={labelClass}>
+            Email
+          </label>
+          <input
+            id='mfr-email'
+            type='email'
+            value={form.email}
+            onChange={e => setForm({ ...form, email: e.target.value })}
+            className={fieldClass}
+            placeholder='sales@…'
+            dir='ltr'
+          />
+        </div>
+        <div>
+          <label htmlFor='mfr-phone' className={labelClass}>
+            Phone
+          </label>
+          <input
+            id='mfr-phone'
+            value={form.phone}
+            onChange={e => setForm({ ...form, phone: e.target.value })}
+            className={fieldClass}
+            placeholder='+98 …'
+            dir='ltr'
+          />
+        </div>
+        <div>
+          <label htmlFor='mfr-address' className={labelClass}>
+            Address
+          </label>
+          <input
+            id='mfr-address'
+            value={form.address}
+            onChange={e => setForm({ ...form, address: e.target.value })}
+            className={fieldClass}
+            placeholder='City, region'
+          />
+        </div>
+      </div>
     </div>
   )
 }
