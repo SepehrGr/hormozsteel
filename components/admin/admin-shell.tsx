@@ -35,7 +35,7 @@ export default function AdminShell({ children }: AdminShellProps) {
   }, [])
 
   return (
-    <div className='flex min-h-screen bg-background' dir='ltr'>
+    <div className='flex min-h-screen bg-background'>
       <AdminSidebar
         collapsed={collapsed}
         onCollapsedChange={next => {
@@ -52,7 +52,9 @@ export default function AdminShell({ children }: AdminShellProps) {
         }`}
       >
         <AdminHeader />
-        <main className='flex-1 p-4 md:p-6'>{children}</main>
+        <main className='flex-1 p-4 md:p-6 md:w-[900px] lg:w-[900px] xl:w-[1600px] max-w-[1600px] mx-auto'>
+          {children}
+        </main>
       </div>
     </div>
   )
