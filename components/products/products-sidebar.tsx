@@ -30,14 +30,14 @@ export default function ProductsSidebar({ current }: Props) {
               <Link
                 href={productCategoryHref(cat.slug)}
                 scroll={false}
-                className={`group flex items-center gap-3 px-4 py-3 text-sm transition-colors duration-200 ease-out ${
+                className={`group flex items-center gap-3 px-4 py-6 text-sm transition-colors duration-200 ease-out ${
                   active
                     ? 'bg-muted text-foreground'
                     : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                 }`}
               >
                 <i
-                  className={`${iconClass} text-base ${
+                  className={`${iconClass} text-3xl ${
                     active
                       ? 'text-amber-800 dark:text-amber-500'
                       : 'text-muted-foreground group-hover:text-foreground'
@@ -48,13 +48,10 @@ export default function ProductsSidebar({ current }: Props) {
                   <span className='block font-medium text-foreground'>
                     {cat.name}
                   </span>
-                  <span className='mt-0.5 block font-mono text-[10px] tracking-wider text-muted-foreground'>
-                    {cat.id.toUpperCase()}
-                  </span>
                 </span>
                 {active ? (
                   <span
-                    className='h-1.5 w-1.5 shrink-0 rounded-full bg-amber-700 dark:bg-amber-500'
+                    className='h-2 w-2 shrink-0 rounded-full bg-amber-700 dark:bg-amber-500'
                     aria-hidden
                   />
                 ) : null}
