@@ -135,11 +135,8 @@ export const Navbar = () => {
           >
             <Logo className='h-8 w-8' />
             <span className='flex flex-col leading-none'>
-              <span className='text-sm font-semibold tracking-tight sm:text-[0.95rem]'>
+              <span className='text-sm font-semibold tracking-tight sm:text-[1.15rem]'>
                 {siteConfig.name}
-              </span>
-              <span className='mt-0.5 hidden font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:block'>
-                Steel · unit prices
               </span>
             </span>
           </NextLink>
