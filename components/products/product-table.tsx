@@ -11,7 +11,7 @@ import {
   Minus,
 } from 'lucide-react'
 
-interface CategoryTableProps {
+interface ProductTableProps {
   category?: ProductCategory
   products: Product[]
   onOrder: (product: Product) => void
@@ -52,12 +52,12 @@ function directionMeta(product: Product) {
   }
 }
 
-export default function CategoryTable({
+export default function ProductTable({
   products,
   onOrder,
   onCalculate,
   formatPrice: customFormatPrice,
-}: CategoryTableProps) {
+}: ProductTableProps) {
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false)
   const [selectedProductForOrder, setSelectedProductForOrder] = useState<{
     name?: string
