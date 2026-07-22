@@ -112,7 +112,13 @@ export const PRODUCT_CATEGORIES: Array<{
     slug: 'sheet',
     description: 'Hot-rolled, cold-rolled, and coated sheet',
     icon: 'icon-sheet',
-    subcategories: ['Hot-rolled', 'Cold-rolled', 'Galvanized', 'Color-coated', 'Stainless'],
+    subcategories: [
+      'Hot-rolled',
+      'Cold-rolled',
+      'Galvanized',
+      'Color-coated',
+      'Stainless',
+    ],
   },
   {
     id: 'profile',
@@ -143,7 +149,8 @@ export const PRODUCT_CATEGORIES: Array<{
     name: 'Wire',
     slug: 'wire',
     description: 'Black, galvanized, and barbed wire',
-    icon: 'icon-Wire-products',
+    icon: 'icon-wire',
+
     subcategories: ['Black', 'Galvanized', 'Barbed', 'Cable'],
   },
   {
