@@ -2,12 +2,7 @@
  * English portfolio seed for ahanhormoz_demo.
  * Run: yarn db:seed  (requires DATABASE_URL → ahanhormoz_demo)
  */
-import {
-  PrismaClient,
-  PriceDirection,
-  ProductUnit,
-  Role,
-} from '@prisma/client'
+import { PrismaClient, PriceDirection, ProductUnit, Role } from '@prisma/client'
 import dotenv from 'dotenv'
 import bcrypt from 'bcryptjs'
 
@@ -179,7 +174,13 @@ async function main() {
       description: 'Hot-rolled, cold-rolled, and coated sheet',
       icon: 'icon-sheet',
       sortOrder: 3,
-      subcategories: ['Hot-rolled', 'Cold-rolled', 'Galvanized', 'Color-coated', 'Stainless'],
+      subcategories: [
+        'Hot-rolled',
+        'Cold-rolled',
+        'Galvanized',
+        'Color-coated',
+        'Stainless',
+      ],
     },
     {
       name: 'Profiles',
@@ -209,7 +210,8 @@ async function main() {
       name: 'Wire',
       slug: 'wire',
       description: 'Black, galvanized, and barbed wire',
-      icon: 'icon-Wire-products',
+      icon: 'icon-wire',
+
       sortOrder: 7,
       subcategories: ['Black', 'Galvanized', 'Barbed', 'Cable'],
     },
@@ -271,7 +273,9 @@ async function main() {
   // Rough industrial ballparks for a portfolio demo — not live market data.
 
   // Rebar ladder (~$0.55–0.78 / kg)
-  for (const [idx, dia] of [8, 10, 12, 14, 16, 18, 20, 22, 25, 28, 32].entries()) {
+  for (const [idx, dia] of [
+    8, 10, 12, 14, 16, 18, 20, 22, 25, 28, 32,
+  ].entries()) {
     catalog.push({
       name: `Ribbed rebar ${dia}mm`,
       slug: slugify(['rebar', 'ribbed', `${dia}mm`]),
@@ -316,7 +320,18 @@ async function main() {
   }
 
   // Beams (~$0.72–0.90 / kg)
-  for (const [idx, size] of ['IPE 80', 'IPE 100', 'IPE 120', 'IPE 140', 'IPE 160', 'IPE 180', 'IPE 200', 'HEA 100', 'HEA 140', 'HEB 120'].entries()) {
+  for (const [idx, size] of [
+    'IPE 80',
+    'IPE 100',
+    'IPE 120',
+    'IPE 140',
+    'IPE 160',
+    'IPE 180',
+    'IPE 200',
+    'HEA 100',
+    'HEA 140',
+    'HEB 120',
+  ].entries()) {
     catalog.push({
       name: `Beam ${size}`,
       slug: slugify(['beam', size]),
@@ -336,12 +351,28 @@ async function main() {
   }
 
   // Sheets — base by finish (~$0.62–2.50 / kg)
-  const sheets: { sub: string; thick: string[]; base: number; step: number }[] = [
-    { sub: 'Hot-rolled', thick: ['2mm', '3mm', '4mm', '6mm', '8mm', '10mm'], base: 0.62, step: 0.02 },
-    { sub: 'Cold-rolled', thick: ['0.5mm', '0.8mm', '1mm', '1.5mm'], base: 0.78, step: 0.03 },
-    { sub: 'Galvanized', thick: ['0.5mm', '0.7mm', '1mm'], base: 0.88, step: 0.04 },
-    { sub: 'Stainless', thick: ['1mm', '2mm'], base: 2.35, step: 0.12 },
-  ]
+  const sheets: { sub: string; thick: string[]; base: number; step: number }[] =
+    [
+      {
+        sub: 'Hot-rolled',
+        thick: ['2mm', '3mm', '4mm', '6mm', '8mm', '10mm'],
+        base: 0.62,
+        step: 0.02,
+      },
+      {
+        sub: 'Cold-rolled',
+        thick: ['0.5mm', '0.8mm', '1mm', '1.5mm'],
+        base: 0.78,
+        step: 0.03,
+      },
+      {
+        sub: 'Galvanized',
+        thick: ['0.5mm', '0.7mm', '1mm'],
+        base: 0.88,
+        step: 0.04,
+      },
+      { sub: 'Stainless', thick: ['1mm', '2mm'], base: 2.35, step: 0.12 },
+    ]
   let sheetI = 0
   for (const group of sheets) {
     for (const [tIdx, t] of group.thick.entries()) {
@@ -369,7 +400,14 @@ async function main() {
   }
 
   // Profiles (~$0.70–0.85 / kg)
-  for (const [idx, p] of ['IPE 80', 'IPE 100', 'HEA 120', 'UPE 120', 'Structural 40x40', 'Industrial 60x40'].entries()) {
+  for (const [idx, p] of [
+    'IPE 80',
+    'IPE 100',
+    'HEA 120',
+    'UPE 120',
+    'Structural 40x40',
+    'Industrial 60x40',
+  ].entries()) {
     catalog.push({
       name: `Profile ${p}`,
       slug: slugify(['profile', p]),
@@ -378,7 +416,10 @@ async function main() {
       unit: ProductUnit.KG,
       basePrice: usd(0.7 + idx * 0.025),
       inStock: true,
-      subcategory: p.includes('IPE') || p.includes('HE') || p.includes('UPE') ? p.split(' ')[0] : 'Structural',
+      subcategory:
+        p.includes('IPE') || p.includes('HE') || p.includes('UPE')
+          ? p.split(' ')[0]
+          : 'Structural',
       categorySlug: 'profile',
       manufacturerIndex: idx % 5,
       specs: { section: p, length: '6m' },
@@ -388,7 +429,15 @@ async function main() {
   }
 
   // Angles (~$0.66–0.82 / kg)
-  for (const [idx, a] of ['30x30x3', '40x40x4', '50x50x5', '60x60x6', '80x80x8', 'Channel 80', 'Channel 100'].entries()) {
+  for (const [idx, a] of [
+    '30x30x3',
+    '40x40x4',
+    '50x50x5',
+    '60x60x6',
+    '80x80x8',
+    'Channel 80',
+    'Channel 100',
+  ].entries()) {
     catalog.push({
       name: a.startsWith('Channel') ? a : `Angle ${a}`,
       slug: slugify(['angle', a]),
@@ -407,7 +456,15 @@ async function main() {
   }
 
   // Pipes (~$3.50–14 / m seamed; seamless higher)
-  for (const [idx, d] of ['1/2"', '3/4"', '1"', '1.5"', '2"', '3"', '4"'].entries()) {
+  for (const [idx, d] of [
+    '1/2"',
+    '3/4"',
+    '1"',
+    '1.5"',
+    '2"',
+    '3"',
+    '4"',
+  ].entries()) {
     catalog.push({
       name: `Seamed pipe ${d}`,
       slug: slugify(['pipe', 'seamed', d]),
@@ -500,7 +557,13 @@ async function main() {
   }
 
   // Tubes (~$0.74–0.90 / kg)
-  for (const [idx, t] of ['40x40x2', '50x50x2', '60x60x3', '80x40x2', '100x50x3'].entries()) {
+  for (const [idx, t] of [
+    '40x40x2',
+    '50x50x2',
+    '60x60x3',
+    '80x40x2',
+    '100x50x3',
+  ].entries()) {
     catalog.push({
       name: `SHS/RHS ${t}`,
       slug: slugify(['tube', t]),
@@ -545,7 +608,10 @@ async function main() {
       },
     })
 
-    if (priceFields.priceDirection !== PriceDirection.STABLE && priceFields.previousPrice) {
+    if (
+      priceFields.priceDirection !== PriceDirection.STABLE &&
+      priceFields.previousPrice
+    ) {
       await prisma.priceHistory.create({
         data: {
           productId: product.id,
