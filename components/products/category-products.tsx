@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import CategoryTable from '@/components/products/category-table'
+import ProductTable from '@/components/products/product-table'
 import WeightCalculatorModal from '@/components/products/weight-calculator-modal'
 import OrderRequestModal from '@/components/products/order-request-modal'
 import { Product, ProductCategory } from '@/types/products'
@@ -20,7 +20,9 @@ function formatUsd(price: number) {
   }).format(price)
 }
 
-function normalizeUnit(unit?: string | null): 'kg' | 'ton' | 'piece' | undefined {
+function normalizeUnit(
+  unit?: string | null,
+): 'kg' | 'ton' | 'piece' | undefined {
   if (!unit) return undefined
   const u = unit.toLowerCase()
   if (u === 'kg' || u === 'ton' || u === 'piece') return u
@@ -38,9 +40,8 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false)
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false)
-  const [selectedOrderProduct, setSelectedOrderProduct] = useState<Product | null>(
-    null,
-  )
+  const [selectedOrderProduct, setSelectedOrderProduct] =
+    useState<Product | null>(null)
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -122,7 +123,9 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
       <div className='flex min-h-[40vh] items-center justify-center'>
         <div className='text-center'>
           <div className='mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-border border-t-foreground' />
-          <p className='text-sm text-muted-foreground'>Loading catalog prices…</p>
+          <p className='text-sm text-muted-foreground'>
+            Loading catalog prices…
+          </p>
         </div>
       </div>
     )
@@ -238,7 +241,7 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
                   {productsByBrand[brand].length === 1 ? 'item' : 'items'}
                 </span>
               </div>
-              <CategoryTable
+              <ProductTable
                 category={category}
                 products={productsByBrand[brand]}
                 onOrder={handleOrder}
