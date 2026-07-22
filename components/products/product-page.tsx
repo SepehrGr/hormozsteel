@@ -9,7 +9,7 @@ import {
   productCategoryHref,
 } from '@/types/products'
 import { resolveCategoryIcon } from '@/config/category-icons'
-import CategoryTable from '@/components/products/category-table'
+import ProductTable from '@/components/products/product-table'
 import AdvancedFilters from '@/components/products/advanced-filters'
 import WeightCalculatorModal from '@/components/products/weight-calculator-modal'
 import OrderRequestModal from '@/components/products/order-request-modal'
@@ -46,7 +46,9 @@ function formatUsd(price: number) {
   }).format(price)
 }
 
-function normalizeUnit(unit?: string | null): 'kg' | 'ton' | 'piece' | undefined {
+function normalizeUnit(
+  unit?: string | null,
+): 'kg' | 'ton' | 'piece' | undefined {
   if (!unit) return undefined
   const u = unit.toLowerCase()
   if (u === 'kg' || u === 'ton' || u === 'piece') return u
@@ -70,9 +72,8 @@ export default function ProductPage({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false)
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false)
-  const [selectedOrderProduct, setSelectedOrderProduct] = useState<Product | null>(
-    null,
-  )
+  const [selectedOrderProduct, setSelectedOrderProduct] =
+    useState<Product | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [showFilters, setShowFilters] = useState(false)
 
@@ -128,7 +129,10 @@ export default function ProductPage({
 
       if (!matchesFilter(filters.brand, product.brand)) return false
       if (
-        !matchesFilter(filters.size as string | string[] | undefined, product.size)
+        !matchesFilter(
+          filters.size as string | string[] | undefined,
+          product.size,
+        )
       )
         return false
       if (filters.minPrice != null && product.price < Number(filters.minPrice))
@@ -180,7 +184,9 @@ export default function ProductPage({
 
   const availableBrands = useMemo(() => {
     return Array.from(
-      new Set(products.map(p => p.brand).filter((b): b is string => Boolean(b))),
+      new Set(
+        products.map(p => p.brand).filter((b): b is string => Boolean(b)),
+      ),
     ).sort()
   }, [products])
 
@@ -210,7 +216,9 @@ export default function ProductPage({
       <div className='flex min-h-[50vh] items-center justify-center'>
         <div className='text-center'>
           <div className='mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-border border-t-foreground' />
-          <p className='text-sm text-muted-foreground'>Loading catalog prices…</p>
+          <p className='text-sm text-muted-foreground'>
+            Loading catalog prices…
+          </p>
         </div>
       </div>
     )
@@ -381,7 +389,8 @@ export default function ProductPage({
                   No matching line items
                 </h3>
                 <p className='text-sm text-muted-foreground'>
-                  Adjust search or filters, or clear filters to see the full list.
+                  Adjust search or filters, or clear filters to see the full
+                  list.
                 </p>
                 {(searchTerm || Object.keys(filters).length > 0) && (
                   <button
@@ -398,26 +407,28 @@ export default function ProductPage({
               </div>
             ) : (
               <div className='space-y-8'>
-                {Object.entries(productsByBrand).map(([brand, brandProducts]) => (
-                  <section key={brand}>
-                    <div className='mb-3 flex flex-wrap items-center gap-2'>
-                      <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
-                        {brand}
-                      </h2>
-                      <span className='border border-border bg-muted/50 px-2 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground'>
-                        {brandProducts.length}{' '}
-                        {brandProducts.length === 1 ? 'item' : 'items'}
-                      </span>
-                    </div>
-                    <CategoryTable
-                      category={categoryInfo!}
-                      products={brandProducts}
-                      onOrder={handleOrder}
-                      onCalculate={handleCalculate}
-                      formatPrice={formatUsd}
-                    />
-                  </section>
-                ))}
+                {Object.entries(productsByBrand).map(
+                  ([brand, brandProducts]) => (
+                    <section key={brand}>
+                      <div className='mb-3 flex flex-wrap items-center gap-2'>
+                        <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                          {brand}
+                        </h2>
+                        <span className='border border-border bg-muted/50 px-2 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground'>
+                          {brandProducts.length}{' '}
+                          {brandProducts.length === 1 ? 'item' : 'items'}
+                        </span>
+                      </div>
+                      <ProductTable
+                        category={categoryInfo!}
+                        products={brandProducts}
+                        onOrder={handleOrder}
+                        onCalculate={handleCalculate}
+                        formatPrice={formatUsd}
+                      />
+                    </section>
+                  ),
+                )}
               </div>
             )}
           </div>
@@ -486,8 +497,8 @@ export default function ProductPage({
 
         <p className='mt-8 flex items-start gap-2 text-xs text-muted-foreground'>
           <Calculator className='mt-0.5 h-3.5 w-3.5 shrink-0' />
-          Prices are demo unit rates in USD. Use the calculator action on a row for
-          weight estimates where available.
+          Prices are demo unit rates in USD. Use the calculator action on a row
+          for weight estimates where available.
         </p>
       </div>
 
