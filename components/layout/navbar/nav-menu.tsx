@@ -25,7 +25,7 @@ const weightData = [
 ]
 
 const triggerClass =
-  'inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+  'inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
 
 /**
  * Desktop product + calculator menus — board chrome, theme tokens.
