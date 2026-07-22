@@ -89,8 +89,8 @@ export default function Hero() {
             <span className='font-mono tabular-nums'>{sessionLabel}</span>
             <span className='hidden h-3 w-px bg-border sm:block' aria-hidden />
             <span>
-              Quotes in <span className='font-medium text-foreground'>USD</span> ·
-              ex-works basis
+              Quotes in <span className='font-medium text-foreground'>USD</span>{' '}
+              · ex-works basis
             </span>
           </div>
 
@@ -104,8 +104,8 @@ export default function Hero() {
               </h1>
               <p className='mt-5 max-w-xl text-base leading-relaxed text-muted-foreground'>
                 Track unit rates across rebar, HRC and CRC sheet, structural
-                sections, pipe, and billets. Filter by size and mill, export what you
-                need, and request a firm quote from sales.
+                sections, pipe, and billets. Filter by size and mill, export
+                what you need, and request a firm quote from sales.
               </p>
 
               <div className='mt-8 flex flex-wrap items-center gap-3'>
@@ -132,7 +132,9 @@ export default function Hero() {
                   <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
                     Board snapshot
                   </h2>
-                  <span className='text-xs text-muted-foreground'>Indicative</span>
+                  <span className='text-xs text-muted-foreground'>
+                    Indicative
+                  </span>
                 </div>
                 <ul className='divide-y divide-border'>
                   {[
@@ -213,7 +215,7 @@ export default function Hero() {
                 <button
                   type='button'
                   aria-label='Previous product families'
-                  className='category-nav-prev flex h-8 w-8 items-center justify-center text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                  className='category-nav-prev flex h-8 w-8 items-center justify-center text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                 >
                   <ChevronLeft className='h-4 w-4' />
                 </button>
@@ -221,7 +223,7 @@ export default function Hero() {
                 <button
                   type='button'
                   aria-label='Next product families'
-                  className='category-nav-next flex h-8 w-8 items-center justify-center text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                  className='category-nav-next flex h-8 w-8 items-center justify-center text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                 >
                   <ChevronRight className='h-4 w-4' />
                 </button>
