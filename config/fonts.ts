@@ -13,9 +13,3 @@ export const geistMono = Geist_Mono({
   display: 'swap',
   variable: '--font-mono',
 })
-
-/** @deprecated Prefer `geistSans` — alias for leftover imports. */
-export const inter = geistSans
-
-/** @deprecated Prefer `geistSans` — alias for leftover imports. */
-export const IranYekan = geistSans
