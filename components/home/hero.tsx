@@ -64,7 +64,7 @@ export default function Hero() {
       {/* Hero */}
       <div className='relative overflow-hidden border-b border-border bg-background'>
         <div
-          className='pointer-events-none absolute inset-0 opacity-70 dark:opacity-50'
+          className='hidden md:block pointer-events-none absolute inset-0 opacity-70 dark:opacity-50'
           aria-hidden
         >
           <Threads
