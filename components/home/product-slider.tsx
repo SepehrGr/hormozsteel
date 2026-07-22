@@ -77,7 +77,7 @@ export default function ProductSlider({
               <button
                 type='button'
                 aria-label='Previous prices'
-                className='prices-nav-prev flex h-8 w-8 items-center justify-center text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                className='prices-nav-prev flex h-8 w-8 items-center justify-center text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
               >
                 <ChevronLeft className='h-4 w-4' />
               </button>
@@ -85,7 +85,7 @@ export default function ProductSlider({
               <button
                 type='button'
                 aria-label='Next prices'
-                className='prices-nav-next flex h-8 w-8 items-center justify-center text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                className='prices-nav-next flex h-8 w-8 items-center justify-center text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
               >
                 <ChevronRight className='h-4 w-4' />
               </button>
