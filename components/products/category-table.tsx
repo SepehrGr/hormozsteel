@@ -3,7 +3,13 @@
 import React, { useState } from 'react'
 import type { Product, ProductCategory } from '@/types/products'
 import OrderRequestModal from '@/components/products/order-request-modal'
-import { Calculator, Package, TrendingDown, TrendingUp, Minus } from 'lucide-react'
+import {
+  Calculator,
+  Package,
+  TrendingDown,
+  TrendingUp,
+  Minus,
+} from 'lucide-react'
 
 interface CategoryTableProps {
   category?: ProductCategory
@@ -85,7 +91,9 @@ export default function CategoryTable({
     return (
       <div className='border border-border bg-card py-10 text-center'>
         <Package className='mx-auto mb-3 h-10 w-10 text-muted-foreground' />
-        <p className='text-sm text-muted-foreground'>No products in this group</p>
+        <p className='text-sm text-muted-foreground'>
+          No products in this group
+        </p>
       </div>
     )
   }
@@ -127,15 +135,14 @@ export default function CategoryTable({
                   className='text-sm transition-colors duration-200 ease-out hover:bg-muted/50'
                 >
                   <td className='px-4 py-3'>
-                    <div className='font-medium text-foreground'>{product.name}</div>
-                    <div className='mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
-                      {product.brand && <span>{product.brand}</span>}
-                      {!product.inStock && (
-                        <span className='border border-amber-700/30 bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-200'>
-                          Limited / inquiry
-                        </span>
-                      )}
+                    <div className='font-medium text-foreground'>
+                      {product.name}
                     </div>
+                    {!product.inStock && (
+                      <span className='border border-amber-700/30 bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-200'>
+                        Limited / Inquiry
+                      </span>
+                    )}
                   </td>
                   <td className='px-3 py-3 text-center'>
                     <span className='inline-block border border-border bg-muted/40 px-2 py-0.5 font-mono text-xs tabular-nums text-foreground'>
