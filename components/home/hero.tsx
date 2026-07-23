@@ -75,7 +75,7 @@ export default function Hero() {
           />
         </div>
 
-        <div className='relative mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16 lg:py-20'>
+        <div className='relative mx-auto max-w-7xl px-4 py-4 md:px-6 md:py-16 lg:py-20'>
           {/* Session strip */}
           <div className='mb-8 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border pb-4 text-xs text-muted-foreground'>
             <span className='inline-flex items-center gap-2 font-medium text-foreground'>
