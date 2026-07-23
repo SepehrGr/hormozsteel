@@ -14,6 +14,7 @@ export const Logo: React.FC<IconSvgProps> = ({
     viewBox='0 0 996 911'
     fill='none'
     xmlns='http://www.w3.org/2000/svg'
+    className='w-10 h-10 md:w-12 md:h-12'
   >
     <path
       d='M20.5 890.5V20.5H190.5V116V291V890.5H20.5Z'
