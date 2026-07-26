@@ -10,9 +10,9 @@ import {
   NavbarMenuItem,
 } from '@heroui/navbar'
 import NextLink from 'next/link'
-import { useState } from 'react'
+import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-
 import { siteConfig } from '@/config/site'
 import { PRODUCT_NAV } from '@/types/products'
 import { ThemeSwitch } from '@/components/layout/theme-switch'
@@ -31,111 +31,79 @@ const weightData = [
   { href: '/weight/sheet', label: 'Sheet weight' },
 ]
 
-const mobileNavLinkClass =
-  'block w-full px-3 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+const mobileLinkClass =
+  'block w-full pl-8 py-3 text-sm text-muted-foreground transition-colors duration-150 ease-out hover:bg-muted hover:text-foreground'
+
+const mobileTopLinkClass =
+  'block w-full px-4 py-3.5 font-medium text-foreground transition-colors duration-150 ease-out hover:bg-muted'
 
 function MobileAccordion({
   title,
   children,
+  defaultOpen = false,
 }: {
   title: string
   children: React.ReactNode
+  defaultOpen?: boolean
 }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <div className='border-b border-border'>
+    <div className=''>
       <button
         type='button'
         onClick={() => setOpen(v => !v)}
-        className='flex w-full items-center justify-between px-3 py-3 text-left text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+        className='flex border-b sticky top-0 bg-background w-full cursor-pointer items-center justify-between px-4 py-3.5 text-left font-medium text-foreground transition-colors duration-150 ease-out hover:bg-muted'
+        aria-expanded={open}
       >
         {title}
         <ChevronDown
-          className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ease-out ${
+          className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-out ${
             open ? 'rotate-180' : ''
           }`}
         />
       </button>
-      {open ? (
-        <div className='border-t border-border bg-muted/30 pb-2'>
-          {children}
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
-function MobileCategoryBlock({
-  title,
-  href,
-  items,
-}: {
-  title: string
-  href: string
-  items: Array<{ href: string; label: string }>
-}) {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div>
-      <button
-        type='button'
-        onClick={() => setOpen(v => !v)}
-        className='flex w-full items-center justify-between px-3 py-2 text-left text-sm text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
-      >
-        {title}
-        <ChevronDown
-          className={`h-3.5 w-3.5 transition-transform duration-200 ease-out ${
-            open ? 'rotate-180' : ''
-          }`}
-        />
-      </button>
-      {open ? (
-        <div className='pb-1 pl-3'>
-          <NextLink
-            href={href}
-            className='block px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted'
-          >
-            All {title}
-          </NextLink>
-          {items.map(item => (
-            <NextLink
-              key={item.href}
-              href={item.href}
-              className='block px-3 py-1.5 text-sm text-muted-foreground transition-colors duration-150 ease-out hover:bg-muted hover:text-foreground'
-            >
-              {item.label}
-            </NextLink>
-          ))}
-        </div>
-      ) : null}
+      {open && <div className='bg-muted/50 pb-1'>{children}</div>}
     </div>
   )
 }
 
 export const Navbar = () => {
+  const pathname = usePathname()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMenuOpen(false)
+  }, [pathname])
+
+  const closeMenu = () => setIsMenuOpen(false)
+
   return (
     <HeroUINavbar
       maxWidth='2xl'
       position='sticky'
       isBordered={false}
       height='3.5rem'
+      isMenuOpen={isMenuOpen}
+      onMenuOpenChange={setIsMenuOpen}
       className='z-40 border-b border-border bg-background px-0 py-2'
       classNames={{
         wrapper: 'mx-auto w-full max-w-7xl gap-4 px-4 md:px-6',
         item: 'data-[active=true]:font-medium',
+        menu: 'z-50 border-t border-border bg-background px-0 pt-0',
       }}
     >
       <NavbarContent className='basis-full' justify='start'>
         <NavbarBrand as='li' className='max-w-fit gap-0'>
           <NextLink
             href='/'
+            onClick={closeMenu}
             className='flex items-center gap-2.5 text-foreground transition-opacity duration-200 ease-out hover:opacity-80'
           >
             <Logo className='h-8 w-8' />
             <span className='flex flex-col leading-none'>
-              <span className='text-sm font-semibold tracking-tight sm:text-[1.15rem]'>
+              <span className='hidden md:block font-semibold tracking-tight sm:text-[1.15rem]'>
                 {siteConfig.name}
               </span>
             </span>
@@ -167,39 +135,52 @@ export const Navbar = () => {
       <NavbarContent className='basis-auto lg:hidden' justify='end'>
         <ThemeSwitch />
         <NavbarMenuToggle
-          className='h-8 w-8 min-w-8 border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted data-[open=true]:bg-muted'
-          aria-label='Toggle menu'
+          className='h-8 w-8 min-w-8 cursor-pointer rounded-none border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+          aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
         />
       </NavbarContent>
 
-      <NavbarMenu className='z-50 border-t border-border bg-background px-0 pt-0'>
-        <div className='mx-auto w-full max-w-7xl border-x border-border bg-card'>
-          <NavbarMenuItem>
-            <NextLink href='/' className={mobileNavLinkClass}>
-              Home
-            </NextLink>
-          </NavbarMenuItem>
-
-          <NavbarMenuItem className='p-0'>
+      <NavbarMenu className='mt-4'>
+        <div className='mx-auto w-full max-w-7xl overflow-y-auto bg-background'>
+          <NavbarMenuItem className='list-none p-0'>
             <MobileAccordion title='Products'>
               {PRODUCT_NAV.map(group => (
-                <MobileCategoryBlock
+                <div
                   key={group.name}
-                  title={group.label}
-                  href={group.href}
-                  items={group.items}
-                />
+                  className='border-b border-border/60 last:border-b-0'
+                >
+                  <NextLink
+                    href={group.href}
+                    onClick={closeMenu}
+                    className='block px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-150 ease-out hover:bg-muted'
+                  >
+                    All {group.label}
+                  </NextLink>
+                  <div className='pb-1'>
+                    {group.items.map(item => (
+                      <NextLink
+                        key={item.href}
+                        href={item.href}
+                        onClick={closeMenu}
+                        className={mobileLinkClass}
+                      >
+                        {item.label}
+                      </NextLink>
+                    ))}
+                  </div>
+                </div>
               ))}
             </MobileAccordion>
           </NavbarMenuItem>
 
-          <NavbarMenuItem className='p-0'>
+          <NavbarMenuItem className='list-none p-0'>
             <MobileAccordion title='Calculators'>
               {weightData.map(item => (
                 <NextLink
                   key={item.href}
                   href={item.href}
-                  className='block px-3 py-2 text-sm text-muted-foreground transition-colors duration-150 ease-out hover:bg-muted hover:text-foreground'
+                  onClick={closeMenu}
+                  className={mobileLinkClass}
                 >
                   {item.label}
                 </NextLink>
@@ -210,17 +191,25 @@ export const Navbar = () => {
           {siteConfig.navMenuItems
             .filter(item => item.href !== '/')
             .map(item => (
-              <NavbarMenuItem key={item.href}>
-                <NextLink href={item.href} className={mobileNavLinkClass}>
+              <NavbarMenuItem
+                key={item.href}
+                className='list-none border-b border-border p-0'
+              >
+                <NextLink
+                  href={item.href}
+                  onClick={closeMenu}
+                  className={mobileTopLinkClass}
+                >
                   {item.label}
                 </NextLink>
               </NavbarMenuItem>
             ))}
 
-          <div className='border-t border-border px-3 py-4'>
+          <div className='px-4 py-4'>
             <NextLink
               href='/contact'
-              className='inline-flex w-full items-center justify-center bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
+              onClick={closeMenu}
+              className='inline-flex w-full cursor-pointer items-center justify-center bg-primary px-4 py-2.5 font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
             >
               Request a quote
             </NextLink>
