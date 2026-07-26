@@ -242,7 +242,6 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
                 </span>
               </div>
               <ProductTable
-                category={category}
                 products={productsByBrand[brand]}
                 onOrder={handleOrder}
                 onCalculate={handleCalculate}

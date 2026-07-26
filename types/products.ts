@@ -223,14 +223,6 @@ export const PRODUCT_NAV = PRODUCT_CATEGORIES.map(c => ({
   })),
 }))
 
-export const BRANDS = [
-  'Caspian Steel Mills',
-  'Hormoz Rolling Co.',
-  'Alborz Metal Works',
-  'Persian Gulf Steel',
-  'Zagros Alloy',
-]
-
 /** Common rebar diameters (mm) for filter chips. */
 export const REBAR_SIZES = [
   '8',
