@@ -1,9 +1,10 @@
 import Link from 'next/link'
+import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import CategoryProducts from '@/components/products/category-products'
 import ProductsSidebar from '@/components/products/products-sidebar'
-import { PRODUCT_CATEGORIES } from '@/types/products'
 import { resolveCategoryIcon } from '@/config/category-icons'
+import { prisma } from '@/lib/prisma'
 import { ChevronRight } from 'lucide-react'
 
 interface PageProps {
@@ -12,15 +13,15 @@ interface PageProps {
   }>
 }
 
-export async function generateStaticParams() {
-  return PRODUCT_CATEGORIES.map(category => ({
-    categorySlug: category.id,
-  }))
-}
+export const dynamic = 'force-dynamic'
+
+const getCategory = cache((slug: string) =>
+  prisma.category.findUnique({ where: { slug } }),
+)
 
 export async function generateMetadata({ params }: PageProps) {
   const { categorySlug } = await params
-  const category = PRODUCT_CATEGORIES.find(cat => cat.id === categorySlug)
+  const category = await getCategory(categorySlug)
 
   if (!category) {
     return { title: 'Category not found · Hormoz Steel' }
@@ -34,14 +35,14 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function CategoryPage({ params }: PageProps) {
   const { categorySlug } = await params
-  const category = PRODUCT_CATEGORIES.find(cat => cat.id === categorySlug)
+  const category = await getCategory(categorySlug)
 
   if (!category) {
     notFound()
   }
 
   const iconClass = resolveCategoryIcon(category.icon ?? category.slug)
-  const code = category.id.toUpperCase()
+  const code = category.slug.toUpperCase()
 
   return (
     <div className='w-full'>
@@ -83,7 +84,8 @@ export default async function CategoryPage({ params }: PageProps) {
                     {category.name}
                   </h1>
                   <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base'>
-                    {category.description}. Filter by mill and size, compare unit
+                    {category.description ?? category.name}. Filter by mill and
+                    size, compare unit
                     rates in USD, and request a firm quote from sales.
                   </p>
                 </div>
@@ -125,7 +127,7 @@ export default async function CategoryPage({ params }: PageProps) {
               <CategoryProducts category={category} />
             </div>
             <div className='lg:col-span-3'>
-              <ProductsSidebar current={category.id} />
+              <ProductsSidebar current={category.slug} />
             </div>
           </div>
         </div>

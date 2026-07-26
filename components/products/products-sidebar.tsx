@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
-import { PRODUCT_CATEGORIES, productCategoryHref } from '@/types/products'
+import { productCategoryHref } from '@/types/products'
+import { useCategories } from '@/hooks/use-api'
 import { resolveCategoryIcon } from '@/config/category-icons'
 
 type Props = {
@@ -7,6 +10,8 @@ type Props = {
 }
 
 export default function ProductsSidebar({ current }: Props) {
+  const { categories } = useCategories()
+
   return (
     <aside className='sticky top-24 border border-border bg-card'>
       <div className='flex items-center justify-between border-b border-border px-4 py-3'>
@@ -22,7 +27,7 @@ export default function ProductsSidebar({ current }: Props) {
       </div>
 
       <ul className='divide-y divide-border'>
-        {PRODUCT_CATEGORIES.map(cat => {
+        {categories.map(cat => {
           const active = current === cat.slug || current === cat.id
           const iconClass = resolveCategoryIcon(cat.icon ?? cat.slug)
           return (

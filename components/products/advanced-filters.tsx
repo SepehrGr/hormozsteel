@@ -1,6 +1,7 @@
 'use client'
 
-import { PriceFilter, PRODUCT_CATEGORIES } from '@/types/products'
+import { PriceFilter } from '@/types/products'
+import { useCategories } from '@/hooks/use-api'
 import { Filter, RefreshCw } from 'lucide-react'
 
 interface AdvancedFiltersProps {
@@ -22,6 +23,8 @@ export default function AdvancedFilters({
   availableBrands = [],
   availableSizes = [],
 }: AdvancedFiltersProps) {
+  const { categories } = useCategories()
+
   const handleFilterChange = (key: keyof PriceFilter, value: unknown) => {
     onFiltersChange({
       ...filters,
@@ -96,18 +99,20 @@ export default function AdvancedFilters({
               Category
             </p>
             <div className='flex flex-col gap-1.5'>
-              {PRODUCT_CATEGORIES.map(category => (
+              {categories.map(category => (
                 <button
                   key={category.id}
                   type='button'
                   onClick={() =>
                     handleFilterChange(
                       'category',
-                      filters.category === category.id ? undefined : category.id,
+                      filters.category === category.slug
+                        ? undefined
+                        : category.slug,
                     )
                   }
                   className={`justify-start text-left ${chipClass(
-                    filters.category === category.id,
+                    filters.category === category.slug,
                   )}`}
                 >
                   {category.name}
