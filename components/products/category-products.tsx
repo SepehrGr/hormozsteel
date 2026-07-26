@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
+import { useProducts } from '@/hooks/use-api'
 import ProductTable from '@/components/products/product-table'
 import WeightCalculatorModal from '@/components/products/weight-calculator-modal'
 import OrderRequestModal from '@/components/products/order-request-modal'
@@ -31,9 +32,6 @@ function normalizeUnit(
 }
 
 export default function CategoryProducts({ category }: CategoryProductsProps) {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [searchDraft, setSearchDraft] = useState('')
@@ -43,27 +41,20 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
   const [selectedOrderProduct, setSelectedOrderProduct] =
     useState<Product | null>(null)
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        const url = `/api/products?category=${encodeURIComponent(category.slug)}&limit=1000`
-        const response = await fetch(url)
-        const data = await response.json()
-        if (data.success) {
-          setProducts(data.data.products)
-        } else {
-          setError(data.error || 'Failed to load products')
-        }
-      } catch {
-        setError('Failed to load products. Please try again.')
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchProducts()
-  }, [category.slug])
+  const {
+    products,
+    isLoading: loading,
+    isError,
+    error: fetchError,
+  } = useProducts({ category: category.slug, limit: 1000 })
+
+  // The API's own message when it answered, a generic one when the fetch itself failed
+  const error =
+    typeof fetchError === 'string'
+      ? fetchError
+      : isError
+        ? 'Failed to load products. Please try again.'
+        : null
 
   const filteredProducts = useMemo(() => {
     let list = products
