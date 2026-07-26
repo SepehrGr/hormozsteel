@@ -173,7 +173,7 @@ export default function OrderRequestModal({
     <dialog
       ref={dialogRef}
       aria-labelledby='order-request-title'
-      className='m-auto flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden border border-border bg-card p-0 text-foreground shadow-lg backdrop:bg-black/50 backdrop:backdrop-blur-sm'
+      className='m-auto max-h-[85vh] w-full max-w-xl flex-col overflow-hidden border border-border bg-card p-0 text-foreground shadow-lg backdrop:bg-black/50 backdrop:backdrop-blur-sm open:flex'
       onClose={handleClose}
     >
       {isOpen && (
