@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import RebarWeightCalculator from '@/components/calculators/rebar-weight-calculator'
 import SheetWeightCalculator from '@/components/calculators/sheet-weight-calculator'
@@ -44,6 +44,8 @@ export default function WeightCalculatorModal({
   includeVAT = false,
   formatPrice: customFormatPrice,
 }: WeightCalculatorModalProps) {
+  const dialogRef = useRef<HTMLDialogElement>(null)
+
   const searchText =
     `${productCategory || ''} ${productName || ''}`.toLowerCase()
 
@@ -103,61 +105,77 @@ export default function WeightCalculatorModal({
     }
   }
 
+  // showModal() gives focus trapping, Escape, and focus restore for free
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+
+    if (isOpen && !dialog.open) dialog.showModal()
+    if (!isOpen && dialog.open) dialog.close()
+  }, [isOpen])
+
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+
+    // A click landing on the dialog itself came from the ::backdrop.
+    // close() fires the native close event, which onClose below turns into the prop call.
+    const handleBackdropClick = (e: MouseEvent) => {
+      if (e.target === dialog) dialog.close()
+    }
+    dialog.addEventListener('click', handleBackdropClick)
+
+    return () => dialog.removeEventListener('click', handleBackdropClick)
+  }, [])
+
   useEffect(() => {
     if (!isOpen) return
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handleEscape)
+
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+
     return () => {
-      document.removeEventListener('keydown', handleEscape)
       document.body.style.overflow = prev
     }
-  }, [isOpen, onClose])
-
-  if (!isOpen) return null
+  }, [isOpen])
 
   return (
-    <div
-      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'
-      role='dialog'
-      aria-modal='true'
+    <dialog
+      ref={dialogRef}
       aria-labelledby='weight-calc-title'
+      className='m-auto max-h-[90vh] w-full max-w-2xl overflow-y-auto border border-border bg-card p-0 text-foreground shadow-sm backdrop:bg-black/50 backdrop:backdrop-blur-sm'
       dir='ltr'
-      onClick={onClose}
+      onClose={onClose}
     >
-      <div
-        className='max-h-[90vh] w-full max-w-2xl overflow-y-auto border border-border bg-card shadow-sm'
-        onClick={e => e.stopPropagation()}
-      >
-        <div className='flex items-start justify-between border-b border-border px-5 py-4'>
-          <div>
-            <h2
-              id='weight-calc-title'
-              className='text-base font-semibold tracking-tight text-foreground'
+      {isOpen && (
+        <>
+          <div className='flex items-start justify-between border-b border-border px-5 py-4'>
+            <div>
+              <h2
+                id='weight-calc-title'
+                className='text-base font-semibold tracking-tight text-foreground'
+              >
+                {TITLES[calculatorType] ?? 'Weight calculator'}
+              </h2>
+              <p className='mt-1 text-xs text-muted-foreground'>
+                {productName
+                  ? `For ${productName}`
+                  : 'Enter dimensions for an indicative mass'}
+                {productPrice != null ? ' · with line value' : ''}
+              </p>
+            </div>
+            <button
+              type='button'
+              onClick={onClose}
+              className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+              aria-label='Close'
             >
-              {TITLES[calculatorType] ?? 'Weight calculator'}
-            </h2>
-            <p className='mt-1 text-xs text-muted-foreground'>
-              {productName
-                ? `For ${productName}`
-                : 'Enter dimensions for an indicative mass'}
-              {productPrice != null ? ' · with line value' : ''}
-            </p>
+              <X className='h-4 w-4' />
+            </button>
           </div>
-          <button
-            type='button'
-            onClick={onClose}
-            className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-            aria-label='Close'
-          >
-            <X className='h-4 w-4' />
-          </button>
-        </div>
-        <div className='px-5 py-6'>{renderCalculator()}</div>
-      </div>
-    </div>
+          <div className='px-5 py-6'>{renderCalculator()}</div>
+        </>
+      )}
+    </dialog>
   )
 }
