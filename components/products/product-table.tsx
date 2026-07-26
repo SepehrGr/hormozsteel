@@ -1,8 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
-import type { Product, ProductCategory } from '@/types/products'
-import OrderRequestModal from '@/components/products/order-request-modal'
+import { useMemo } from 'react'
+import type { Product } from '@/types/products'
 import {
   Calculator,
   Package,
@@ -12,7 +11,6 @@ import {
 } from 'lucide-react'
 
 interface ProductTableProps {
-  category?: ProductCategory
   products: Product[]
   onOrder: (product: Product) => void
   onCalculate: (product: Product) => void
@@ -58,13 +56,7 @@ export default function ProductTable({
   onCalculate,
   formatPrice: customFormatPrice,
 }: ProductTableProps) {
-  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false)
-  const [selectedProductForOrder, setSelectedProductForOrder] = useState<{
-    name?: string
-    specs?: string
-  } | null>(null)
-
-  const sortedProducts = React.useMemo(() => {
+  const sortedProducts = useMemo(() => {
     return [...products].sort((a, b) => {
       const na = parseFloat(a.size)
       const nb = parseFloat(b.size)
@@ -77,15 +69,6 @@ export default function ProductTable({
   }, [products])
 
   const formatPrice = customFormatPrice || formatUsd
-
-  const openOrderModal = (product: Product) => {
-    setSelectedProductForOrder({
-      name: product.name,
-      specs: product.description || undefined,
-    })
-    setIsOrderModalOpen(true)
-    onOrder(product)
-  }
 
   if (products.length === 0) {
     return (
@@ -170,15 +153,15 @@ export default function ProductTable({
                     <div className='flex items-center justify-center gap-1.5'>
                       <button
                         type='button'
-                        onClick={() => openOrderModal(product)}
-                        className='inline-flex h-8 items-center border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                        onClick={() => onOrder(product)}
+                        className='inline-flex h-8 cursor-pointer items-center border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                       >
                         Request
                       </button>
                       <button
                         type='button'
                         onClick={() => onCalculate(product)}
-                        className='inline-flex h-8 w-8 items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                        className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                         title='Weight calculator'
                       >
                         <Calculator className='h-3.5 w-3.5' />
@@ -220,8 +203,8 @@ export default function ProductTable({
                 <td className='px-2 py-3 text-center'>
                   <button
                     type='button'
-                    onClick={() => openOrderModal(product)}
-                    className='inline-flex h-8 w-8 items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                    onClick={() => onOrder(product)}
+                    className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                     title='Request quote'
                   >
                     <Package className='h-3.5 w-3.5' />
@@ -232,13 +215,6 @@ export default function ProductTable({
           </tbody>
         </table>
       </div>
-
-      <OrderRequestModal
-        isOpen={isOrderModalOpen}
-        onClose={() => setIsOrderModalOpen(false)}
-        productName={selectedProductForOrder?.name}
-        productSpecs={selectedProductForOrder?.specs}
-      />
     </div>
   )
 }

@@ -10,7 +10,6 @@ interface UnifiedProductPageProps {
   features?: string[]
   applications?: string[]
   specifications?: { [key: string]: string }
-  productId: string
 }
 
 /** Thin wrapper so route pages can stay server components. */

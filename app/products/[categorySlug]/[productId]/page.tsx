@@ -91,7 +91,6 @@ export default async function DynamicProductPage({ params }: ProductPageProps) {
         'Quote basis': 'Ex-works style demo rates',
         Units: 'Per product (kg / ton / meter / piece)',
       }}
-      productId={productId}
     />
   )
 }
