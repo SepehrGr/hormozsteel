@@ -1,17 +1,15 @@
-'use client'
+import type { CategoryDTO } from '@/types/products'
 
 import Link from 'next/link'
 import { productCategoryHref } from '@/types/products'
-import { useCategories } from '@/hooks/use-api'
 import { resolveCategoryIcon } from '@/config/category-icons'
 
 type Props = {
+  categories: CategoryDTO[]
   currentSlug?: string
 }
 
-export default function ProductsSidebar({ currentSlug }: Props) {
-  const { categories } = useCategories()
-
+export default function ProductsSidebar({ categories, currentSlug }: Props) {
   return (
     <aside className='sticky top-24 border border-border bg-card'>
       <div className='flex items-center justify-between border-b border-border px-4 py-3'>
@@ -30,6 +28,7 @@ export default function ProductsSidebar({ currentSlug }: Props) {
         {categories.map(cat => {
           const active = currentSlug === cat.slug
           const iconClass = resolveCategoryIcon(cat.icon ?? cat.slug)
+
           return (
             <li key={cat.slug}>
               <Link
