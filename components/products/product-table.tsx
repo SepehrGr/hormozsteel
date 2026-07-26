@@ -161,6 +161,7 @@ export default function ProductTable({
                       <button
                         type='button'
                         onClick={() => onCalculate(product)}
+                        aria-label={`Weight calculator for ${product.name}`}
                         className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                         title='Weight calculator'
                       >
