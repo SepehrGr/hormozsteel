@@ -1,25 +1,66 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server'
+import { Prisma, QuickOrderStatus } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
+import { logAdminAction, requireApiAuth } from '@/lib/admin-auth'
+import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
+
+/** Public quote submissions get a tighter budget than the admin reads. */
+const SUBMIT_MAX_ATTEMPTS = 20
+const SUBMIT_WINDOW_MS = 15 * 60 * 1000
+
+function parseStatus(value: string | null) {
+  if (!value) return null
+
+  const upper = value.toUpperCase()
+
+  return upper in QuickOrderStatus ? (upper as QuickOrderStatus) : null
+}
+
+function isMissingRecord(error: unknown) {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2025'
+  )
+}
 
 // GET /api/quick-orders - Get all quick orders (Admin only)
 export async function GET(request: NextRequest) {
+  const rateLimitResponse = checkApiRateLimitAndRespond(request)
+  if (rateLimitResponse) return rateLimitResponse
+
+  const { error: authError } = await requireApiAuth()
+  if (authError) return authError
+
   try {
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const { searchParams } = new URL(request.url)
+    const statusParam = searchParams.get('status')
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1)
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(searchParams.get('limit') || '50') || 50),
+    )
 
-    // Build where clause
-    const where: any = {};
+    const where: Prisma.QuickOrderWhereInput = {}
 
-    if (status && status !== 'all') {
-      where.status = status.toUpperCase();
+    if (statusParam && statusParam !== 'all') {
+      const status = parseStatus(statusParam)
+
+      if (!status) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Unknown status "${statusParam}"`,
+            details: `Expected one of: ${Object.keys(QuickOrderStatus).join(', ')}`,
+          },
+          { status: 400 },
+        )
+      }
+
+      where.status = status
     }
 
-    // Calculate skip for pagination
-    const skip = (page - 1) * limit;
+    const skip = (page - 1) * limit
 
-    // Get quick orders
     const [quickOrders, total] = await Promise.all([
       prisma.quickOrder.findMany({
         where,
@@ -30,12 +71,9 @@ export async function GET(request: NextRequest) {
         take: limit,
       }),
       prisma.quickOrder.count({ where }),
-    ]);
+    ])
 
-    // Calculate pagination info
-    const totalPages = Math.ceil(total / limit);
-    const hasNextPage = page < totalPages;
-    const hasPrevPage = page > 1;
+    const totalPages = Math.ceil(total / limit)
 
     return NextResponse.json({
       success: true,
@@ -46,27 +84,35 @@ export async function GET(request: NextRequest) {
           limit,
           total,
           totalPages,
-          hasNextPage,
-          hasPrevPage,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1,
         },
       },
-    });
+    })
   } catch (error) {
-    console.error('Error fetching quick orders:', error);
+    console.error('Error fetching quick orders:', error)
+
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to fetch quick orders',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }
 
-// POST /api/quick-orders - Create a new quick order
+// POST /api/quick-orders - Create a new quick order (public quote form)
 export async function POST(request: NextRequest) {
+  const rateLimitResponse = checkApiRateLimitAndRespond(
+    request,
+    SUBMIT_MAX_ATTEMPTS,
+    SUBMIT_WINDOW_MS,
+  )
+  if (rateLimitResponse) return rateLimitResponse
+
   try {
-    const body = await request.json();
+    const body = await request.json()
     const {
       customerName,
       companyName,
@@ -78,29 +124,29 @@ export async function POST(request: NextRequest) {
       deliveryMethod,
       additionalNotes,
       productName,
-    } = body;
+    } = body
 
     // Validation
     if (!customerName || !phoneNumber || !city || !productSpecs || !quantity) {
       return NextResponse.json(
         {
           success: false,
-          error: 'لطفاً تمام فیلدهای ضروری را پر کنید',
+          error: 'Please fill in all the required fields.',
         },
-        { status: 400 }
-      );
+        { status: 400 },
+      )
     }
 
-    // Validate phone number format (Iranian phone numbers)
-    const phoneRegex = /^(\+98|0)?9\d{9}$/;
+    // Validate phone number format
+    const phoneRegex = /^\+?[\d\s()-]{7,20}$/
     if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
       return NextResponse.json(
         {
           success: false,
-          error: 'فرمت شماره تلفن صحیح نیست',
+          error: 'Phone number format is incorrect.',
         },
-        { status: 400 }
-      );
+        { status: 400 },
+      )
     }
 
     // Create quick order
@@ -118,104 +164,152 @@ export async function POST(request: NextRequest) {
         productName: productName?.trim() || null,
         status: 'PENDING',
       },
-    });
+    })
 
     return NextResponse.json(
       {
         success: true,
-        message: 'سفارش شما با موفقیت ثبت شد. به زودی با شما تماس خواهیم گرفت.',
+        message:
+          'Order request submitted. Sales will get back to you the next business day.',
         data: quickOrder,
       },
-      { status: 201 }
-    );
+      { status: 201 },
+    )
   } catch (error) {
-    console.error('Error creating quick order:', error);
+    console.error('Error creating quick order:', error)
+
     return NextResponse.json(
       {
         success: false,
-        error: 'خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.',
+        error: 'Failed to submit quote request. Please try again.',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }
 
-// PATCH /api/quick-orders - Update quick order status
+// PATCH /api/quick-orders - Update quick order status (Admin only)
 export async function PATCH(request: NextRequest) {
+  const rateLimitResponse = checkApiRateLimitAndRespond(request)
+  if (rateLimitResponse) return rateLimitResponse
+
+  const { session, error: authError } = await requireApiAuth()
+  if (authError) return authError
+
   try {
-    const body = await request.json();
-    const { id, status } = body;
+    const body = await request.json()
+    const { id, status: statusInput } = body
 
     if (!id) {
       return NextResponse.json(
         {
           success: false,
-          error: 'شناسه سفارش الزامی است',
+          error: 'Order ID is required',
         },
-        { status: 400 }
-      );
+        { status: 400 },
+      )
     }
 
-    const updateData: any = {};
+    const status = parseStatus(statusInput)
 
-    if (status) {
-      updateData.status = status.toUpperCase();
+    if (!status) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'A valid status is required',
+          details: `Expected one of: ${Object.keys(QuickOrderStatus).join(', ')}`,
+        },
+        { status: 400 },
+      )
     }
 
     const quickOrder = await prisma.quickOrder.update({
       where: { id },
-      data: updateData,
-    });
+      data: { status },
+    })
+
+    await logAdminAction(
+      session.user.id,
+      'UPDATE',
+      'QuickOrder',
+      quickOrder.id,
+      { status },
+      request,
+    )
 
     return NextResponse.json({
       success: true,
-      message: 'وضعیت با موفقیت بروزرسانی شد',
+      message: 'Order status updated successfully',
       data: quickOrder,
-    });
+    })
   } catch (error) {
-    console.error('Error updating quick order:', error);
+    if (isMissingRecord(error)) {
+      return NextResponse.json(
+        { success: false, error: 'Order not found' },
+        { status: 404 },
+      )
+    }
+
+    console.error('Error updating quick order:', error)
+
     return NextResponse.json(
       {
         success: false,
-        error: 'خطا در بروزرسانی وضعیت',
+        error: 'Order status update failed',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }
 
-// DELETE /api/quick-orders - Delete a quick order
+// DELETE /api/quick-orders - Delete a quick order (Admin only)
 export async function DELETE(request: NextRequest) {
+  const rateLimitResponse = checkApiRateLimitAndRespond(request)
+  if (rateLimitResponse) return rateLimitResponse
+
+  const { session, error: authError } = await requireApiAuth()
+  if (authError) return authError
+
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
 
     if (!id) {
       return NextResponse.json(
         {
           success: false,
-          error: 'شناسه سفارش الزامی است',
+          error: 'Order ID is required',
         },
-        { status: 400 }
-      );
+        { status: 400 },
+      )
     }
 
     await prisma.quickOrder.delete({
       where: { id },
-    });
+    })
+
+    await logAdminAction(session.user.id, 'DELETE', 'QuickOrder', id, null, request)
 
     return NextResponse.json({
       success: true,
-      message: 'سفارش با موفقیت حذف شد',
-    });
+      message: 'Order removed successfully',
+    })
   } catch (error) {
-    console.error('Error deleting quick order:', error);
+    if (isMissingRecord(error)) {
+      return NextResponse.json(
+        { success: false, error: 'Order not found' },
+        { status: 404 },
+      )
+    }
+
+    console.error('Error deleting quick order:', error)
+
     return NextResponse.json(
       {
         success: false,
-        error: 'خطا در حذف سفارش',
+        error: 'Order deletion failed',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }
