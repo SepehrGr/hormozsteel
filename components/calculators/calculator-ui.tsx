@@ -3,6 +3,8 @@ import type { ReactNode } from 'react'
 export const fieldClass =
   'mt-1.5 w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground tabular-nums placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
 
+export const selectClass = `${fieldClass} cursor-pointer`
+
 export const labelClass =
   'block text-xs font-medium uppercase tracking-wide text-muted-foreground'
 
@@ -41,14 +43,14 @@ export function CalculatorActions({
       <button
         type='button'
         onClick={onCalculate}
-        className='inline-flex flex-1 items-center justify-center bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
+        className='inline-flex flex-1 cursor-pointer items-center justify-center bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
       >
         {calculateLabel}
       </button>
       <button
         type='button'
         onClick={onReset}
-        className='inline-flex items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+        className='inline-flex cursor-pointer items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
       >
         Reset
       </button>
@@ -158,7 +160,7 @@ export function DensitySelect({
         id={id}
         value={value}
         onChange={e => onChange(e.target.value)}
-        className={fieldClass}
+        className={selectClass}
       >
         {options.map(o => (
           <option key={o.value} value={o.value}>

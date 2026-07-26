@@ -53,7 +53,8 @@ export default function WeightCalculatorModal({
     if (searchText.includes('sheet') || searchText.includes('ورق'))
       return 'sheet'
     if (searchText.includes('beam') || searchText.includes('تیر')) return 'beam'
-    if (searchText.includes('pipe') || searchText.includes('لوله')) return 'pipe'
+    if (searchText.includes('pipe') || searchText.includes('لوله'))
+      return 'pipe'
     if (searchText.includes('angle') || searchText.includes('نبشی'))
       return 'angle'
     if (
@@ -103,16 +104,16 @@ export default function WeightCalculatorModal({
   }
 
   useEffect(() => {
+    if (!isOpen) return
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'hidden'
-    }
+    document.addEventListener('keydown', handleEscape)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
     return () => {
       document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
+      document.body.style.overflow = prev
     }
   }, [isOpen, onClose])
 
@@ -120,13 +121,17 @@ export default function WeightCalculatorModal({
 
   return (
     <div
-      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'
       role='dialog'
       aria-modal='true'
       aria-labelledby='weight-calc-title'
       dir='ltr'
+      onClick={onClose}
     >
-      <div className='max-h-[90vh] w-full max-w-2xl overflow-y-auto border border-border bg-card shadow-sm'>
+      <div
+        className='max-h-[90vh] w-full max-w-2xl overflow-y-auto border border-border bg-card shadow-sm'
+        onClick={e => e.stopPropagation()}
+      >
         <div className='flex items-start justify-between border-b border-border px-5 py-4'>
           <div>
             <h2
@@ -145,7 +150,7 @@ export default function WeightCalculatorModal({
           <button
             type='button'
             onClick={onClose}
-            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+            className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             aria-label='Close'
           >
             <X className='h-4 w-4' />
