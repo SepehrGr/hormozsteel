@@ -74,7 +74,7 @@ export default function Filters({
         >
           <option value=''>All categories</option>
           {(categories || []).map((category: any) => (
-            <option key={category.id} value={category.id}>
+            <option key={category.id} value={category.slug}>
               {category.name}
             </option>
           ))}
