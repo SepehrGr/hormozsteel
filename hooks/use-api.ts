@@ -1,3 +1,5 @@
+import type { CategoryDTO } from '@/types/products'
+
 import useSWR from 'swr'
 import { useState } from 'react'
 
@@ -199,7 +201,7 @@ export function useDeleteProduct() {
 
 // Categories hooks
 export function useCategories(includeProducts = false) {
-  const { data, error, mutate } = useSWR<ApiResponse<any[]>>(
+  const { data, error, mutate } = useSWR<ApiResponse<CategoryDTO[]>>(
     `/api/categories${includeProducts ? '?includeProducts=true' : ''}`,
     fetcher,
   )
@@ -214,7 +216,7 @@ export function useCategories(includeProducts = false) {
 }
 
 export function useCategory(id: string, includeProducts = false) {
-  const { data, error, mutate } = useSWR<ApiResponse<any>>(
+  const { data, error, mutate } = useSWR<ApiResponse<CategoryDTO>>(
     id
       ? `/api/categories/${id}${includeProducts ? '?includeProducts=true' : ''}`
       : null,
