@@ -1,12 +1,14 @@
-'use client'
-
 import Link from 'next/link'
-import { useCategories } from '@/hooks/use-api'
+import { prisma } from '@/lib/prisma'
 import { resolveCategoryIcon } from '@/config/category-icons'
 import { ArrowRight, ChevronRight } from 'lucide-react'
 
-export default function ProductsPage() {
-  const { categories } = useCategories()
+export const dynamic = 'force-dynamic'
+
+export default async function ProductsPage() {
+  const categories = await prisma.category.findMany({
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+  })
 
   return (
     <div className='w-full'>
