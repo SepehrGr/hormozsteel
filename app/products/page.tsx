@@ -1,11 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { PRODUCT_CATEGORIES } from '@/types/products'
+import { useCategories } from '@/hooks/use-api'
 import { resolveCategoryIcon } from '@/config/category-icons'
 import { ArrowRight, ChevronRight } from 'lucide-react'
 
 export default function ProductsPage() {
+  const { categories } = useCategories()
+
   return (
     <div className='w-full'>
       {/* Page header — matches About / Contact editorial strip */}
@@ -20,9 +22,9 @@ export default function ProductsPage() {
                 Product index
               </h1>
               <p className='mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base'>
-                Unit prices across rebar, beams, sheet, pipe, profiles, and related
-                lines. Open a board to filter by size and mill, then request a firm
-                quote from sales.
+                Unit prices across rebar, beams, sheet, pipe, profiles, and
+                related lines. Open a board to filter by size and mill, then
+                request a firm quote from sales.
               </p>
             </div>
             <dl className='grid grid-cols-2 gap-px overflow-hidden border border-border bg-border lg:col-span-5'>
@@ -31,7 +33,7 @@ export default function ProductsPage() {
                   Families
                 </dt>
                 <dd className='mt-0.5 font-mono text-lg font-semibold tabular-nums text-foreground'>
-                  {PRODUCT_CATEGORIES.length}
+                  {categories.length}
                 </dd>
               </div>
               <div className='bg-card px-4 py-3'>
@@ -46,7 +48,9 @@ export default function ProductsPage() {
                 <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
                   Currency
                 </dt>
-                <dd className='mt-0.5 text-sm font-medium text-foreground'>USD</dd>
+                <dd className='mt-0.5 text-sm font-medium text-foreground'>
+                  USD
+                </dd>
               </div>
               <div className='bg-card px-4 py-3'>
                 <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
@@ -82,15 +86,17 @@ export default function ProductsPage() {
             </Link>
           </div>
 
-          <div className='grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-3'>
-            {PRODUCT_CATEGORIES.map(category => {
-              const iconClass = resolveCategoryIcon(category.icon ?? category.slug)
-              const code = category.id.toUpperCase()
+          <div className='grid overflow-hidden sm:grid-cols-2 lg:grid-cols-3'>
+            {categories.map(category => {
+              const iconClass = resolveCategoryIcon(
+                category.icon ?? category.slug,
+              )
+              const code = category.slug.toUpperCase()
               return (
                 <Link
                   key={category.id}
-                  href={`/products/${category.id}`}
-                  className='group relative flex min-h-[9.5rem] flex-col justify-between overflow-hidden bg-card px-5 py-5 transition-colors duration-200 ease-out hover:bg-muted'
+                  href={`/products/${category.slug}`}
+                  className='group relative flex min-h-[9.5rem] flex-col justify-between overflow-hidden bg-card px-5 py-5 transition-colors duration-200 ease-out hover:bg-muted border border-border'
                 >
                   <i
                     className={`${iconClass} pointer-events-none absolute -right-1 bottom-1 text-[4.5rem] leading-none text-foreground/10 transition-colors duration-200 ease-out group-hover:text-foreground/15`}
@@ -131,8 +137,8 @@ export default function ProductsPage() {
               Need help shortlisting sizes?
             </h2>
             <p className='mt-2 max-w-lg text-sm text-muted-foreground'>
-              Share tonnage, grade, and delivery city — sales will reply with a firm
-              quote against the catalog board.
+              Share tonnage, grade, and delivery city — sales will reply with a
+              firm quote against the catalog board.
             </p>
           </div>
           <div className='flex flex-wrap gap-3'>

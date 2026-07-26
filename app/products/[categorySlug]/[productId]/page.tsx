@@ -1,69 +1,52 @@
+import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import UnifiedProductPage from '@/components/products/unified-product-page'
-import { PRODUCT_CATEGORIES, subcategorySlug } from '@/types/products'
+import { prisma } from '@/lib/prisma'
+import { subcategorySlug } from '@/types/products'
 
-interface ProductPageProps {
+interface PageProps {
   params: Promise<{
     categorySlug: string
     productId: string
   }>
 }
 
-function findCategory(categorySlug: string) {
-  return PRODUCT_CATEGORIES.find(
-    c => c.slug === categorySlug || c.id === categorySlug,
-  )
-}
+export const dynamic = 'force-dynamic'
 
-function findSubcategory(
-  category: (typeof PRODUCT_CATEGORIES)[number],
-  productId: string,
-) {
-  return category.subcategories.find(
+const getCategory = cache((slug: string) =>
+  prisma.category.findUnique({ where: { slug } }),
+)
+
+function findSubcategory(subcategories: string[], productId: string) {
+  return subcategories.find(
     sub => subcategorySlug(sub) === productId.toLowerCase(),
   )
 }
 
-/**
- * Pre-render category × subcategory pairs.
- * Route shape: /products/{categorySlug}/{subcategory-slug}
- */
-export async function generateStaticParams() {
-  return PRODUCT_CATEGORIES.flatMap(category =>
-    category.subcategories.map(sub => ({
-      categorySlug: category.slug,
-      productId: subcategorySlug(sub),
-    })),
-  )
-}
-
-export const dynamicParams = true
-
-export async function generateMetadata({ params }: ProductPageProps) {
+export async function generateMetadata({ params }: PageProps) {
   const { categorySlug, productId } = await params
-  const category = findCategory(categorySlug)
+  const category = await getCategory(categorySlug)
+
   if (!category) {
     return { title: 'Product not found · Hormoz Steel' }
   }
 
-  const subcategory = findSubcategory(category, productId)
-  const title = subcategory
-    ? `${subcategory} ${category.name}`
-    : category.name
+  const subcategory = findSubcategory(category.subcategories, productId)
+  const title = subcategory ? `${subcategory} ${category.name}` : category.name
 
   return {
     title: `${title} prices · Hormoz Steel`,
-    description: `USD unit prices for ${title}. ${category.description}`,
+    description: `USD unit prices for ${title}. ${category.description ?? category.name}.`,
   }
 }
 
-export default async function DynamicProductPage({ params }: ProductPageProps) {
+export default async function DynamicProductPage({ params }: PageProps) {
   const { categorySlug, productId } = await params
 
-  const category = findCategory(categorySlug)
+  const category = await getCategory(categorySlug)
   if (!category) notFound()
 
-  const subcategory = findSubcategory(category, productId)
+  const subcategory = findSubcategory(category.subcategories, productId)
   if (!subcategory) notFound()
 
   const title = `${subcategory} ${category.name}`
@@ -73,7 +56,7 @@ export default async function DynamicProductPage({ params }: ProductPageProps) {
       category={category.slug}
       subcategory={subcategory}
       title={title}
-      description={`${category.description} Filtered to the ${subcategory} line. Unit prices in USD.`}
+      description={`${category.description ?? category.name}. Filtered to the ${subcategory} line. Unit prices in USD.`}
       features={[
         'Unit prices from the demo catalog seed (not live market feeds)',
         'Filter by mill brand, size, stock, and price range',
