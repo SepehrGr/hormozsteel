@@ -119,25 +119,8 @@ export default function OrderRequestModal({
       const data = await response.json()
 
       if (data.success) {
-        setTrackingCode(
-          Math.random().toString(36).substring(2, 8).toUpperCase(),
-        )
+        setTrackingCode(data.data.id)
         setIsSubmitted(true)
-        setTimeout(() => {
-          setIsSubmitted(false)
-          setFormData({
-            customerName: '',
-            companyName: '',
-            phoneNumber: '',
-            city: '',
-            productSpecs: productSpecs,
-            quantity: '',
-            deliveryDate: '',
-            deliveryMethod: 'pickup',
-            additionalNotes: '',
-          })
-          onClose()
-        }, 3000)
       } else {
         setErrorMessage(data.error || 'Could not submit request.')
         setIsSubmitting(false)
@@ -148,12 +131,28 @@ export default function OrderRequestModal({
     }
   }
 
+  const handleClose = () => {
+    setIsSubmitted(false)
+    setFormData({
+      customerName: '',
+      companyName: '',
+      phoneNumber: '',
+      city: '',
+      productSpecs: productSpecs,
+      quantity: '',
+      deliveryDate: '',
+      deliveryMethod: 'pickup',
+      additionalNotes: '',
+    })
+    onClose()
+  }
+
   if (!isOpen) return null
 
   return (
     <div
       className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         role='dialog'
@@ -176,7 +175,7 @@ export default function OrderRequestModal({
           </div>
           <button
             type='button'
-            onClick={onClose}
+            onClick={handleClose}
             className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
             aria-label='Close'
           >
@@ -199,7 +198,7 @@ export default function OrderRequestModal({
               </p>
               {trackingCode ? (
                 <p className='inline-block border border-border bg-muted/40 px-3 py-2 font-mono text-sm text-foreground'>
-                  Ref · {trackingCode}
+                  Order ID: {trackingCode}
                 </p>
               ) : null}
             </div>
@@ -250,7 +249,6 @@ export default function OrderRequestModal({
                         handleInputChange('phoneNumber', e.target.value)
                       }
                       className={fieldClass}
-                      placeholder='+98 …'
                       dir='ltr'
                       required
                       disabled={isSubmitting}
@@ -266,7 +264,6 @@ export default function OrderRequestModal({
                       value={formData.city}
                       onChange={e => handleInputChange('city', e.target.value)}
                       className={fieldClass}
-                      placeholder='City'
                       required
                       disabled={isSubmitting}
                     />
@@ -283,7 +280,6 @@ export default function OrderRequestModal({
                         handleInputChange('companyName', e.target.value)
                       }
                       className={fieldClass}
-                      placeholder='Optional'
                       disabled={isSubmitting}
                     />
                   </div>
@@ -420,7 +416,7 @@ export default function OrderRequestModal({
               <div className='flex flex-col gap-2 border-t border-border pt-4 sm:flex-row'>
                 <button
                   type='button'
-                  onClick={onClose}
+                  onClick={handleClose}
                   disabled={isSubmitting}
                   className='inline-flex flex-1 cursor-pointer items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
                 >
