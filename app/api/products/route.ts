@@ -36,25 +36,21 @@ export async function GET(request: NextRequest) {
     const where: Prisma.ProductWhereInput = {}
 
     if (category) {
-      const isCuid = category.startsWith('c') && category.length > 20
-      if (isCuid) {
-        where.categoryId = category
-      } else {
-        const categoryRecord = await prisma.category.findUnique({
-          where: { slug: category },
-          select: { id: true },
-        })
-        if (!categoryRecord) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: `Category with slug "${category}" not found`,
-            },
-            { status: 404 },
-          )
-        }
-        where.categoryId = categoryRecord.id
+      const categoryRecord = await prisma.category.findUnique({
+        where: { slug: category },
+        select: { id: true },
+      })
+      if (!categoryRecord) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Category with slug "${category}" not found`,
+          },
+          { status: 404 },
+        )
       }
+
+      where.categoryId = categoryRecord.id
     }
 
     if (subcategory) where.subcategory = subcategory
