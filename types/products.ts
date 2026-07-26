@@ -69,12 +69,14 @@ export interface ProductFilters {
 }
 
 export interface PriceFilter {
+  category?: string
   brand?: string
   subcategory?: string
   inStock?: boolean
   search?: string
   minPrice?: number
   maxPrice?: number
+  size?: string | string[]
   thickness?: string | string[]
   sheetType?: string | string[]
   pipeType?: string | string[]
@@ -179,8 +181,7 @@ export const PRODUCT_CATEGORIES: Array<{
   },
 ]
 
-/** Static catalog category entry (matches PRODUCT_CATEGORIES items). */
-export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number]
+export type ProductCategory = CategoryDTO
 
 /** URL-safe slug for a subcategory label (e.g. "Hot-rolled" → "hot-rolled"). */
 export function subcategorySlug(label: string) {
