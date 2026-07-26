@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export async function getAuthSession() {
@@ -15,6 +16,27 @@ export async function requireAuth() {
   }
 
   return session
+}
+
+/**
+ * Auth gate for route handlers. `requireAuth()` redirects, which a `fetch`
+ * caller cannot follow and which a handler's own `catch` would turn into a
+ * 500 — API routes return 401 JSON instead.
+ */
+export async function requireApiAuth() {
+  const session = await getAuthSession()
+
+  if (!session?.user?.id) {
+    return {
+      session: null,
+      error: NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 },
+      ),
+    }
+  }
+
+  return { session, error: null }
 }
 
 export async function requireSuperAdmin() {
