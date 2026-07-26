@@ -48,7 +48,7 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
       try {
         setLoading(true)
         setError(null)
-        const url = `/api/products?category=${encodeURIComponent(category.id)}&limit=1000`
+        const url = `/api/products?category=${encodeURIComponent(category.slug)}&limit=1000`
         const response = await fetch(url)
         const data = await response.json()
         if (data.success) {
@@ -63,7 +63,7 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
       }
     }
     fetchProducts()
-  }, [category.id])
+  }, [category.slug])
 
   const filteredProducts = useMemo(() => {
     let list = products
