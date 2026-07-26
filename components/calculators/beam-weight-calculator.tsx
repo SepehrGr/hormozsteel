@@ -4,6 +4,7 @@ import { useState } from 'react'
 import {
   Field,
   fieldClass,
+  selectClass,
   CalculatorActions,
   CalculatorResult,
   FormulaNote,
@@ -50,7 +51,7 @@ export default function BeamWeightCalculator() {
             id='beamType'
             value={beamType}
             onChange={e => setBeamType(e.target.value)}
-            className={fieldClass}
+            className={selectClass}
           >
             <option value='IPE'>IPE</option>
             <option value='INP'>INP</option>
@@ -109,7 +110,11 @@ export default function BeamWeightCalculator() {
             className={fieldClass}
           />
         </Field>
-        <Field id='webThickness' label='Web thickness (mm)' className='sm:col-span-2'>
+        <Field
+          id='webThickness'
+          label='Web thickness (mm)'
+          className='sm:col-span-2'
+        >
           <input
             id='webThickness'
             type='number'

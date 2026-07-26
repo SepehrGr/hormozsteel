@@ -4,6 +4,7 @@ import { useState } from 'react'
 import {
   Field,
   fieldClass,
+  selectClass,
   CalculatorActions,
   CalculatorResult,
   FormulaNote,
@@ -88,7 +89,7 @@ export default function SheetWeightCalculator({
             id='sheetType'
             value={sheetType}
             onChange={e => setSheetType(e.target.value)}
-            className={fieldClass}
+            className={selectClass}
           >
             {SHEET_TYPES.map(t => (
               <option key={t.value} value={t.value}>
