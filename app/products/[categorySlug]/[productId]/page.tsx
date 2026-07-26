@@ -11,7 +11,21 @@ interface PageProps {
   }>
 }
 
-export const dynamic = 'force-dynamic'
+/** Sub-line pages are prerendered per category × subcategory, refreshed hourly. */
+export const revalidate = 3600
+
+export async function generateStaticParams() {
+  const categories = await prisma.category.findMany({
+    select: { slug: true, subcategories: true },
+  })
+
+  return categories.flatMap(category =>
+    category.subcategories.map(sub => ({
+      categorySlug: category.slug,
+      productId: subcategorySlug(sub),
+    })),
+  )
+}
 
 const getCategory = cache((slug: string) =>
   prisma.category.findUnique({ where: { slug } }),
