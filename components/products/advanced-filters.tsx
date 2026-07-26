@@ -1,16 +1,12 @@
 'use client'
 
 import { PriceFilter } from '@/types/products'
-import { useCategories } from '@/hooks/use-api'
 import { Filter, RefreshCw } from 'lucide-react'
 
 interface AdvancedFiltersProps {
   filters: PriceFilter
   onFiltersChange: (filters: PriceFilter) => void
   onClearFilters: () => void
-  showCategoryFilter?: boolean
-  currentCategory?: string
-  currentSubcategory?: string
   availableBrands?: string[]
   availableSizes?: string[]
 }
@@ -19,12 +15,9 @@ export default function AdvancedFilters({
   filters,
   onFiltersChange,
   onClearFilters,
-  showCategoryFilter = true,
   availableBrands = [],
   availableSizes = [],
 }: AdvancedFiltersProps) {
-  const { categories } = useCategories()
-
   const handleFilterChange = (key: keyof PriceFilter, value: unknown) => {
     onFiltersChange({
       ...filters,
@@ -93,35 +86,6 @@ export default function AdvancedFilters({
       </div>
 
       <div className='space-y-5 px-4 py-4'>
-        {showCategoryFilter && (
-          <div>
-            <p className='mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground'>
-              Category
-            </p>
-            <div className='flex flex-col gap-1.5'>
-              {categories.map(category => (
-                <button
-                  key={category.id}
-                  type='button'
-                  onClick={() =>
-                    handleFilterChange(
-                      'category',
-                      filters.category === category.slug
-                        ? undefined
-                        : category.slug,
-                    )
-                  }
-                  className={`justify-start text-left ${chipClass(
-                    filters.category === category.slug,
-                  )}`}
-                >
-                  {category.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {availableBrands.length > 0 && (
           <div>
             <p className='mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground'>
