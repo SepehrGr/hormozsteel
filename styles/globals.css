@@ -350,13 +350,21 @@
 }
 
 /* Leaflet map: colorful Voyager basemap + Google-like dark (not greyscale) */
-.map-tiles-light {
+.map-tiles {
   filter: none;
 }
 
-.map-tiles-dark {
+.dark .map-tiles {
   filter: invert(0.9) hue-rotate(0deg) brightness(0.95) contrast(1)
     saturate(0.5);
+}
+
+.leaflet-container {
+  background: #e5e3df;
+}
+
+.dark .leaflet-container {
+  background: #1d2c3d;
 }
 
 .leaflet-marker-pane,
