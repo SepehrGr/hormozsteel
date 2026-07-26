@@ -69,7 +69,6 @@ export interface ProductFilters {
 }
 
 export interface PriceFilter {
-  category?: string
   brand?: string
   subcategory?: string
   inStock?: boolean
