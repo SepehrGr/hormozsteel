@@ -38,21 +38,6 @@ export default function Hero() {
     return resolvedTheme === 'dark' ? AMBER_DARK : AMBER_LIGHT
   }, [mounted, resolvedTheme])
 
-  const sessionLabel = useMemo(() => {
-    try {
-      return new Intl.DateTimeFormat('en-US', {
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZoneName: 'short',
-      }).format(new Date())
-    } catch {
-      return new Date().toLocaleString('en-US')
-    }
-  }, [])
-
   useEffect(() => {
     const onResize = () => swiperRef.current?.update()
     window.addEventListener('resize', onResize)
@@ -76,24 +61,6 @@ export default function Hero() {
         </div>
 
         <div className='relative mx-auto max-w-7xl px-4 py-4 md:px-6 md:py-16 lg:py-20'>
-          {/* Session strip */}
-          <div className='mb-8 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border pb-4 text-xs text-muted-foreground'>
-            <span className='inline-flex items-center gap-2 font-medium text-foreground'>
-              <span className='relative flex h-2 w-2' aria-hidden>
-                <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/40 opacity-60' />
-                <span className='relative inline-flex h-2 w-2 rounded-full bg-emerald-600 dark:bg-emerald-500' />
-              </span>
-              Market open
-            </span>
-            <span className='hidden h-3 w-px bg-border sm:block' aria-hidden />
-            <span className='font-mono tabular-nums'>{sessionLabel}</span>
-            <span className='hidden h-3 w-px bg-border sm:block' aria-hidden />
-            <span>
-              Quotes in <span className='font-medium text-foreground'>USD</span>{' '}
-              · ex-works basis
-            </span>
-          </div>
-
           <div className='grid items-end gap-10 lg:grid-cols-12 lg:gap-8'>
             <div className='lg:col-span-7'>
               <p className='mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>

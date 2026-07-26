@@ -5,9 +5,9 @@ import Link from 'next/link'
 import {
   Product,
   PriceFilter,
-  PRODUCT_CATEGORIES,
   productCategoryHref,
 } from '@/types/products'
+import { useCategories } from '@/hooks/use-api'
 import { resolveCategoryIcon } from '@/config/category-icons'
 import ProductTable from '@/components/products/product-table'
 import AdvancedFilters from '@/components/products/advanced-filters'
@@ -33,8 +33,6 @@ interface ProductPageProps {
   features?: string[]
   applications?: string[]
   specifications?: { [key: string]: string }
-  productId?: string
-  enableSheetsToggle?: boolean
 }
 
 function formatUsd(price: number) {
@@ -76,8 +74,9 @@ export default function ProductPage({
     useState<Product | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [showFilters, setShowFilters] = useState(false)
+  const { categories } = useCategories()
 
-  const categoryInfo = PRODUCT_CATEGORIES.find(
+  const categoryInfo = categories.find(
     c => c.id === category || c.slug === category,
   )
   const iconClass = resolveCategoryIcon(
@@ -420,7 +419,6 @@ export default function ProductPage({
                         </span>
                       </div>
                       <ProductTable
-                        category={categoryInfo!}
                         products={brandProducts}
                         onOrder={handleOrder}
                         onCalculate={handleCalculate}
