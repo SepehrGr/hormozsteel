@@ -19,6 +19,10 @@ const getCategory = cache((slug: string) =>
   prisma.category.findUnique({ where: { slug } }),
 )
 
+const getCategories = cache(() =>
+  prisma.category.findMany({ orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
+)
+
 export async function generateMetadata({ params }: PageProps) {
   const { categorySlug } = await params
   const category = await getCategory(categorySlug)
@@ -35,7 +39,10 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function CategoryPage({ params }: PageProps) {
   const { categorySlug } = await params
-  const category = await getCategory(categorySlug)
+  const [category, categories] = await Promise.all([
+    getCategory(categorySlug),
+    getCategories(),
+  ])
 
   if (!category) {
     notFound()
@@ -127,7 +134,10 @@ export default async function CategoryPage({ params }: PageProps) {
               <CategoryProducts category={category} />
             </div>
             <div className='lg:col-span-3'>
-              <ProductsSidebar currentSlug={category.slug} />
+              <ProductsSidebar
+                categories={categories}
+                currentSlug={category.slug}
+              />
             </div>
           </div>
         </div>
