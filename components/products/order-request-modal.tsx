@@ -121,6 +121,7 @@ export default function OrderRequestModal({
       if (data.success) {
         setTrackingCode(data.data.id)
         setIsSubmitted(true)
+        setIsSubmitting(false)
       } else {
         setErrorMessage(data.error || 'Could not submit request.')
         setIsSubmitting(false)
