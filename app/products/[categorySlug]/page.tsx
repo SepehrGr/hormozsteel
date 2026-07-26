@@ -127,7 +127,7 @@ export default async function CategoryPage({ params }: PageProps) {
               <CategoryProducts category={category} />
             </div>
             <div className='lg:col-span-3'>
-              <ProductsSidebar current={category.slug} />
+              <ProductsSidebar currentSlug={category.slug} />
             </div>
           </div>
         </div>

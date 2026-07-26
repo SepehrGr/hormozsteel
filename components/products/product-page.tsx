@@ -26,7 +26,7 @@ import {
 } from 'lucide-react'
 
 interface ProductPageProps {
-  category: string
+  categorySlug: string
   subcategory: string
   title: string
   description?: string
@@ -55,7 +55,7 @@ function normalizeUnit(
 }
 
 export default function ProductPage({
-  category,
+  categorySlug,
   subcategory,
   title,
   description,
@@ -76,11 +76,9 @@ export default function ProductPage({
   const [showFilters, setShowFilters] = useState(false)
   const { categories } = useCategories()
 
-  const categoryInfo = categories.find(
-    c => c.id === category || c.slug === category,
-  )
+  const categoryInfo = categories.find(c => c.slug === categorySlug)
   const iconClass = resolveCategoryIcon(
-    categoryInfo?.icon ?? categoryInfo?.slug ?? category,
+    categoryInfo?.icon ?? categoryInfo?.slug ?? categorySlug,
   )
 
   useEffect(() => {
@@ -88,7 +86,7 @@ export default function ProductPage({
       try {
         setLoading(true)
         setError(null)
-        const url = `/api/products?category=${encodeURIComponent(category)}&subcategory=${encodeURIComponent(subcategory)}&limit=1000`
+        const url = `/api/products?category=${encodeURIComponent(categorySlug)}&subcategory=${encodeURIComponent(subcategory)}&limit=1000`
         const response = await fetch(url)
         const data = await response.json()
         if (data.success) {
@@ -103,11 +101,11 @@ export default function ProductPage({
       }
     }
     fetchProducts()
-  }, [category, subcategory])
+  }, [categorySlug, subcategory])
 
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
-      if (product.category?.slug && product.category.slug !== category) {
+      if (product.category?.slug && product.category.slug !== categorySlug) {
         return false
       }
       if (product.subcategory && product.subcategory !== subcategory) {
@@ -156,7 +154,7 @@ export default function ProductPage({
 
       return true
     })
-  }, [products, category, subcategory, filters, searchTerm])
+  }, [products, categorySlug, subcategory, filters, searchTerm])
 
   const productsByBrand = useMemo(() => {
     const grouped: Record<string, Product[]> = {}
@@ -261,10 +259,10 @@ export default function ProductPage({
             </Link>
             <ChevronRight className='h-3 w-3' />
             <Link
-              href={productCategoryHref(category)}
+              href={productCategoryHref(categorySlug)}
               className='transition-colors duration-200 ease-out hover:text-foreground'
             >
-              {categoryInfo?.name ?? category}
+              {categoryInfo?.name ?? categorySlug}
             </Link>
             <ChevronRight className='h-3 w-3' />
             <span className='text-foreground'>{subcategory}</span>
@@ -372,7 +370,7 @@ export default function ProductPage({
                 onFiltersChange={setFilters}
                 onClearFilters={() => setFilters({})}
                 showCategoryFilter={false}
-                currentCategory={category}
+                currentCategory={categorySlug}
                 currentSubcategory={subcategory}
                 availableBrands={availableBrands}
                 availableSizes={availableSizes}
@@ -507,7 +505,7 @@ export default function ProductPage({
           setSelectedProduct(null)
         }}
         productName={selectedProduct?.name}
-        productCategory={selectedProduct?.category?.name || category}
+        productCategory={selectedProduct?.category?.name || categorySlug}
         productPrice={selectedProduct?.price}
         productUnit={normalizeUnit(selectedProduct?.unit)}
         formatPrice={formatUsd}
