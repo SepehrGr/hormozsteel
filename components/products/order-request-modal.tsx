@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X, CheckCircle, Send } from 'lucide-react'
 
 interface OrderRequestModalProps {
@@ -49,6 +49,7 @@ export default function OrderRequestModal({
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [trackingCode, setTrackingCode] = useState('')
+  const dialogRef = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
     if (isOpen) {
@@ -62,17 +63,14 @@ export default function OrderRequestModal({
 
   useEffect(() => {
     if (!isOpen) return
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handleEscape)
+
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+
     return () => {
-      document.removeEventListener('keydown', handleEscape)
       document.body.style.overflow = prev
     }
-  }, [isOpen, onClose])
+  }, [isOpen])
 
   const handleInputChange = (field: keyof OrderFormData, value: string) => {
     setFormData(prev => ({
@@ -148,21 +146,39 @@ export default function OrderRequestModal({
     onClose()
   }
 
-  if (!isOpen) return null
+  // showModal() gives focus trapping, Escape, and focus restore for free
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+
+    if (isOpen && !dialog.open) dialog.showModal()
+    if (!isOpen && dialog.open) dialog.close()
+  }, [isOpen])
+
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+
+    // A click landing on the dialog itself came from the ::backdrop.
+    // close() fires the native close event, which onClose below turns into handleClose.
+    const handleBackdropClick = (e: MouseEvent) => {
+      if (e.target === dialog) dialog.close()
+    }
+    dialog.addEventListener('click', handleBackdropClick)
+
+    return () => dialog.removeEventListener('click', handleBackdropClick)
+  }, [])
 
   return (
-    <div
-      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'
-      onClick={handleClose}
+    <dialog
+      ref={dialogRef}
+      aria-labelledby='order-request-title'
+      className='m-auto flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden border border-border bg-card p-0 text-foreground shadow-lg backdrop:bg-black/50 backdrop:backdrop-blur-sm'
+      onClose={handleClose}
     >
-      <div
-        role='dialog'
-        aria-modal='true'
-        aria-labelledby='order-request-title'
-        className='flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden border border-border bg-card shadow-lg'
-        onClick={e => e.stopPropagation()}
-      >
-        <div className='flex items-center justify-between border-b border-border px-5 py-3'>
+      {isOpen && (
+        <>
+          <div className='flex items-center justify-between border-b border-border px-5 py-3'>
           <div>
             <p className='font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
               Sales desk
@@ -441,7 +457,8 @@ export default function OrderRequestModal({
             </form>
           )}
         </div>
-      </div>
-    </div>
+        </>
+      )}
+    </dialog>
   )
 }
