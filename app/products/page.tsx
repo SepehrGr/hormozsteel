@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { resolveCategoryIcon } from '@/config/category-icons'
 import { ArrowRight, ChevronRight } from 'lucide-react'
 
-export const dynamic = 'force-dynamic'
+/** Category index changes only when categories do — refreshed hourly. */
+export const revalidate = 3600
 
 export default async function ProductsPage() {
   const categories = await prisma.category.findMany({

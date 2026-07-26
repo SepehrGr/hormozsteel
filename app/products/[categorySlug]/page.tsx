@@ -13,7 +13,14 @@ interface PageProps {
   }>
 }
 
-export const dynamic = 'force-dynamic'
+/** Boards are prerendered per category and refreshed hourly; new slugs render on demand. */
+export const revalidate = 3600
+
+export async function generateStaticParams() {
+  const categories = await prisma.category.findMany({ select: { slug: true } })
+
+  return categories.map(category => ({ categorySlug: category.slug }))
+}
 
 const getCategory = cache((slug: string) =>
   prisma.category.findUnique({ where: { slug } }),
