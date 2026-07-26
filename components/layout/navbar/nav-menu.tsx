@@ -53,8 +53,8 @@ export default function NavMenu() {
           leaveFrom='opacity-100 translate-y-0'
           leaveTo='opacity-0 translate-y-1'
         >
-          <MenuItems className='absolute left-0 z-50 mt-1 flex w-[min(34rem,calc(100vw-2rem))] origin-top-left border border-border bg-border shadow-sm focus:outline-none dark:shadow-none'>
-            <div className='w-44 shrink-0 bg-muted/50'>
+          <MenuItems className='absolute left-0 z-50 mt-1 flex w-[min(34rem,calc(100vw-2rem))] origin-top-left border border-border shadow-sm focus:outline-none dark:shadow-none'>
+            <div className='w-44 shrink-0 bg-muted'>
               {PRODUCT_NAV.map(group => (
                 <button
                   key={group.name}
@@ -71,7 +71,7 @@ export default function NavMenu() {
                 </button>
               ))}
             </div>
-            <div className='max-h-80 flex-1 overflow-y-auto bg-card p-2'>
+            <div className='flex-1 overflow-y-auto bg-card p-2'>
               <MenuItem>
                 {({ focus }) => (
                   <Link
