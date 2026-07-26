@@ -60,6 +60,20 @@ export default function OrderRequestModal({
     }
   }, [isOpen, productSpecs])
 
+  useEffect(() => {
+    if (!isOpen) return
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleEscape)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+      document.body.style.overflow = prev
+    }
+  }, [isOpen, onClose])
+
   const handleInputChange = (field: keyof OrderFormData, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -105,7 +119,9 @@ export default function OrderRequestModal({
       const data = await response.json()
 
       if (data.success) {
-        setTrackingCode(Math.random().toString(36).substring(2, 8).toUpperCase())
+        setTrackingCode(
+          Math.random().toString(36).substring(2, 8).toUpperCase(),
+        )
         setIsSubmitted(true)
         setTimeout(() => {
           setIsSubmitted(false)
@@ -135,12 +151,16 @@ export default function OrderRequestModal({
   if (!isOpen) return null
 
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
+    <div
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'
+      onClick={onClose}
+    >
       <div
         role='dialog'
         aria-modal='true'
         aria-labelledby='order-request-title'
         className='flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden border border-border bg-card shadow-lg'
+        onClick={e => e.stopPropagation()}
       >
         <div className='flex items-center justify-between border-b border-border px-5 py-3'>
           <div>
@@ -157,7 +177,7 @@ export default function OrderRequestModal({
           <button
             type='button'
             onClick={onClose}
-            className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
+            className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
             aria-label='Close'
           >
             <X className='h-4 w-4' />
@@ -174,7 +194,8 @@ export default function OrderRequestModal({
                 Request received
               </h3>
               <p className='text-sm text-muted-foreground'>
-                Sales will follow up with firm pricing against the catalog board.
+                Sales will follow up with firm pricing against the catalog
+                board.
               </p>
               {trackingCode ? (
                 <p className='inline-block border border-border bg-muted/40 px-3 py-2 font-mono text-sm text-foreground'>
@@ -189,7 +210,9 @@ export default function OrderRequestModal({
                   <p className='text-[10px] uppercase tracking-wide text-muted-foreground'>
                     Line item
                   </p>
-                  <p className='mt-0.5 font-medium text-foreground'>{productName}</p>
+                  <p className='mt-0.5 font-medium text-foreground'>
+                    {productName}
+                  </p>
                 </div>
               ) : null}
 
@@ -279,7 +302,9 @@ export default function OrderRequestModal({
                     id='productSpecs'
                     type='text'
                     value={formData.productSpecs}
-                    onChange={e => handleInputChange('productSpecs', e.target.value)}
+                    onChange={e =>
+                      handleInputChange('productSpecs', e.target.value)
+                    }
                     className={fieldClass}
                     placeholder='Size, grade, mill…'
                     required
@@ -295,7 +320,9 @@ export default function OrderRequestModal({
                       id='quantity'
                       type='text'
                       value={formData.quantity}
-                      onChange={e => handleInputChange('quantity', e.target.value)}
+                      onChange={e =>
+                        handleInputChange('quantity', e.target.value)
+                      }
                       className={fieldClass}
                       placeholder='e.g. 5 tons'
                       required
@@ -395,14 +422,14 @@ export default function OrderRequestModal({
                   type='button'
                   onClick={onClose}
                   disabled={isSubmitting}
-                  className='inline-flex flex-1 items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:opacity-50'
+                  className='inline-flex flex-1 cursor-pointer items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
                 >
                   Cancel
                 </button>
                 <button
                   type='submit'
                   disabled={isSubmitting}
-                  className='inline-flex flex-1 items-center justify-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'
+                  className='inline-flex flex-1 cursor-pointer items-center justify-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'
                 >
                   {isSubmitting ? (
                     'Sending…'
