@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
   Product,
   PriceFilter,
   productCategoryHref,
 } from '@/types/products'
-import { useCategories } from '@/hooks/use-api'
+import { useCategories, useProducts } from '@/hooks/use-api'
 import { resolveCategoryIcon } from '@/config/category-icons'
 import ProductTable from '@/components/products/product-table'
 import AdvancedFilters from '@/components/products/advanced-filters'
@@ -63,9 +63,6 @@ export default function ProductPage({
   applications = [],
   specifications = {},
 }: ProductPageProps) {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<PriceFilter>({})
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false)
@@ -75,33 +72,24 @@ export default function ProductPage({
   const [searchTerm, setSearchTerm] = useState('')
   const [showFilters, setShowFilters] = useState(false)
   const { categories } = useCategories()
+  const {
+    products,
+    isLoading: loading,
+    isError,
+    error: fetchError,
+  } = useProducts({ category: categorySlug, subcategory, limit: 1000 })
 
   const categoryInfo = categories.find(c => c.slug === categorySlug)
   const iconClass = resolveCategoryIcon(
     categoryInfo?.icon ?? categoryInfo?.slug ?? categorySlug,
   )
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        const url = `/api/products?category=${encodeURIComponent(categorySlug)}&subcategory=${encodeURIComponent(subcategory)}&limit=1000`
-        const response = await fetch(url)
-        const data = await response.json()
-        if (data.success) {
-          setProducts(data.data.products)
-        } else {
-          setError(data.error || 'Failed to load products')
-        }
-      } catch {
-        setError('Failed to load products. Please try again.')
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchProducts()
-  }, [categorySlug, subcategory])
+  // The API's own message when it answered, a generic one when the fetch itself failed
+  const error =
+    typeof fetchError === 'string'
+      ? fetchError
+      : isError
+        ? 'Failed to load products. Please try again.'
+        : null
 
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
@@ -369,9 +357,6 @@ export default function ProductPage({
                 filters={filters}
                 onFiltersChange={setFilters}
                 onClearFilters={() => setFilters({})}
-                showCategoryFilter={false}
-                currentCategory={categorySlug}
-                currentSubcategory={subcategory}
                 availableBrands={availableBrands}
                 availableSizes={availableSizes}
               />
