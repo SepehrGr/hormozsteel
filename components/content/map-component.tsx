@@ -14,7 +14,7 @@ export default function MapComponent() {
   return (
     <div
       className='h-full w-full'
-      role='img'
+      role='region'
       aria-label='Map showing Hormoz Steel location in Bandar Abbas'
     >
       <MapContainer
