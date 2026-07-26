@@ -6,10 +6,10 @@ import { useCategories } from '@/hooks/use-api'
 import { resolveCategoryIcon } from '@/config/category-icons'
 
 type Props = {
-  current?: string
+  currentSlug?: string
 }
 
-export default function ProductsSidebar({ current }: Props) {
+export default function ProductsSidebar({ currentSlug }: Props) {
   const { categories } = useCategories()
 
   return (
@@ -28,7 +28,7 @@ export default function ProductsSidebar({ current }: Props) {
 
       <ul className='divide-y divide-border'>
         {categories.map(cat => {
-          const active = current === cat.slug || current === cat.id
+          const active = currentSlug === cat.slug
           const iconClass = resolveCategoryIcon(cat.icon ?? cat.slug)
           return (
             <li key={cat.slug}>

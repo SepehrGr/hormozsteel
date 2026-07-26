@@ -3,7 +3,7 @@
 import ProductPage from '@/components/products/product-page'
 
 interface UnifiedProductPageProps {
-  category: string
+  categorySlug: string
   subcategory: string
   title: string
   description?: string
