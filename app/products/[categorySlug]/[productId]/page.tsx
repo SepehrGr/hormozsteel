@@ -53,7 +53,7 @@ export default async function DynamicProductPage({ params }: PageProps) {
 
   return (
     <UnifiedProductPage
-      category={category.slug}
+      categorySlug={category.slug}
       subcategory={subcategory}
       title={title}
       description={`${category.description ?? category.name}. Filtered to the ${subcategory} line. Unit prices in USD.`}
