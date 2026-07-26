@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: PageProps) {
 
   return {
     title: `${category.name} prices · Hormoz Steel`,
-    description: `${category.description}. USD unit prices from the Hormoz Steel catalog.`,
+    description: `${category.description ?? category.name}. USD unit prices from the Hormoz Steel catalog.`,
   }
 }
 
