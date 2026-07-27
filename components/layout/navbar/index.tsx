@@ -146,6 +146,13 @@ export const Navbar = () => {
         <div className='mx-auto w-full max-w-7xl overflow-y-auto bg-background'>
           <NavbarMenuItem className='list-none p-0'>
             <MobileAccordion title='Products'>
+              <NextLink
+                className='block w-full border-b border-border/60 px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-150 ease-out hover:bg-muted'
+                href='/products'
+                onClick={closeMenu}
+              >
+                Full catalog
+              </NextLink>
               {PRODUCT_NAV.map(group => (
                 <div
                   key={group.name}
