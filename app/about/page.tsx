@@ -1,5 +1,17 @@
+import type { Metadata } from 'next'
+import type { SteelProfile } from '@/components/about/steel-profiles'
+
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'
+
+import { SteelProfileMark } from '@/components/about/steel-profiles'
+
+export const metadata: Metadata = {
+  title: 'About',
+  description:
+    'Hormoz Steel. Building since 1993, trading mill products since 2019. How we quote steel and what sales needs to price a package.',
+}
 
 const facts = [
   { label: 'Founded', value: '1993' },
@@ -8,12 +20,94 @@ const facts = [
   { label: 'Currency', value: 'USD · catalog' },
 ]
 
-const productLines = [
-  'Reinforcing bar (ribbed & plain)',
-  'Hot- and cold-rolled sheet (HRC / CRC)',
-  'Structural beams & sections (IPE, HEA, HEB)',
-  'Pipe, hollow sections, angles & channels',
-  'Wire, mesh, and billets',
+const chapters = [
+  {
+    year: '1993',
+    current: false,
+    title: 'Construction first',
+    body: 'Hormoz Steel started on job sites, where a late delivery or a wrong grade costs a week. That is where the habit of checking spec before price came from.',
+  },
+  {
+    year: '2019',
+    current: false,
+    title: 'Onto the board',
+    body: 'We opened a trading desk for mill products. Rebar, sheet, sections, pipe, billets, and started publishing what we would actually charge for them.',
+  },
+  {
+    year: 'Today',
+    current: true,
+    title: 'Priced in the open',
+    body: 'Unit rates sit on the catalog board in USD so procurement can estimate before the call. Sales turns a shortlist into a proforma with firm terms.',
+  },
+]
+
+const coverage: Array<{
+  profile: SteelProfile
+  name: string
+  spec: string
+  href: string
+}> = [
+  {
+    profile: 'rebar',
+    name: 'Rebar',
+    spec: 'Ribbed & plain · A3 · 8–32 mm',
+    href: '/products/rebar',
+  },
+  {
+    profile: 'coil',
+    name: 'Sheet',
+    spec: 'Hot-rolled · cold-rolled · coated',
+    href: '/products/sheet',
+  },
+  {
+    profile: 'beam',
+    name: 'Beams & profiles',
+    spec: 'IPE · HEA · HEB · UPE',
+    href: '/products/beam',
+  },
+  {
+    profile: 'pipe',
+    name: 'Pipe & tube',
+    spec: 'Seamed · seamless · galvanized',
+    href: '/products/pipe',
+  },
+  {
+    profile: 'angle',
+    name: 'Angles & channels',
+    spec: 'Angle · channel · T-bar',
+    href: '/products/angle',
+  },
+  {
+    profile: 'mesh',
+    name: 'Wire, mesh & billets',
+    spec: 'Drawn wire · welded mesh · billet',
+    href: '/products/wire',
+  },
+]
+
+/** Stock plates: Unsplash. Encoded to WebP at render width — see public/images/about. */
+const yard = [
+  {
+    src: '/images/about/coil.webp',
+    alt: 'Rows of cold-rolled steel coils stacked along a warehouse aisle',
+    title: 'Hot- & cold-rolled coil',
+    spec: 'HRC · CRC',
+    blur: 'data:image/webp;base64,UklGRmAAAABXRUJQVlA4IFQAAADwAQCdASoQAAwABMB4JaQAAxZfPLpkHaAA/vEgzevg1A3ZCWbjgyQNXJV59DRH/oMGku4yQ/dzE3KLovJcIRVSDJtPL48y/Uy06wppF3kvrsBIAAA=',
+  },
+  {
+    src: '/images/about/rebar-bundle.webp',
+    alt: 'Bundled reinforcing bar stacked and seen end-on',
+    title: 'Ribbed reinforcing bar',
+    spec: 'A3 · 8–32 mm',
+    blur: 'data:image/webp;base64,UklGRjYAAABXRUJQVlA4ICoAAACQAQCdASoQAAwABMB4JZQAAjtZAAAA/s69QLx5RyhbtAizeA2kTKNkAAA=',
+  },
+  {
+    src: '/images/about/pipe.webp',
+    alt: 'Stacked steel pipe seen end-on in a storage yard',
+    title: 'Pipe & hollow section',
+    spec: 'ERW · seamless',
+    blur: 'data:image/webp;base64,UklGRlIAAABXRUJQVlA4IEYAAADwAQCdASoQAAwABMB4JZwAAt1u08ZyobAA/vDmcQDS5aHv9aXAz6PDBTH1FiT3MiNxbEEGQRJODT+hLdn58S6D7+wCgAAA',
+  },
 ]
 
 const orderSteps = [
@@ -39,110 +133,138 @@ const orderSteps = [
   },
 ]
 
-const buyChecklist = [
+const quoteFields = [
   {
-    title: 'Product & standard',
-    body: 'Family (rebar, beam, sheet…), dimensions, grade (e.g. A3, ST37), and relevant standard.',
+    term: 'Product & standard',
+    detail:
+      'Family (rebar, beam, sheet…), dimensions, grade — for example A3 or ST37 — and the relevant standard.',
   },
   {
-    title: 'Volume & timing',
-    body: 'Tonnage or piece count, preferred ship window, and whether partial loads are acceptable.',
+    term: 'Volume & timing',
+    detail:
+      'Tonnage or piece count, preferred ship window, and whether partial loads are acceptable.',
   },
   {
-    title: 'Mill & quality',
-    body: 'Preferred mills where applicable; inspection or mill cert requirements before dispatch.',
+    term: 'Mill & quality',
+    detail:
+      'Preferred mills where applicable, plus any inspection or mill-certificate requirement before dispatch.',
   },
   {
-    title: 'Logistics',
-    body: 'Delivery city, site access, and who handles freight — so landed cost is clear.',
+    term: 'Logistics',
+    detail:
+      'Delivery city, site access, and who handles freight — so landed cost is clear from the start.',
   },
 ]
 
 /**
- * About — clean editorial + board sections, theme tokens.
+ * About — masthead plate, a dated track record, and the section chart of what
+ * we quote. Board tokens throughout; the profiles are the only drawn element.
  */
 export default function AboutPage() {
   return (
     <div className='w-full'>
-      {/* Page header */}
-      <header className='border-b border-border'>
-        <div className='mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14'>
-          <p className='mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
-            Company
+      {/* Masthead */}
+      <header className='border-b border-border bg-background'>
+        <div className='mx-auto max-w-7xl px-4 pb-12 pt-10 md:px-6 md:pb-16 md:pt-14'>
+          <p className='font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+            Company · Hormoz Steel
           </p>
-          <div className='grid gap-8 lg:grid-cols-12 lg:items-end'>
-            <div className='lg:col-span-7'>
-              <h1 className='max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl'>
-                Hormoz Steel
-              </h1>
-              <p className='mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base'>
-                Industrial steel supply for construction and fabrication —
-                transparent unit prices, clear specs, and a sales desk built for
-                procurement timelines.
-              </p>
-            </div>
-            <div className='grid grid-cols-2 gap-px overflow-hidden border border-border bg-border lg:col-span-5'>
-              {facts.map(fact => (
-                <div key={fact.label} className='bg-card px-4 py-3'>
-                  <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
-                    {fact.label}
-                  </dt>
-                  <dd className='mt-0.5 text-sm font-medium text-foreground'>
-                    {fact.value}
-                  </dd>
-                </div>
-              ))}
-            </div>
+
+          <div className='mt-6 grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-12'>
+            <h1 className='max-w-[15ch] text-4xl font-semibold leading-[1.02] tracking-[-0.03em] text-foreground sm:text-5xl lg:col-span-7 lg:text-[3.5rem]'>
+              We bought steel for our own sites before we sold it.
+            </h1>
+            <p className='max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base lg:col-span-5'>
+              Building since 1993, trading mill products since 2019. That order
+              matters. It is why we quote the way we wanted to be quoted: spec
+              first, then price, then logistics.
+            </p>
           </div>
+
+          {/* Plate: port operations, with the company datum on the sill */}
+          <figure className='relative mt-10 overflow-hidden border border-border bg-muted md:mt-12'>
+            <div className='relative aspect-[3/2] w-full sm:aspect-[2/1] lg:aspect-[21/10]'>
+              <Image
+                fill
+                priority
+                alt='Gantry cranes working a container vessel at a deepwater port at dusk'
+                blurDataURL='data:image/webp;base64,UklGRj4AAABXRUJQVlA4IDIAAADQAQCdASoQAAgABMB4JZQAAtubDSs3AAD+M+CT90D2nmcdkukE4S1I+DsJKTXbtmgAAA=='
+                className='object-cover'
+                placeholder='blur'
+                sizes='(max-width: 1280px) 100vw, 1280px'
+                src='/images/about/port-bandar-abbas.webp'
+              />
+            </div>
+
+            {/* Sill: below the plate on phones, floated on it once there is room */}
+            <figcaption className='bg-black/85 sm:absolute sm:inset-x-0 sm:bottom-0 sm:bg-gradient-to-t sm:from-black/90 sm:via-black/60 sm:to-transparent sm:pt-14'>
+              <dl className='grid grid-cols-2 gap-px border-t border-white/25 bg-white/25 sm:grid-cols-4'>
+                {facts.map(fact => (
+                  <div key={fact.label} className='bg-black/70 px-4 py-3'>
+                    <dt className='font-mono text-[10px] uppercase tracking-[0.16em] text-white/60'>
+                      {fact.label}
+                    </dt>
+                    <dd className='mt-1 text-sm font-medium text-white'>
+                      {fact.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </figcaption>
+          </figure>
         </div>
       </header>
 
-      {/* Story */}
-      <section className='border-b border-border bg-background'>
+      {/* Track record — the years do the ordering */}
+      <section className='border-b border-border bg-muted/30'>
         <div className='mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16'>
-          <div className='grid gap-10 lg:grid-cols-12 lg:gap-16'>
-            <div className='lg:col-span-4'>
-              <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
-                Overview
-              </h2>
-              <p className='mt-3 text-xl font-semibold tracking-tight text-foreground sm:text-2xl'>
-                From construction roots to a full steel catalog
-              </p>
-            </div>
-            <div className='space-y-5 text-sm leading-relaxed text-muted-foreground md:text-base lg:col-span-8'>
-              <p>
-                Beton Payam Hormoz began in construction in{' '}
-                <span className='font-medium text-foreground'>1993</span>,
-                building a reputation on reliable delivery and job-site
-                discipline. That background still shapes how we trade steel
-                today: specs first, then price, then logistics.
-              </p>
-              <p>
-                Since <span className='font-medium text-foreground'>2019</span>{' '}
-                we have expanded into mill products — rebar, beams, sheet, pipe,
-                profiles, and related lines — serving buyers who need
-                predictable unit rates and clear communication with sales.
-              </p>
-              <p>
-                Catalog prices on this site are published in USD on an
-                ex-works–style basis for planning. Firm quotes account for
-                tonnage, grade, mill, and transport once you contact the desk.
-              </p>
-            </div>
+          <div className='mb-8 max-w-2xl'>
+            <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+              Track record
+            </h2>
+            <p className='mt-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl'>
+              Two businesses, one discipline
+            </p>
           </div>
+
+          <ol className='grid gap-8 border-t border-border sm:grid-cols-3 sm:gap-10'>
+            {chapters.map(chapter => (
+              <li key={chapter.year}>
+                <span
+                  aria-hidden
+                  className='block h-3 w-0.5 bg-amber-800 dark:bg-amber-500'
+                />
+                <p
+                  className={`mt-5 font-mono text-3xl font-semibold tabular-nums tracking-tight sm:text-[2.5rem] ${
+                    chapter.current
+                      ? 'text-foreground'
+                      : 'text-amber-800 dark:text-amber-500'
+                  }`}
+                >
+                  {chapter.year}
+                </p>
+                <h3 className='mt-4 text-base font-semibold tracking-tight text-foreground'>
+                  {chapter.title}
+                </h3>
+                <p className='mt-2 max-w-[46ch] text-sm leading-relaxed text-muted-foreground'>
+                  {chapter.body}
+                </p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
-      {/* Product coverage */}
-      <section className='border-b border-border bg-muted/40'>
+      {/* Coverage — section chart, then the material itself */}
+      <section className='border-b border-border bg-background'>
         <div className='mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16'>
           <div className='mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between'>
             <div>
               <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
-                Product coverage
+                Coverage
               </h2>
-              <p className='mt-2 text-lg font-semibold tracking-tight text-foreground'>
-                Lines we quote every day
+              <p className='mt-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl'>
+                Sections we quote every day
               </p>
             </div>
             <Link
@@ -153,91 +275,139 @@ export default function AboutPage() {
               <ArrowRight className='h-3.5 w-3.5' />
             </Link>
           </div>
+
           <ul className='grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-3'>
-            {productLines.map(line => (
-              <li
-                key={line}
-                className='bg-card px-5 py-4 text-sm text-foreground'
-              >
-                {line}
+            {coverage.map(line => (
+              <li key={line.href} className='flex bg-card'>
+                <Link
+                  className='group flex flex-1 items-center gap-5 px-5 py-6 transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-foreground'
+                  href={line.href}
+                >
+                  <SteelProfileMark
+                    className='h-14 w-14 shrink-0 text-muted-foreground transition-colors duration-200 ease-out group-hover:text-amber-800 dark:group-hover:text-amber-500'
+                    profile={line.profile}
+                  />
+                  <span className='min-w-0'>
+                    <span className='block text-sm font-medium text-foreground'>
+                      {line.name}
+                    </span>
+                    <span className='mt-1 block font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground'>
+                      {line.spec}
+                    </span>
+                  </span>
+                </Link>
               </li>
             ))}
-            <li className='bg-card px-5 py-4 text-sm text-muted-foreground sm:col-span-2 lg:col-span-1'>
-              Full boards with sizes, mills, and unit rates live in the catalog.
-            </li>
           </ul>
+
+          <div className='mt-px grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-3'>
+            {yard.map(plate => (
+              <figure key={plate.src} className='bg-card'>
+                <div className='relative aspect-[4/3] w-full'>
+                  <Image
+                    fill
+                    alt={plate.alt}
+                    blurDataURL={plate.blur}
+                    className='object-cover'
+                    placeholder='blur'
+                    sizes='(max-width: 640px) 100vw, (max-width: 1280px) 33vw, 405px'
+                    src={plate.src}
+                  />
+                </div>
+                <figcaption className='border-t border-border px-4 py-3'>
+                  <span className='block text-sm font-medium text-foreground'>
+                    {plate.title}
+                  </span>
+                  <span className='mt-0.5 block font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground'>
+                    {plate.spec}
+                  </span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* How to order */}
-      <section className='border-b border-border bg-background'>
+      {/* Ordering — a real sequence, so it keeps its ordinals */}
+      <section className='border-b border-border bg-muted/30'>
         <div className='mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16'>
           <div className='mb-6'>
             <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
               Ordering
             </h2>
-            <p className='mt-2 text-lg font-semibold tracking-tight text-foreground'>
+            <p className='mt-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl'>
               From board to load-out
             </p>
           </div>
-          <ol className='overflow-hidden border border-border bg-border'>
+
+          <ol className='grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-4'>
             {orderSteps.map(step => (
-              <li
-                key={step.code}
-                className='grid grid-cols-[auto_1fr] gap-4 border-b border-border bg-card px-5 py-5 last:border-b-0 sm:gap-6 sm:px-6'
-              >
-                <span className='font-mono text-sm font-semibold tabular-nums text-muted-foreground'>
-                  {step.code}
-                </span>
-                <div>
-                  <h3 className='text-sm font-semibold text-foreground sm:text-base'>
-                    {step.title}
-                  </h3>
-                  <p className='mt-1.5 text-sm leading-relaxed text-muted-foreground'>
-                    {step.body}
-                  </p>
+              <li key={step.code} className='bg-card px-5 py-5'>
+                <div className='flex items-center gap-3'>
+                  <span className='font-mono text-sm font-semibold tabular-nums text-amber-800 dark:text-amber-500'>
+                    {step.code}
+                  </span>
+                  <span aria-hidden className='h-px flex-1 bg-border' />
                 </div>
+                <h3 className='mt-4 text-sm font-semibold tracking-tight text-foreground sm:text-base'>
+                  {step.title}
+                </h3>
+                <p className='mt-2 text-sm leading-relaxed text-muted-foreground'>
+                  {step.body}
+                </p>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      {/* Buying checklist */}
-      <section className='border-b border-border bg-muted/40'>
+      {/* Quote request — reference fields, not a sequence */}
+      <section className='border-b border-border bg-background'>
         <div className='mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16'>
-          <div className='mb-6 max-w-2xl'>
-            <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
-              Before you call sales
-            </h2>
-            <p className='mt-2 text-lg font-semibold tracking-tight text-foreground'>
-              Have these details ready
-            </p>
-            <p className='mt-2 text-sm leading-relaxed text-muted-foreground'>
-              Clear inputs mean a faster proforma and fewer revisions on grade,
-              size, or freight.
-            </p>
-          </div>
-          <div className='grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2'>
-            {buyChecklist.map((item, i) => (
-              <article key={item.title} className='bg-card px-5 py-5 sm:px-6'>
-                <h3 className='text-sm font-semibold text-foreground'>
-                  <span className='mr-2 font-mono text-xs text-muted-foreground'>
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  {item.title}
+          <div className='grid gap-8 lg:grid-cols-12 lg:gap-12'>
+            <div className='lg:col-span-4'>
+              <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                Quote request
+              </h2>
+              <p className='mt-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl'>
+                What sales needs from you
+              </p>
+              <p className='mt-3 text-sm leading-relaxed text-muted-foreground md:text-base'>
+                Clear inputs mean a faster proforma and fewer revisions on
+                grade, size, or freight. Send whatever you have — sales will
+                fill the gaps.
+              </p>
+            </div>
+
+            <div className='overflow-hidden border border-border bg-card lg:col-span-8'>
+              <div className='flex items-center justify-between border-b border-border px-4 py-3 sm:px-5'>
+                <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                  Line items
                 </h3>
-                <p className='mt-2 text-sm leading-relaxed text-muted-foreground'>
-                  {item.body}
-                </p>
-              </article>
-            ))}
+                <span className='text-xs text-muted-foreground'>4 fields</span>
+              </div>
+              <dl className='divide-y divide-border'>
+                {quoteFields.map(field => (
+                  <div
+                    key={field.term}
+                    className='grid gap-1.5 px-4 py-4 sm:grid-cols-[minmax(0,13rem)_1fr] sm:gap-6 sm:px-5'
+                  >
+                    <dt className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground'>
+                      {field.term}
+                    </dt>
+                    <dd className='text-sm leading-relaxed text-muted-foreground'>
+                      {field.detail}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className='border-b border-border bg-background'>
+      <section className='border-b border-border bg-muted/30'>
         <div className='mx-auto flex max-w-7xl flex-col gap-6 px-4 py-12 sm:flex-row sm:items-center sm:justify-between md:px-6 md:py-14'>
           <div>
             <h2 className='text-xl font-semibold tracking-tight text-foreground sm:text-2xl'>
