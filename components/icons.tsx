@@ -3,18 +3,18 @@ import * as React from 'react'
 import { IconSvgProps } from '@/types'
 
 export const Logo: React.FC<IconSvgProps> = ({
-  size = 36,
+  size,
   width,
   height,
   ...props
 }) => (
   <svg
-    className='w-10 h-10 md:w-11 md:h-11'
     fill='none'
-    height='50'
+    height={size || height}
     viewBox='0 0 996 911'
-    width='50'
+    width={size || width}
     xmlns='http://www.w3.org/2000/svg'
+    {...props}
   >
     <path
       d='M20.5 890.5V20.5H190.5V116V291V890.5H20.5Z'
