@@ -1,8 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
-
 import { Product } from '@/types/products'
 import { productCategoryHref, subcategorySlug } from '@/types/products'
 
