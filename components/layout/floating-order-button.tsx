@@ -121,18 +121,6 @@ export default function FloatingOrderButton() {
         productSpecs=''
         onClose={() => setIsModalOpen(false)}
       />
-
-      {/* Custom Animations */}
-      <style jsx>{`
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
     </>
   )
 }

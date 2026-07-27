@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+
 import { Product } from '@/types/products'
 import { productCategoryHref, subcategorySlug } from '@/types/products'
 
