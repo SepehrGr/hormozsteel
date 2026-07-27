@@ -1,5 +1,9 @@
 {
-  "typescript.tsdk": "node_modules/typescript/lib",
+  // Type-check in the editor with the same TypeScript the build uses (5.6.3).
+  // Without the prompt, VS Code silently falls back to its own bundled version,
+  // which currently ships TS 7 previews and reports removals 5.6 still accepts.
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
   "prisma.pinToPrisma6": true,
 
   // Live squiggles from eslint.config.mjs (flat config) while typing
