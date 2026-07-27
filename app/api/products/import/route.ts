@@ -15,10 +15,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { products } = body
 
-    console.log(
-      `Import API received ${Array.isArray(products) ? products.length : 0} rows`,
-    )
-
     if (!products || !Array.isArray(products) || products.length === 0) {
       return NextResponse.json(
         { error: 'No products provided' },
@@ -221,8 +217,6 @@ export async function POST(request: NextRequest) {
       console.error('Failed to log admin action:', logError)
       // Continue anyway - logging failure shouldn't fail the import
     }
-
-    console.log('✅ Import completed successfully:', results)
 
     return NextResponse.json({ success: true, results }, { status: 200 })
   } catch (error) {
