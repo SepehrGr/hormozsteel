@@ -7,7 +7,6 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
-
 import { ChevronRight, ChevronLeft, Loader2 } from 'lucide-react'
 
 import ProductCard from '@/components/products/product-card'
