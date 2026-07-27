@@ -16,7 +16,7 @@ type WeightPageProps = {
   params: Promise<{ type: string }>
 }
 
-export const WEIGHT_CALCULATORS = {
+const WEIGHT_CALCULATORS = {
   rebar: {
     title: 'Rebar weight',
     description: 'Ribbed and plain bar by diameter and bar length.',
@@ -141,7 +141,7 @@ export default async function WeightCalculatorPage({
         </div>
       </header>
 
-      <div className='border-b border-border bg-muted/40'>
+      <div className='py-10 border-b border-border bg-muted/40'>
         <div className='mx-auto grid max-w-7xl gap-px overflow-hidden border-x border-border bg-border lg:grid-cols-12'>
           {/* Calculator board */}
           <div className='bg-card lg:col-span-8'>
