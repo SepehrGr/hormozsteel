@@ -35,6 +35,7 @@ export default defineConfig([globalIgnores([
     "**/node_modules",
     "**/coverage",
     "**/.next",
+    "next-env.d.ts",
     "**/build",
     "!**/.commitlintrc.cjs",
     "!**/.lintstagedrc.cjs",
@@ -86,7 +87,9 @@ export default defineConfig([globalIgnores([
     files: ["**/*.ts", "**/*.tsx"],
 
     rules: {
-        "no-console": "warn",
+        // console.error/warn in catch blocks is the accepted logging pattern here;
+        // console.log is debug residue. See CLAUDE.md.
+        "no-console": ["warn", { allow: ["error", "warn"] }],
         "react/prop-types": "off",
         "react/jsx-uses-react": "off",
         "react/react-in-jsx-scope": "off",
@@ -147,5 +150,12 @@ export default defineConfig([globalIgnores([
             prev: ["const", "let", "var"],
             next: ["const", "let", "var"],
         }],
+    },
+}, {
+    // CLI entry points legitimately report progress on stdout.
+    files: ["prisma/**/*.ts", "scripts/**/*.ts"],
+
+    rules: {
+        "no-console": "off",
     },
 }]);
