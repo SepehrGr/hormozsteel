@@ -56,6 +56,20 @@ export default function NavMenu() {
         >
           <MenuItems className='absolute left-0 z-50 mt-1 flex w-[min(34rem,calc(100vw-2rem))] origin-top-left border border-border shadow-sm focus:outline-none dark:shadow-none'>
             <div className='w-44 shrink-0 bg-muted'>
+              <MenuItem>
+                {({ focus }) => (
+                  <Link
+                    className={`block border-b border-border px-3 py-2.5 text-left text-sm font-medium transition-colors duration-200 ease-out ${
+                      focus
+                        ? 'bg-card text-foreground'
+                        : 'text-foreground hover:bg-card/80'
+                    }`}
+                    href='/products'
+                  >
+                    Full catalog
+                  </Link>
+                )}
+              </MenuItem>
               {PRODUCT_NAV.map(group => (
                 <button
                   key={group.name}
