@@ -71,8 +71,6 @@ export default function ProductCard({ product }: ProductCardProps) {
         ? productCategoryHref(categorySlug)
         : '/products'
 
-  const MoveIcon =
-    move === 'up' ? TrendingUp : move === 'down' ? TrendingDown : Minus
   const moveClass =
     move === 'up'
       ? 'text-emerald-700 dark:text-emerald-400'
