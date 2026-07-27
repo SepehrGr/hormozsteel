@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import Image from 'next/image'
 
 import { PRODUCT_ROUTES } from '@/types/products'
 import { siteConfig } from '@/config/site'
+import { Logo } from '@/components/icons'
 
 const companyLinks = [
   { href: '/products', label: 'Catalog' },
@@ -30,13 +30,7 @@ export default function Footer() {
               className='inline-flex items-center gap-2.5 text-foreground transition-opacity duration-200 ease-out hover:opacity-80'
               href='/'
             >
-              <Image
-                alt=''
-                className='dark:invert'
-                height={32}
-                src='/Vector.svg'
-                width={32}
-              />
+              <Logo className='w-10 h-10 md:w-11 md:h-11' />
               <span className='text-base font-semibold tracking-tight'>
                 {siteConfig.name}
               </span>
