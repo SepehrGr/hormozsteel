@@ -130,16 +130,6 @@ export default function AdminProducts() {
     setCurrentPage(1)
   }, [searchQuery, categoryFilter, stockFilter])
 
-  const formatPersianDate = (dateString: string) => {
-    const date = new Date(dateString)
-
-    return date.toLocaleDateString('fa-IR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  }
-
   const {
     isOpen: isBulkModalOpen,
     onOpen: onBulkModalOpen,
