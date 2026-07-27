@@ -132,16 +132,8 @@ export function useProductExcel(): UseProductExcelReturn {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]]
       const jsonData = XLSX.utils.sheet_to_json(worksheet)
 
-      console.log('📊 Excel data loaded:', jsonData.length, 'rows')
-      console.log(
-        '📋 Available categories:',
-        categories?.map(c => c.name),
-      )
-
       // Map imported data to products (support id-based updates)
-      const importedProducts = jsonData.map((row: any, index: number) => {
-        console.log(`Row ${index + 1}:`, row)
-
+      const importedProducts = jsonData.map((row: any) => {
         // Try to read id from common columns (id, شناسه, ID)
         const id =
           (row['id'] || row['شناسه'] || row['ID'] || '').toString().trim() ||
@@ -156,8 +148,6 @@ export function useProductExcel(): UseProductExcelReturn {
 
         if (!category) {
           console.warn(`⚠️ Category not found for: "${categoryName}"`)
-        } else {
-          console.log(`✅ Found category: ${category.name} (${category.id})`)
         }
 
         // Parse stock status
@@ -207,8 +197,6 @@ export function useProductExcel(): UseProductExcelReturn {
         }
       })
 
-      console.log('📦 Processed products:', importedProducts)
-
       // Validate data:
       // - If id is present, at least one field should be provided for update
       // - If id is absent, require full fields to create a new product
@@ -252,7 +240,6 @@ export function useProductExcel(): UseProductExcelReturn {
       if (response.ok) {
         const result = await response.json()
 
-        console.log('✅ Import success:', result)
         mutateProducts()
 
         // API returns { success: true, results: { updated, created, failed, errors } }
