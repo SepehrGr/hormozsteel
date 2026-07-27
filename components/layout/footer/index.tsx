@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+
 import { PRODUCT_ROUTES } from '@/types/products'
 import { siteConfig } from '@/config/site'
 
@@ -26,15 +27,15 @@ export default function Footer() {
           {/* Brand */}
           <div className='lg:col-span-4'>
             <Link
-              href='/'
               className='inline-flex items-center gap-2.5 text-foreground transition-opacity duration-200 ease-out hover:opacity-80'
+              href='/'
             >
               <Image
-                src='/Vector.svg'
                 alt=''
-                width={32}
-                height={32}
                 className='dark:invert'
+                height={32}
+                src='/Vector.svg'
+                width={32}
               />
               <span className='text-base font-semibold tracking-tight'>
                 {siteConfig.name}
@@ -57,17 +58,16 @@ export default function Footer() {
                 <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
                   Basis
                 </dt>
-                <dd className='text-sm font-medium text-foreground'>Ex-works</dd>
+                <dd className='text-sm font-medium text-foreground'>
+                  Ex-works
+                </dd>
               </div>
             </dl>
           </div>
 
           {/* Link columns as board panels */}
           <div className='grid grid-cols-1 gap-px overflow-hidden border border-border bg-border sm:grid-cols-3 lg:col-span-8'>
-            <nav
-              className='bg-card px-5 py-5'
-              aria-label='Company'
-            >
+            <nav aria-label='Company' className='bg-card px-5 py-5'>
               <h2 className='mb-4 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
                 Company
               </h2>
@@ -75,8 +75,8 @@ export default function Footer() {
                 {companyLinks.map(link => (
                   <li key={link.href}>
                     <Link
-                      href={link.href}
                       className='text-sm text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground'
+                      href={link.href}
                     >
                       {link.label}
                     </Link>
@@ -86,16 +86,16 @@ export default function Footer() {
             </nav>
 
             <nav
-              className='bg-card px-5 py-5 sm:col-span-2'
               aria-label='Product families'
+              className='bg-card px-5 py-5 sm:col-span-2'
             >
               <div className='mb-4 flex items-baseline justify-between gap-2'>
                 <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
                   Product index
                 </h2>
                 <Link
-                  href='/products'
                   className='text-xs font-medium text-muted-foreground underline-offset-4 transition-colors duration-200 ease-out hover:text-foreground hover:underline'
+                  href='/products'
                 >
                   Full catalog
                 </Link>
@@ -104,8 +104,8 @@ export default function Footer() {
                 {footerCategories.map(cat => (
                   <li key={cat.href}>
                     <Link
-                      href={cat.href}
                       className='text-sm text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground'
+                      href={cat.href}
                     >
                       {cat.label}
                     </Link>
@@ -124,8 +124,8 @@ export default function Footer() {
           <p className='max-w-md sm:text-right'>
             Portfolio showcase by{' '}
             <Link
-              href={siteConfig.links.portfolio}
               className='font-medium text-foreground underline-offset-4 transition-colors duration-200 ease-out hover:underline'
+              href={siteConfig.links.portfolio}
             >
               Sepehr Gorgini
             </Link>

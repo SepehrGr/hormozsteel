@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Prisma, QuickOrderStatus } from '@prisma/client'
+
 import { prisma } from '@/lib/prisma'
 import { logAdminAction, requireApiAuth } from '@/lib/admin-auth'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
@@ -26,9 +27,11 @@ function isMissingRecord(error: unknown) {
 // GET /api/quick-orders - Get all quick orders (Admin only)
 export async function GET(request: NextRequest) {
   const rateLimitResponse = checkApiRateLimitAndRespond(request)
+
   if (rateLimitResponse) return rateLimitResponse
 
   const { error: authError } = await requireApiAuth()
+
   if (authError) return authError
 
   try {
@@ -109,6 +112,7 @@ export async function POST(request: NextRequest) {
     SUBMIT_MAX_ATTEMPTS,
     SUBMIT_WINDOW_MS,
   )
+
   if (rateLimitResponse) return rateLimitResponse
 
   try {
@@ -139,6 +143,7 @@ export async function POST(request: NextRequest) {
 
     // Validate phone number format
     const phoneRegex = /^\+?[\d\s()-]{7,20}$/
+
     if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
       return NextResponse.json(
         {
@@ -191,9 +196,11 @@ export async function POST(request: NextRequest) {
 // PATCH /api/quick-orders - Update quick order status (Admin only)
 export async function PATCH(request: NextRequest) {
   const rateLimitResponse = checkApiRateLimitAndRespond(request)
+
   if (rateLimitResponse) return rateLimitResponse
 
   const { session, error: authError } = await requireApiAuth()
+
   if (authError) return authError
 
   try {
@@ -265,9 +272,11 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/quick-orders - Delete a quick order (Admin only)
 export async function DELETE(request: NextRequest) {
   const rateLimitResponse = checkApiRateLimitAndRespond(request)
+
   if (rateLimitResponse) return rateLimitResponse
 
   const { session, error: authError } = await requireApiAuth()
+
   if (authError) return authError
 
   try {
@@ -288,7 +297,14 @@ export async function DELETE(request: NextRequest) {
       where: { id },
     })
 
-    await logAdminAction(session.user.id, 'DELETE', 'QuickOrder', id, null, request)
+    await logAdminAction(
+      session.user.id,
+      'DELETE',
+      'QuickOrder',
+      id,
+      null,
+      request,
+    )
 
     return NextResponse.json({
       success: true,

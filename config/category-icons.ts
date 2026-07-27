@@ -34,5 +34,6 @@ export function resolveCategoryIcon(slugOrClass?: string | null): string {
   if (slugOrClass in CATEGORY_ICONS) {
     return CATEGORY_ICONS[slugOrClass as CategoryIconSlug]
   }
+
   return DEFAULT_CATEGORY_ICON
 }

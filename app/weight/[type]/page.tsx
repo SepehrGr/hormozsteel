@@ -1,6 +1,8 @@
+import type { Metadata } from 'next'
+
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import type { Metadata } from 'next'
+
 import SheetWeightCalculator from '@/components/calculators/sheet-weight-calculator'
 import BeamWeightCalculator from '@/components/calculators/beam-weight-calculator'
 import RebarWeightCalculator from '@/components/calculators/rebar-weight-calculator'
@@ -56,7 +58,9 @@ export async function generateMetadata({
 }: WeightPageProps): Promise<Metadata> {
   const { type } = await params
   const info = WEIGHT_CALCULATORS[type as CalcKey]
+
   if (!info) return { title: 'Weight calculator' }
+
   return {
     title: `${info.title} calculator`,
     description: info.description,
@@ -99,6 +103,7 @@ export default async function WeightCalculatorPage({
 }: WeightPageProps) {
   const { type } = await params
   const calculatorInfo = WEIGHT_CALCULATORS[type as CalcKey]
+
   if (!calculatorInfo) notFound()
 
   return (
@@ -164,16 +169,17 @@ export default async function WeightCalculatorPage({
               <ul className='divide-y divide-border'>
                 {Object.entries(WEIGHT_CALCULATORS).map(([key, info]) => {
                   const active = type === key
+
                   return (
                     <li key={key}>
                       <Link
-                        href={`/weight/${key}`}
-                        scroll={false}
                         className={`block px-5 py-3.5 transition-colors duration-200 ease-out md:px-6 ${
                           active
                             ? 'bg-muted text-foreground'
                             : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                         }`}
+                        href={`/weight/${key}`}
+                        scroll={false}
                       >
                         <span className='block text-sm font-medium text-foreground'>
                           {info.title}

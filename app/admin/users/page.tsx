@@ -47,7 +47,9 @@ const btnDanger =
 function formatDateTime(dateString: string | null) {
   if (!dateString) return '—'
   const d = new Date(dateString)
+
   if (Number.isNaN(d.getTime())) return '—'
+
   return d.toLocaleString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -79,13 +81,16 @@ export default function AdminUsersPage() {
     if (!data) return []
     if (data?.success && data?.data?.users) return data.data.users
     if (data?.users) return data.users
+
     return []
   }, [data])
 
   const [searchTerm, setSearchTerm] = useState('')
   const filteredUsers = useMemo(() => {
     const q = searchTerm.trim().toLowerCase()
+
     if (!q) return users
+
     return users.filter(u => {
       return (
         u.name?.toLowerCase().includes(q) ||
@@ -160,6 +165,7 @@ export default function AdminUsersPage() {
           description: json?.error || 'Failed to update user',
           color: 'danger',
         })
+
         return
       }
 
@@ -188,6 +194,7 @@ export default function AdminUsersPage() {
         description: 'Name, email, and password are required',
         color: 'warning',
       })
+
       return
     }
 
@@ -211,6 +218,7 @@ export default function AdminUsersPage() {
           description: json?.error || 'Failed to create user',
           color: 'danger',
         })
+
         return
       }
 
@@ -243,10 +251,12 @@ export default function AdminUsersPage() {
         description: 'Name and email are required',
         color: 'warning',
       })
+
       return
     }
 
     const payload: Record<string, unknown> = {}
+
     if (editForm.name.trim() !== editingUser.name)
       payload.name = editForm.name.trim()
     if (editForm.email.trim() !== editingUser.email)
@@ -262,6 +272,7 @@ export default function AdminUsersPage() {
         description: 'Nothing to save',
         color: 'default',
       })
+
       return
     }
 
@@ -280,6 +291,7 @@ export default function AdminUsersPage() {
           description: json?.error || 'Failed to update user',
           color: 'danger',
         })
+
         return
       }
 
@@ -319,6 +331,7 @@ export default function AdminUsersPage() {
           description: json?.error || 'Failed to delete user',
           color: 'danger',
         })
+
         return
       }
 
@@ -363,12 +376,12 @@ export default function AdminUsersPage() {
           </p>
         </div>
         <button
+          className='inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 cursor-pointer'
           type='button'
           onClick={() => {
             setNewUser({ name: '', email: '', password: '', role: 'ADMIN' })
             setIsAddOpen(true)
           }}
-          className='inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 cursor-pointer'
         >
           <Plus className='h-4 w-4' />
           Add user
@@ -383,10 +396,10 @@ export default function AdminUsersPage() {
         </div>
         <div className='flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between'>
           <input
+            className='w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground sm:max-w-md'
+            placeholder='Search name, email, or role…'
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            placeholder='Search name, email, or role…'
-            className='w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground sm:max-w-md'
           />
           <p className='text-sm text-muted-foreground'>
             <span className='font-semibold tabular-nums text-foreground'>
@@ -431,8 +444,8 @@ export default function AdminUsersPage() {
               {isLoading && (
                 <tr>
                   <td
-                    colSpan={7}
                     className='px-4 py-10 text-center text-muted-foreground'
+                    colSpan={7}
                   >
                     Loading…
                   </td>
@@ -441,8 +454,8 @@ export default function AdminUsersPage() {
               {!isLoading && filteredUsers.length === 0 && (
                 <tr>
                   <td
-                    colSpan={7}
                     className='px-4 py-10 text-center text-muted-foreground'
+                    colSpan={7}
                   >
                     No users found
                   </td>
@@ -454,6 +467,7 @@ export default function AdminUsersPage() {
                     currentUserId && u.id === currentUserId,
                   )
                   const busy = quickUpdatingId === u.id
+
                   return (
                     <tr
                       key={u.id}
@@ -473,15 +487,16 @@ export default function AdminUsersPage() {
                       <td className='px-4 py-3'>
                         <select
                           aria-label={`Role for ${u.name}`}
-                          value={u.role}
+                          className='cursor-pointer border border-border bg-background px-2 py-1.5 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-50'
                           disabled={busy || isSelf}
+                          value={u.role}
                           onChange={e => {
                             const selected = e.target.value as Role
+
                             if (selected !== u.role) {
                               quickPatch(u, { role: selected })
                             }
                           }}
-                          className='cursor-pointer border border-border bg-background px-2 py-1.5 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-50'
                         >
                           <option value='ADMIN'>Admin</option>
                           <option value='SUPER_ADMIN'>Super admin</option>
@@ -489,17 +504,17 @@ export default function AdminUsersPage() {
                       </td>
                       <td className='px-4 py-3'>
                         <button
-                          type='button'
-                          disabled={busy || isSelf}
-                          onClick={() => {
-                            if (!isSelf)
-                              quickPatch(u, { isActive: !u.isActive })
-                          }}
                           className={`cursor-pointer border px-2 py-1 text-xs font-medium uppercase tracking-wide transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50 ${
                             u.isActive
                               ? 'border-foreground bg-foreground text-background'
                               : 'border-border bg-background text-muted-foreground hover:bg-muted'
                           }`}
+                          disabled={busy || isSelf}
+                          type='button'
+                          onClick={() => {
+                            if (!isSelf)
+                              quickPatch(u, { isActive: !u.isActive })
+                          }}
                         >
                           {u.isActive ? 'Active' : 'Inactive'}
                         </button>
@@ -513,19 +528,19 @@ export default function AdminUsersPage() {
                       <td className='px-4 py-3'>
                         <div className='flex gap-1'>
                           <button
+                            aria-label={`Edit ${u.name}`}
+                            className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                             type='button'
                             onClick={() => openEdit(u)}
-                            className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-                            aria-label={`Edit ${u.name}`}
                           >
                             <Edit className='h-3.5 w-3.5' />
                           </button>
                           <button
+                            aria-label={`Delete ${u.name}`}
+                            className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-card text-red-600 transition-colors duration-200 ease-out hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400'
+                            disabled={isSelf}
                             type='button'
                             onClick={() => openDelete(u)}
-                            disabled={isSelf}
-                            className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-card text-red-600 transition-colors duration-200 ease-out hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400'
-                            aria-label={`Delete ${u.name}`}
                           >
                             <Trash2 className='h-3.5 w-3.5' />
                           </button>
@@ -542,11 +557,11 @@ export default function AdminUsersPage() {
       {/* Add user */}
       {isAddOpen && (
         <div
-          className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
-          role='dialog'
-          aria-modal='true'
           aria-labelledby='add-user-title'
+          aria-modal='true'
+          className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
           dir='ltr'
+          role='dialog'
           onClick={e => {
             if (e.target === e.currentTarget && !creating) setIsAddOpen(false)
           }}
@@ -555,8 +570,8 @@ export default function AdminUsersPage() {
             <div className='flex items-start justify-between border-b border-border px-5 py-3'>
               <div>
                 <h2
-                  id='add-user-title'
                   className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+                  id='add-user-title'
                 >
                   Add user
                 </h2>
@@ -565,10 +580,10 @@ export default function AdminUsersPage() {
                 </p>
               </div>
               <button
+                aria-label='Close'
+                className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                 type='button'
                 onClick={() => !creating && setIsAddOpen(false)}
-                className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-                aria-label='Close'
               >
                 <X className='h-4 w-4' />
               </button>
@@ -576,57 +591,59 @@ export default function AdminUsersPage() {
 
             <div className='space-y-4 px-5 py-5'>
               <div>
-                <label htmlFor='add-user-name' className={labelClass}>
+                <label className={labelClass} htmlFor='add-user-name'>
                   Name *
                 </label>
                 <input
+                  className={fieldClass}
+                  disabled={creating}
                   id='add-user-name'
+                  placeholder='Full name'
                   value={newUser.name}
                   onChange={e =>
                     setNewUser(p => ({ ...p, name: e.target.value }))
                   }
-                  className={fieldClass}
-                  placeholder='Full name'
-                  disabled={creating}
                 />
               </div>
               <div>
-                <label htmlFor='add-user-email' className={labelClass}>
+                <label className={labelClass} htmlFor='add-user-email'>
                   Email *
                 </label>
                 <input
+                  className={fieldClass}
+                  disabled={creating}
                   id='add-user-email'
+                  placeholder='admin@example.com'
                   type='email'
                   value={newUser.email}
                   onChange={e =>
                     setNewUser(p => ({ ...p, email: e.target.value }))
                   }
-                  className={fieldClass}
-                  placeholder='admin@example.com'
-                  disabled={creating}
                 />
               </div>
               <div>
-                <label htmlFor='add-user-password' className={labelClass}>
+                <label className={labelClass} htmlFor='add-user-password'>
                   Password *
                 </label>
                 <input
+                  className={fieldClass}
+                  disabled={creating}
                   id='add-user-password'
+                  placeholder='Min. 8 characters'
                   type='password'
                   value={newUser.password}
                   onChange={e =>
                     setNewUser(p => ({ ...p, password: e.target.value }))
                   }
-                  className={fieldClass}
-                  placeholder='Min. 8 characters'
-                  disabled={creating}
                 />
               </div>
               <div>
-                <label htmlFor='add-user-role' className={labelClass}>
+                <label className={labelClass} htmlFor='add-user-role'>
                   Role
                 </label>
                 <select
+                  className={`${fieldClass} cursor-pointer`}
+                  disabled={creating}
                   id='add-user-role'
                   value={newUser.role}
                   onChange={e =>
@@ -635,8 +652,6 @@ export default function AdminUsersPage() {
                       role: e.target.value as Role,
                     }))
                   }
-                  className={`${fieldClass} cursor-pointer`}
-                  disabled={creating}
                 >
                   <option value='ADMIN'>Admin</option>
                   <option value='SUPER_ADMIN'>Super admin</option>
@@ -646,18 +661,18 @@ export default function AdminUsersPage() {
 
             <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
               <button
+                className={btnSecondary}
+                disabled={creating}
                 type='button'
                 onClick={() => setIsAddOpen(false)}
-                disabled={creating}
-                className={btnSecondary}
               >
                 Cancel
               </button>
               <button
+                className={btnPrimary}
+                disabled={creating}
                 type='button'
                 onClick={handleCreate}
-                disabled={creating}
-                className={btnPrimary}
               >
                 <Plus className='h-4 w-4' />
                 {creating ? 'Creating…' : 'Create user'}
@@ -670,11 +685,11 @@ export default function AdminUsersPage() {
       {/* Edit user */}
       {isEditOpen && editingUser && (
         <div
-          className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
-          role='dialog'
-          aria-modal='true'
           aria-labelledby='edit-user-title'
+          aria-modal='true'
+          className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
           dir='ltr'
+          role='dialog'
           onClick={e => {
             if (e.target === e.currentTarget && !saving) {
               setEditingUser(null)
@@ -686,8 +701,8 @@ export default function AdminUsersPage() {
             <div className='flex items-start justify-between border-b border-border px-5 py-3'>
               <div>
                 <h2
-                  id='edit-user-title'
                   className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+                  id='edit-user-title'
                 >
                   Edit user
                 </h2>
@@ -696,6 +711,8 @@ export default function AdminUsersPage() {
                 </p>
               </div>
               <button
+                aria-label='Close'
+                className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                 type='button'
                 onClick={() => {
                   if (!saving) {
@@ -703,8 +720,6 @@ export default function AdminUsersPage() {
                     setIsEditOpen(false)
                   }
                 }}
-                className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-                aria-label='Close'
               >
                 <X className='h-4 w-4' />
               </button>
@@ -712,39 +727,41 @@ export default function AdminUsersPage() {
 
             <div className='space-y-4 px-5 py-5'>
               <div>
-                <label htmlFor='edit-user-name' className={labelClass}>
+                <label className={labelClass} htmlFor='edit-user-name'>
                   Name *
                 </label>
                 <input
+                  className={fieldClass}
+                  disabled={saving}
                   id='edit-user-name'
                   value={editForm.name}
                   onChange={e =>
                     setEditForm(p => ({ ...p, name: e.target.value }))
                   }
-                  className={fieldClass}
-                  disabled={saving}
                 />
               </div>
               <div>
-                <label htmlFor='edit-user-email' className={labelClass}>
+                <label className={labelClass} htmlFor='edit-user-email'>
                   Email *
                 </label>
                 <input
+                  className={fieldClass}
+                  disabled={saving}
                   id='edit-user-email'
                   type='email'
                   value={editForm.email}
                   onChange={e =>
                     setEditForm(p => ({ ...p, email: e.target.value }))
                   }
-                  className={fieldClass}
-                  disabled={saving}
                 />
               </div>
               <div>
-                <label htmlFor='edit-user-role' className={labelClass}>
+                <label className={labelClass} htmlFor='edit-user-role'>
                   Role
                 </label>
                 <select
+                  className={`${fieldClass} cursor-pointer`}
+                  disabled={saving}
                   id='edit-user-role'
                   value={editForm.role}
                   onChange={e =>
@@ -753,8 +770,6 @@ export default function AdminUsersPage() {
                       role: e.target.value as Role,
                     }))
                   }
-                  className={`${fieldClass} cursor-pointer`}
-                  disabled={saving}
                 >
                   <option value='ADMIN'>Admin</option>
                   <option value='SUPER_ADMIN'>Super admin</option>
@@ -764,60 +779,60 @@ export default function AdminUsersPage() {
                 <p className={labelClass}>Status</p>
                 <div className='mt-1.5 flex gap-2'>
                   <button
-                    type='button'
-                    onClick={() => setEditForm(p => ({ ...p, isActive: true }))}
                     className={stockBtn(editForm.isActive === true)}
                     disabled={saving}
+                    type='button'
+                    onClick={() => setEditForm(p => ({ ...p, isActive: true }))}
                   >
                     Active
                   </button>
                   <button
+                    className={stockBtn(editForm.isActive === false)}
+                    disabled={saving}
                     type='button'
                     onClick={() =>
                       setEditForm(p => ({ ...p, isActive: false }))
                     }
-                    className={stockBtn(editForm.isActive === false)}
-                    disabled={saving}
                   >
                     Inactive
                   </button>
                 </div>
               </div>
               <div>
-                <label htmlFor='edit-user-password' className={labelClass}>
+                <label className={labelClass} htmlFor='edit-user-password'>
                   New password
                 </label>
                 <input
+                  className={fieldClass}
+                  disabled={saving}
                   id='edit-user-password'
+                  placeholder='Leave blank to keep current'
                   type='password'
                   value={editForm.password}
                   onChange={e =>
                     setEditForm(p => ({ ...p, password: e.target.value }))
                   }
-                  className={fieldClass}
-                  placeholder='Leave blank to keep current'
-                  disabled={saving}
                 />
               </div>
             </div>
 
             <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
               <button
+                className={btnSecondary}
+                disabled={saving}
                 type='button'
                 onClick={() => {
                   setEditingUser(null)
                   setIsEditOpen(false)
                 }}
-                disabled={saving}
-                className={btnSecondary}
               >
                 Cancel
               </button>
               <button
+                className={btnPrimary}
+                disabled={saving}
                 type='button'
                 onClick={handleSaveEdit}
-                disabled={saving}
-                className={btnPrimary}
               >
                 <CheckCircle2 className='h-4 w-4' />
                 {saving ? 'Saving…' : 'Save changes'}
@@ -830,11 +845,11 @@ export default function AdminUsersPage() {
       {/* Delete user */}
       {isDeleteOpen && deletingUser && (
         <div
-          className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
-          role='dialog'
-          aria-modal='true'
           aria-labelledby='delete-user-title'
+          aria-modal='true'
+          className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
           dir='ltr'
+          role='dialog'
           onClick={e => {
             if (e.target === e.currentTarget && !deleting) {
               setDeletingUser(null)
@@ -845,12 +860,14 @@ export default function AdminUsersPage() {
           <div className='w-full max-w-md border border-border bg-card shadow-sm'>
             <div className='flex items-center justify-between border-b border-border px-5 py-3'>
               <h2
-                id='delete-user-title'
                 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+                id='delete-user-title'
               >
                 Delete user
               </h2>
               <button
+                aria-label='Close'
+                className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                 type='button'
                 onClick={() => {
                   if (!deleting) {
@@ -858,8 +875,6 @@ export default function AdminUsersPage() {
                     setIsDeleteOpen(false)
                   }
                 }}
-                className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-                aria-label='Close'
               >
                 <X className='h-4 w-4' />
               </button>
@@ -883,22 +898,22 @@ export default function AdminUsersPage() {
 
             <div className='flex justify-start gap-2 border-t border-border px-5 py-4'>
               <button
+                className={btnDanger}
+                disabled={deleting}
                 type='button'
                 onClick={handleDelete}
-                disabled={deleting}
-                className={btnDanger}
               >
                 <Trash2 className='h-4 w-4' />
                 {deleting ? 'Deleting…' : 'Yes, delete user'}
               </button>
               <button
+                className={btnSecondary}
+                disabled={deleting}
                 type='button'
                 onClick={() => {
                   setDeletingUser(null)
                   setIsDeleteOpen(false)
                 }}
-                disabled={deleting}
-                className={btnSecondary}
               >
                 Cancel
               </button>

@@ -1,18 +1,22 @@
 'use client'
 
+import type { Swiper as SwiperType } from 'swiper'
+
 import { useRef, useEffect, useMemo, useState } from 'react'
 import { useTheme } from 'next-themes'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation } from 'swiper/modules'
-import type { Swiper as SwiperType } from 'swiper'
 import 'swiper/css'
 import 'swiper/css/navigation'
 
-import { siteConfig } from '@/config/site'
-import HeroItem from './hero-item'
 import { ChevronRight, ChevronLeft, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+
 import Threads from '../ui/threads'
+
+import HeroItem from './hero-item'
+
+import { siteConfig } from '@/config/site'
 
 /** Site amber accents as 0–1 RGB (Threads / OGL Color). */
 const AMBER_LIGHT: [number, number, number] = [
@@ -35,12 +39,15 @@ export default function Hero() {
 
   const threadsColor = useMemo((): [number, number, number] => {
     if (!mounted) return AMBER_LIGHT
+
     return resolvedTheme === 'dark' ? AMBER_DARK : AMBER_LIGHT
   }, [mounted, resolvedTheme])
 
   useEffect(() => {
     const onResize = () => swiperRef.current?.update()
+
     window.addEventListener('resize', onResize)
+
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
@@ -49,13 +56,13 @@ export default function Hero() {
       {/* Hero */}
       <div className='relative overflow-hidden border-b border-border bg-background'>
         <div
-          className='hidden md:block pointer-events-none absolute inset-0 opacity-70 dark:opacity-50'
           aria-hidden
+          className='hidden md:block pointer-events-none absolute inset-0 opacity-70 dark:opacity-50'
         >
           <Threads
+            amplitude={2}
             color={threadsColor}
             distance={0.6}
-            amplitude={2}
             enableMouseInteraction={false}
           />
         </div>
@@ -77,15 +84,15 @@ export default function Hero() {
 
               <div className='mt-8 flex flex-wrap items-center gap-3'>
                 <Link
-                  href='/products'
                   className='inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors duration-200 ease-out hover:opacity-90'
+                  href='/products'
                 >
                   Browse catalog
                   <ArrowRight className='h-4 w-4' />
                 </Link>
                 <Link
-                  href='/contact'
                   className='inline-flex items-center gap-2 border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                  href='/contact'
                 >
                   Request a quote
                 </Link>
@@ -132,8 +139,8 @@ export default function Hero() {
                   ].map(row => (
                     <li key={row.code}>
                       <Link
-                        href={row.href}
                         className='group flex items-center justify-between gap-3 px-4 py-3 transition-colors duration-200 ease-out hover:bg-muted'
+                        href={row.href}
                       >
                         <div className='min-w-0'>
                           <div className='flex items-center gap-2'>
@@ -173,24 +180,24 @@ export default function Hero() {
             </div>
             <div className='flex items-center gap-2'>
               <Link
-                href='/products'
                 className='text-xs font-medium text-muted-foreground underline-offset-4 transition-colors duration-200 ease-out hover:text-foreground hover:underline'
+                href='/products'
               >
                 Full catalog
               </Link>
               <div className='flex items-center border border-border bg-card'>
                 <button
-                  type='button'
                   aria-label='Previous product families'
                   className='category-nav-prev flex h-8 w-8 items-center justify-center text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
+                  type='button'
                 >
                   <ChevronLeft className='h-4 w-4' />
                 </button>
-                <span className='h-4 w-px bg-border' aria-hidden />
+                <span aria-hidden className='h-4 w-px bg-border' />
                 <button
-                  type='button'
                   aria-label='Next product families'
                   className='category-nav-next flex h-8 w-8 items-center justify-center text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
+                  type='button'
                 >
                   <ChevronRight className='h-4 w-4' />
                 </button>
@@ -203,9 +210,9 @@ export default function Hero() {
               {siteConfig.heroItems.map(item => (
                 <HeroItem
                   key={item.name}
-                  label={item.label}
-                  icon={item.icon}
                   categoryId={item.name}
+                  icon={item.icon}
+                  label={item.label}
                   lineCount={item.items?.length}
                 />
               ))}
@@ -213,30 +220,30 @@ export default function Hero() {
 
             <div className='hidden md:block'>
               <Swiper
-                modules={[Navigation]}
-                spaceBetween={1}
-                slidesPerView={3}
-                loop={siteConfig.heroItems.length > 5}
-                onSwiper={s => {
-                  swiperRef.current = s
-                }}
-                navigation={{
-                  nextEl: '.category-nav-next',
-                  prevEl: '.category-nav-prev',
-                }}
                 breakpoints={{
                   768: { slidesPerView: 3, spaceBetween: 1 },
                   1024: { slidesPerView: 4, spaceBetween: 1 },
                   1280: { slidesPerView: 5, spaceBetween: 1 },
                 }}
                 className='category-index-swiper !bg-border'
+                loop={siteConfig.heroItems.length > 5}
+                modules={[Navigation]}
+                navigation={{
+                  nextEl: '.category-nav-next',
+                  prevEl: '.category-nav-prev',
+                }}
+                slidesPerView={3}
+                spaceBetween={1}
+                onSwiper={s => {
+                  swiperRef.current = s
+                }}
               >
                 {siteConfig.heroItems.map(item => (
                   <SwiperSlide key={item.name} className='!h-auto bg-card'>
                     <HeroItem
-                      label={item.label}
-                      icon={item.icon}
                       categoryId={item.name}
+                      icon={item.icon}
+                      label={item.label}
                       lineCount={item.items?.length}
                     />
                   </SwiperSlide>

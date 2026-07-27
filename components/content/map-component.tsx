@@ -13,31 +13,31 @@ const VOYAGER_TILES = {
 export default function MapComponent() {
   return (
     <div
+      aria-label='Map showing Hormoz Steel location in Bandar Abbas'
       className='h-full w-full'
       role='region'
-      aria-label='Map showing Hormoz Steel location in Bandar Abbas'
     >
       <MapContainer
         center={CENTER}
-        zoom={ZOOM}
         className='h-full w-full [&_.leaflet-control-attribution]:bg-card/90 [&_.leaflet-control-attribution]:text-[10px] [&_.leaflet-control-attribution]:text-muted-foreground [&_.leaflet-control-zoom]:border-border [&_.leaflet-control-zoom]:shadow-none [&_.leaflet-bar_a]:border-border [&_.leaflet-bar_a]:bg-card [&_.leaflet-bar_a]:text-foreground [&_.leaflet-bar_a:hover]:bg-muted'
+        zoom={ZOOM}
       >
         <TileLayer
           attribution={VOYAGER_TILES.attribution}
-          url={VOYAGER_TILES.url}
+          className='map-tiles'
           maxZoom={19}
           subdomains='abcd'
-          className='map-tiles'
+          url={VOYAGER_TILES.url}
         />
         <CircleMarker
           center={CENTER}
-          radius={10}
           pathOptions={{
             color: '#92400e',
             fillColor: '#d97706',
             fillOpacity: 0.9,
             weight: 2,
           }}
+          radius={10}
         >
           <Popup>
             <strong>Hormoz Steel</strong>

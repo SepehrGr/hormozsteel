@@ -1,16 +1,17 @@
 'use client'
 
+import type { Swiper as SwiperType } from 'swiper'
+
 import { useRef, useEffect, useState } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation } from 'swiper/modules'
-import type { Swiper as SwiperType } from 'swiper'
 import 'swiper/css'
 import 'swiper/css/navigation'
 
+import { ChevronRight, ChevronLeft, Loader2 } from 'lucide-react'
+
 import ProductCard from '@/components/products/product-card'
 import { SAMPLE_PRODUCTS, Product } from '@/types/products'
-import { ChevronRight, ChevronLeft, Loader2 } from 'lucide-react'
-import Link from 'next/link'
 
 interface ProductSliderProps {
   products?: Product[]
@@ -61,7 +62,9 @@ export default function ProductSlider({
 
   useEffect(() => {
     const onResize = () => swiperRef.current?.update()
+
     window.addEventListener('resize', onResize)
+
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
@@ -75,17 +78,17 @@ export default function ProductSlider({
           <div className='flex shrink-0 items-center gap-2'>
             <div className='flex items-center border border-border bg-card'>
               <button
-                type='button'
                 aria-label='Previous prices'
                 className='prices-nav-prev flex h-8 w-8 items-center justify-center text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
+                type='button'
               >
                 <ChevronLeft className='h-4 w-4' />
               </button>
-              <span className='h-4 w-px bg-border' aria-hidden />
+              <span aria-hidden className='h-4 w-px bg-border' />
               <button
-                type='button'
                 aria-label='Next prices'
                 className='prices-nav-next flex h-8 w-8 items-center justify-center text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
+                type='button'
               >
                 <ChevronRight className='h-4 w-4' />
               </button>
@@ -119,23 +122,23 @@ export default function ProductSlider({
 
             <div className='hidden md:block'>
               <Swiper
-                modules={[Navigation]}
-                spaceBetween={1}
-                slidesPerView={3}
-                loop={products.length > 4}
-                onSwiper={s => {
-                  swiperRef.current = s
-                }}
-                navigation={{
-                  nextEl: '.prices-nav-next',
-                  prevEl: '.prices-nav-prev',
-                }}
                 breakpoints={{
                   768: { slidesPerView: 3, spaceBetween: 1 },
                   1024: { slidesPerView: 4, spaceBetween: 1 },
                   1280: { slidesPerView: 5, spaceBetween: 1 },
                 }}
                 className='prices-board-swiper !bg-border'
+                loop={products.length > 4}
+                modules={[Navigation]}
+                navigation={{
+                  nextEl: '.prices-nav-next',
+                  prevEl: '.prices-nav-prev',
+                }}
+                slidesPerView={3}
+                spaceBetween={1}
+                onSwiper={s => {
+                  swiperRef.current = s
+                }}
               >
                 {products.map(product => (
                   <SwiperSlide key={product.id} className='!h-auto bg-card'>

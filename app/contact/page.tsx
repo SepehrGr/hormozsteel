@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+
 import Map from '@/components/content/map'
 
 const officeHours = [
@@ -87,6 +88,7 @@ export default function ContactPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target
+
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
@@ -169,15 +171,15 @@ export default function ContactPage() {
                   {channels.map(ch => (
                     <li key={ch.value + ch.note}>
                       <a
-                        href={ch.href}
                         className='group flex flex-col gap-0.5 transition-colors duration-200 ease-out hover:text-foreground'
-                        target={
-                          ch.href.startsWith('http') ? '_blank' : undefined
-                        }
+                        href={ch.href}
                         rel={
                           ch.href.startsWith('http')
                             ? 'noopener noreferrer'
                             : undefined
+                        }
+                        target={
+                          ch.href.startsWith('http') ? '_blank' : undefined
                         }
                       >
                         <span className='text-xs text-muted-foreground'>
@@ -225,88 +227,88 @@ export default function ContactPage() {
             </div>
 
             <form
-              onSubmit={handleSubmit}
               className='space-y-5 px-5 py-6 md:px-6 md:py-8'
+              onSubmit={handleSubmit}
             >
               <div className='grid gap-5 sm:grid-cols-2'>
                 <div className='sm:col-span-2'>
                   <label
-                    htmlFor='name'
                     className='mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
+                    htmlFor='name'
                   >
                     Full name *
                   </label>
                   <input
-                    type='text'
-                    id='name'
-                    name='name'
-                    value={formData.name}
-                    onChange={handleInputChange}
                     required
-                    disabled={isSubmitting}
                     autoComplete='name'
                     className={fieldClass}
+                    disabled={isSubmitting}
+                    id='name'
+                    name='name'
                     placeholder='Name for the quote file'
+                    type='text'
+                    value={formData.name}
+                    onChange={handleInputChange}
                   />
                 </div>
                 <div>
                   <label
-                    htmlFor='phone'
                     className='mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
+                    htmlFor='phone'
                   >
                     Phone *
                   </label>
                   <input
-                    type='tel'
+                    required
+                    autoComplete='tel'
+                    className={fieldClass}
+                    dir='ltr'
+                    disabled={isSubmitting}
                     id='phone'
                     name='phone'
+                    placeholder='+98 …'
+                    type='tel'
                     value={formData.phone}
                     onChange={handleInputChange}
-                    required
-                    disabled={isSubmitting}
-                    autoComplete='tel'
-                    dir='ltr'
-                    className={fieldClass}
-                    placeholder='+98 …'
                   />
                 </div>
                 <div>
                   <label
-                    htmlFor='email'
                     className='mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
+                    htmlFor='email'
                   >
                     Email
                   </label>
                   <input
-                    type='email'
+                    autoComplete='email'
+                    className={fieldClass}
+                    dir='ltr'
+                    disabled={isSubmitting}
                     id='email'
                     name='email'
+                    placeholder='optional'
+                    type='email'
                     value={formData.email}
                     onChange={handleInputChange}
-                    disabled={isSubmitting}
-                    autoComplete='email'
-                    dir='ltr'
-                    className={fieldClass}
-                    placeholder='optional'
                   />
                 </div>
                 <div className='sm:col-span-2'>
                   <label
-                    htmlFor='message'
                     className='mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
+                    htmlFor='message'
                   >
                     Specs &amp; volume *
                   </label>
                   <textarea
+                    required
+                    className={`${fieldClass} min-h-[10rem] resize-y`}
+                    disabled={isSubmitting}
                     id='message'
                     name='message'
+                    placeholder='Product, size/grade, tonnage, delivery city, timing…'
                     rows={8}
                     value={formData.message}
                     onChange={handleInputChange}
-                    required
-                    disabled={isSubmitting}
-                    className={`${fieldClass} min-h-[10rem] resize-y`}
-                    placeholder='Product, size/grade, tonnage, delivery city, timing…'
                   />
                 </div>
               </div>
@@ -315,16 +317,16 @@ export default function ContactPage() {
                 <p className='text-xs text-muted-foreground'>
                   Prefer the catalog first?{' '}
                   <Link
-                    href='/products'
                     className='font-medium text-foreground underline-offset-4 hover:underline'
+                    href='/products'
                   >
                     Browse unit prices
                   </Link>
                 </p>
                 <button
-                  type='submit'
-                  disabled={isSubmitting}
                   className='inline-flex items-center justify-center bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'
+                  disabled={isSubmitting}
+                  type='submit'
                 >
                   {isSubmitting ? 'Sending…' : 'Send request'}
                 </button>
@@ -332,12 +334,12 @@ export default function ContactPage() {
 
               {submitStatus.type ? (
                 <div
-                  role='status'
                   className={`border px-4 py-3 text-sm ${
                     submitStatus.type === 'success'
                       ? 'border-emerald-600/40 bg-emerald-50 text-emerald-900 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-100'
                       : 'border-red-600/40 bg-red-50 text-red-900 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-100'
                   }`}
+                  role='status'
                 >
                   <p className='font-medium'>
                     {submitStatus.type === 'success'

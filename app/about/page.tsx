@@ -146,8 +146,8 @@ export default function AboutPage() {
               </p>
             </div>
             <Link
-              href='/products'
               className='inline-flex items-center gap-1.5 text-sm font-medium text-foreground underline-offset-4 transition-colors duration-200 ease-out hover:underline'
+              href='/products'
             >
               Open catalog
               <ArrowRight className='h-3.5 w-3.5' />
@@ -249,15 +249,15 @@ export default function AboutPage() {
           </div>
           <div className='flex flex-wrap gap-3'>
             <Link
-              href='/products'
               className='inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
+              href='/products'
             >
               Browse catalog
               <ArrowRight className='h-4 w-4' />
             </Link>
             <Link
-              href='/contact'
               className='inline-flex items-center border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+              href='/contact'
             >
               Contact sales
             </Link>

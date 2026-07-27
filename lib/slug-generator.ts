@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma'
 
 /**
  * Generate a unique slug for a product
@@ -15,41 +15,41 @@ export async function generateUniqueSlug(
     .toLowerCase()
     .replace(/[^a-z0-9\u0600-\u06FF\s-]/g, '') // Allow Persian characters
     .replace(/\s+/g, '-')
-    .trim();
+    .trim()
 
   // Handle empty slug
   if (!baseSlug) {
-    throw new Error('Cannot generate slug from empty name');
+    throw new Error('Cannot generate slug from empty name')
   }
 
   // Check if base slug is available
   const existing = await prisma.product.findUnique({
     where: { slug: baseSlug },
-  });
+  })
 
   if (!existing || existing.id === excludeId) {
-    return baseSlug;
+    return baseSlug
   }
 
   // If slug exists, find a unique one by adding a number suffix
-  let counter = 1;
-  let newSlug = `${baseSlug}-${counter}`;
+  let counter = 1
+  let newSlug = `${baseSlug}-${counter}`
 
   while (true) {
     const conflict = await prisma.product.findUnique({
       where: { slug: newSlug },
-    });
+    })
 
     if (!conflict || conflict.id === excludeId) {
-      return newSlug;
+      return newSlug
     }
 
-    counter++;
-    newSlug = `${baseSlug}-${counter}`;
+    counter++
+    newSlug = `${baseSlug}-${counter}`
 
     // Safety check to prevent infinite loop
     if (counter > 1000) {
-      throw new Error(`Could not generate unique slug for: ${baseName}`);
+      throw new Error(`Could not generate unique slug for: ${baseName}`)
     }
   }
 }

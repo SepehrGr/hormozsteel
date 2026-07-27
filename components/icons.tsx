@@ -9,12 +9,12 @@ export const Logo: React.FC<IconSvgProps> = ({
   ...props
 }) => (
   <svg
-    width='50'
+    className='w-10 h-10 md:w-11 md:h-11'
+    fill='none'
     height='50'
     viewBox='0 0 996 911'
-    fill='none'
+    width='50'
     xmlns='http://www.w3.org/2000/svg'
-    className='w-10 h-10 md:w-11 md:h-11'
   >
     <path
       d='M20.5 890.5V20.5H190.5V116V291V890.5H20.5Z'
@@ -128,39 +128,39 @@ export const ShamshIcon = (props: IconSvgProps) => (
     {...props}
   >
     <rect
-      x='4'
-      y='6'
-      width='16'
+      fill='currentColor'
+      fillOpacity='0.1'
       height='12'
       rx='2'
       stroke='currentColor'
       strokeWidth='2'
-      fill='currentColor'
-      fillOpacity='0.1'
+      width='16'
+      x='4'
+      y='6'
     />
     <rect
+      fill='currentColor'
+      fillOpacity='0.3'
+      height='2'
+      width='12'
       x='6'
       y='8'
-      width='12'
-      height='2'
-      fill='currentColor'
-      fillOpacity='0.3'
     />
     <rect
+      fill='currentColor'
+      fillOpacity='0.3'
+      height='2'
+      width='12'
       x='6'
       y='11'
-      width='12'
-      height='2'
-      fill='currentColor'
-      fillOpacity='0.3'
     />
     <rect
-      x='6'
-      y='14'
-      width='12'
-      height='2'
       fill='currentColor'
       fillOpacity='0.3'
+      height='2'
+      width='12'
+      x='6'
+      y='14'
     />
   </svg>
 )
@@ -177,24 +177,24 @@ export const QootiIcon = (props: IconSvgProps) => (
     {...props}
   >
     <rect
-      x='3'
-      y='3'
-      width='18'
+      fill='none'
       height='18'
       rx='2'
       stroke='currentColor'
       strokeWidth='2'
-      fill='none'
+      width='18'
+      x='3'
+      y='3'
     />
     <rect
-      x='5'
-      y='5'
-      width='14'
+      fill='currentColor'
+      fillOpacity='0.1'
       height='14'
       stroke='currentColor'
       strokeWidth='1.5'
-      fill='currentColor'
-      fillOpacity='0.1'
+      width='14'
+      x='5'
+      y='5'
     />
   </svg>
 )
@@ -212,37 +212,37 @@ export const WireIcon = (props: IconSvgProps) => (
   >
     <path
       d='M3 12c0-1.5 1.5-3 3-3s3 1.5 3 3-1.5 3-3 3-3-1.5-3-3z'
-      stroke='currentColor'
-      strokeWidth='2'
       fill='currentColor'
       fillOpacity='0.2'
+      stroke='currentColor'
+      strokeWidth='2'
     />
     <path
       d='M15 12c0-1.5 1.5-3 3-3s3 1.5 3 3-1.5 3-3 3-3-1.5-3-3z'
-      stroke='currentColor'
-      strokeWidth='2'
       fill='currentColor'
       fillOpacity='0.2'
+      stroke='currentColor'
+      strokeWidth='2'
     />
     <path
       d='M9 12h6'
       stroke='currentColor'
-      strokeWidth='2'
       strokeLinecap='round'
+      strokeWidth='2'
     />
     <path
       d='M6 8l12 8'
-      stroke='currentColor'
-      strokeWidth='1'
-      strokeLinecap='round'
       opacity='0.5'
+      stroke='currentColor'
+      strokeLinecap='round'
+      strokeWidth='1'
     />
     <path
       d='M6 16l12-8'
-      stroke='currentColor'
-      strokeWidth='1'
-      strokeLinecap='round'
       opacity='0.5'
+      stroke='currentColor'
+      strokeLinecap='round'
+      strokeWidth='1'
     />
   </svg>
 )
@@ -262,15 +262,15 @@ export const MeshIcon = (props: IconSvgProps) => (
       <path d='M3 8h18M3 12h18M3 16h18' />
       <path d='M8 3v18M12 3v18M16 3v18' />
     </g>
-    <circle cx='8' cy='8' r='1' fill='currentColor' />
-    <circle cx='12' cy='8' r='1' fill='currentColor' />
-    <circle cx='16' cy='8' r='1' fill='currentColor' />
-    <circle cx='8' cy='12' r='1' fill='currentColor' />
-    <circle cx='12' cy='12' r='1' fill='currentColor' />
-    <circle cx='16' cy='12' r='1' fill='currentColor' />
-    <circle cx='8' cy='16' r='1' fill='currentColor' />
-    <circle cx='12' cy='16' r='1' fill='currentColor' />
-    <circle cx='16' cy='16' r='1' fill='currentColor' />
+    <circle cx='8' cy='8' fill='currentColor' r='1' />
+    <circle cx='12' cy='8' fill='currentColor' r='1' />
+    <circle cx='16' cy='8' fill='currentColor' r='1' />
+    <circle cx='8' cy='12' fill='currentColor' r='1' />
+    <circle cx='12' cy='12' fill='currentColor' r='1' />
+    <circle cx='16' cy='12' fill='currentColor' r='1' />
+    <circle cx='8' cy='16' fill='currentColor' r='1' />
+    <circle cx='12' cy='16' fill='currentColor' r='1' />
+    <circle cx='16' cy='16' fill='currentColor' r='1' />
   </svg>
 )
 
@@ -288,16 +288,16 @@ export const RawMaterialIcon = (props: IconSvgProps) => (
     <circle
       cx='12'
       cy='12'
+      fill='currentColor'
+      fillOpacity='0.1'
       r='8'
       stroke='currentColor'
       strokeWidth='2'
-      fill='currentColor'
-      fillOpacity='0.1'
     />
-    <circle cx='8' cy='10' r='1.5' fill='currentColor' fillOpacity='0.7' />
-    <circle cx='16' cy='8' r='1' fill='currentColor' fillOpacity='0.5' />
-    <circle cx='14' cy='14' r='1.5' fill='currentColor' fillOpacity='0.8' />
-    <circle cx='9' cy='16' r='1' fill='currentColor' fillOpacity='0.6' />
-    <circle cx='12' cy='12' r='0.8' fill='currentColor' />
+    <circle cx='8' cy='10' fill='currentColor' fillOpacity='0.7' r='1.5' />
+    <circle cx='16' cy='8' fill='currentColor' fillOpacity='0.5' r='1' />
+    <circle cx='14' cy='14' fill='currentColor' fillOpacity='0.8' r='1.5' />
+    <circle cx='9' cy='16' fill='currentColor' fillOpacity='0.6' r='1' />
+    <circle cx='12' cy='12' fill='currentColor' r='0.8' />
   </svg>
 )

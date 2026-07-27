@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { cache } from 'react'
 import { notFound } from 'next/navigation'
+import { ChevronRight } from 'lucide-react'
+
 import CategoryProducts from '@/components/products/category-products'
 import ProductsSidebar from '@/components/products/products-sidebar'
 import { resolveCategoryIcon } from '@/config/category-icons'
 import { prisma } from '@/lib/prisma'
-import { ChevronRight } from 'lucide-react'
 
 interface PageProps {
   params: Promise<{
@@ -27,7 +28,9 @@ const getCategory = cache((slug: string) =>
 )
 
 const getCategories = cache(() =>
-  prisma.category.findMany({ orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
+  prisma.category.findMany({
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+  }),
 )
 
 export async function generateMetadata({ params }: PageProps) {
@@ -63,12 +66,12 @@ export default async function CategoryPage({ params }: PageProps) {
       <header className='border-b border-border'>
         <div className='mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14'>
           <nav
-            className='mb-4 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground'
             aria-label='Breadcrumb'
+            className='mb-4 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground'
           >
             <Link
-              href='/products'
               className='transition-colors duration-200 ease-out hover:text-foreground'
+              href='/products'
             >
               Products
             </Link>
@@ -89,8 +92,8 @@ export default async function CategoryPage({ params }: PageProps) {
               <div className='flex items-start gap-4'>
                 <div className='flex h-12 w-12 shrink-0 items-center justify-center border border-border bg-card'>
                   <i
-                    className={`${iconClass} text-2xl text-foreground`}
                     aria-hidden
+                    className={`${iconClass} text-2xl text-foreground`}
                   />
                 </div>
                 <div>
@@ -99,8 +102,8 @@ export default async function CategoryPage({ params }: PageProps) {
                   </h1>
                   <p className='mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base'>
                     {category.description ?? category.name}. Filter by mill and
-                    size, compare unit
-                    rates in USD, and request a firm quote from sales.
+                    size, compare unit rates in USD, and request a firm quote
+                    from sales.
                   </p>
                 </div>
               </div>
@@ -119,7 +122,9 @@ export default async function CategoryPage({ params }: PageProps) {
                 <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
                   Currency
                 </dt>
-                <dd className='mt-0.5 text-sm font-medium text-foreground'>USD</dd>
+                <dd className='mt-0.5 text-sm font-medium text-foreground'>
+                  USD
+                </dd>
               </div>
               <div className='bg-card px-4 py-3 sm:col-span-2'>
                 <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>

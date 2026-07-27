@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+
 import AdminSidebar from '@/components/admin/admin-sidebar'
 import AdminHeader from '@/components/admin/admin-header'
 
@@ -13,6 +14,7 @@ export default function AdminShell({ children }: AdminShellProps) {
 
   useEffect(() => {
     const stored = localStorage.getItem('admin-sidebar-collapsed')
+
     if (stored === '1') setCollapsed(true)
 
     const onStorage = (e: StorageEvent) => {
@@ -20,12 +22,15 @@ export default function AdminShell({ children }: AdminShellProps) {
         setCollapsed(e.newValue === '1')
       }
     }
+
     window.addEventListener('storage', onStorage)
 
     const onCustom = (e: Event) => {
       const detail = (e as CustomEvent).detail
+
       setCollapsed(Boolean(detail))
     }
+
     window.addEventListener('admin-sidebar-toggle', onCustom)
 
     return () => {

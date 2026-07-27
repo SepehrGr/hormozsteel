@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+
 import { prisma } from '@/lib/prisma'
 
 interface RouteParams {
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           success: false,
           error: 'Manufacturer not found',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -32,12 +33,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     })
   } catch (error) {
     console.error('Error fetching manufacturer:', error)
+
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to fetch manufacturer',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -59,12 +61,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
           success: false,
           error: 'Manufacturer not found',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     // If name is being updated, regenerate slug
     let updateData = { ...body }
+
     if (body.name && body.name !== existingManufacturer.name) {
       const newSlug = body.name
         .toLowerCase()
@@ -86,7 +89,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
             success: false,
             error: 'Manufacturer with this name already exists',
           },
-          { status: 400 }
+          { status: 400 },
         )
       }
 
@@ -105,12 +108,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     })
   } catch (error) {
     console.error('Error updating manufacturer:', error)
+
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to update manufacturer',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -131,7 +135,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
           success: false,
           error: 'Manufacturer not found',
         },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -146,12 +150,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     })
   } catch (error) {
     console.error('Error deleting manufacturer:', error)
+
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to delete manufacturer',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

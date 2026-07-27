@@ -14,6 +14,7 @@ import { Checkbox } from '@heroui/checkbox'
 import { useDisclosure } from '@heroui/modal'
 import { addToast } from '@heroui/toast'
 import { Package, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
+
 import { useProducts, useCategories, useManufacturers } from '@/hooks/use-api'
 import { useProductExcel } from '@/hooks/use-product-excel'
 import HeaderActions from '@/components/admin/products/header-actions'
@@ -120,6 +121,7 @@ export default function AdminProducts() {
   // Debounce searchTerm -> searchQuery to auto-run search while typing
   useEffect(() => {
     const t = setTimeout(() => setSearchQuery(searchTerm), 800)
+
     return () => clearTimeout(t)
   }, [searchTerm])
 
@@ -130,6 +132,7 @@ export default function AdminProducts() {
 
   const formatPersianDate = (dateString: string) => {
     const date = new Date(dateString)
+
     return date.toLocaleDateString('fa-IR', {
       year: 'numeric',
       month: 'long',
@@ -235,6 +238,7 @@ export default function AdminProducts() {
       if (aValue > bValue) {
         return sortDescriptor.direction === 'ascending' ? 1 : -1
       }
+
       return 0
     })
   }, [products, sortDescriptor])
@@ -273,6 +277,7 @@ export default function AdminProducts() {
       if (response.ok) {
         mutateProducts()
         const count = selectedProducts.length
+
         setSelectedProducts([])
         setBulkUpdateData({})
         onBulkModalOpenChange()
@@ -283,6 +288,7 @@ export default function AdminProducts() {
         })
       } else {
         const error = await response.json()
+
         addToast({
           title: 'خطا',
           description: error.error || 'خطا در بروزرسانی محصولات',
@@ -317,6 +323,7 @@ export default function AdminProducts() {
 
       if (response.ok && data.success !== false) {
         const count = data.affectedCount ?? selectedProducts.length
+
         setSelectedProducts([])
         mutateProducts()
         onDeleteModalOpenChange()
@@ -347,6 +354,7 @@ export default function AdminProducts() {
       data.manufacturerId && data.manufacturerId !== '__custom__'
         ? data.manufacturerId
         : undefined
+
     return {
       ...data,
       manufacturerId: manufacturerId || undefined,
@@ -391,6 +399,7 @@ export default function AdminProducts() {
         description: 'Name, mill, category, and sub-line are required',
         color: 'warning',
       })
+
       return
     }
 
@@ -414,6 +423,7 @@ export default function AdminProducts() {
         })
       } else {
         const error = await response.json()
+
         addToast({
           title: 'خطا',
           description: error.error || 'خطا در بروزرسانی محصول',
@@ -445,6 +455,7 @@ export default function AdminProducts() {
 
       if (response.ok) {
         const deletedId = productToDelete.id
+
         setSelectedProducts(prev => prev.filter(id => id !== deletedId))
         setProductToDelete(null)
         mutateProducts()
@@ -456,6 +467,7 @@ export default function AdminProducts() {
         })
       } else {
         const error = await response.json()
+
         addToast({
           title: 'Error',
           description: error.error || 'Could not delete product',
@@ -504,6 +516,7 @@ export default function AdminProducts() {
         description: 'Name, mill, category, and sub-line are required',
         color: 'warning',
       })
+
       return
     }
 
@@ -581,6 +594,7 @@ export default function AdminProducts() {
     // Unchanged / invalid — leave quietly (no error toast)
     if (Number.isNaN(newPrice) || newPrice <= 0 || newPrice === product.price) {
       cancelPriceEdit()
+
       return
     }
 
@@ -588,6 +602,7 @@ export default function AdminProducts() {
     // Exit edit mode immediately so the input (and any validation chrome) unmounts
     setEditingPriceId(null)
     const savedPrice = newPrice
+
     setTempPrice('')
 
     try {
@@ -669,6 +684,7 @@ export default function AdminProducts() {
         })
       } else {
         const error = await response.json()
+
         addToast({
           title: 'خطا',
           description: error.error || 'خطا در بروزرسانی وضعیت موجودی',
@@ -691,6 +707,7 @@ export default function AdminProducts() {
       page: '1',
       limit: '1000000', // large number to fetch all
     }
+
     if (searchQuery) params.search = searchQuery
     if (categoryFilter) params.category = categoryFilter
     if (stockFilter) params.inStock = stockFilter
@@ -699,6 +716,7 @@ export default function AdminProducts() {
       params.sortOrder =
         sortDescriptor.direction === 'ascending' ? 'asc' : 'desc'
     }
+
     return new URLSearchParams({ ...params, ...override }).toString()
   }
 
@@ -708,6 +726,7 @@ export default function AdminProducts() {
       const query = buildQuery()
       const res = await fetch(`/api/products?${query}`)
       const data = await res.json()
+
       if (data.success && data.data.products) {
         exportProducts(data.data.products)
       } else {
@@ -731,6 +750,7 @@ export default function AdminProducts() {
     if (tempWeight === '' || (newWeight !== undefined && newWeight < 0)) {
       setEditingWeightId(null)
       setTempWeight('')
+
       return
     }
 
@@ -738,6 +758,7 @@ export default function AdminProducts() {
     if (newWeight === product.weight) {
       setEditingWeightId(null)
       setTempWeight('')
+
       return
     }
 
@@ -763,6 +784,7 @@ export default function AdminProducts() {
         })
       } else {
         const error = await response.json()
+
         addToast({
           title: 'خطا',
           description: error.error || 'خطا در بروزرسانی وزن',
@@ -809,18 +831,18 @@ export default function AdminProducts() {
         </div>
         <HeaderActions
           fileInputRef={fileInputRef}
-          onImportClick={handleImportClick}
+          onAdd={handleAddProduct}
+          onExport={handleExportAll}
           onFileChange={e =>
             handleFileImport(e, categories, mutateProducts, addToast)
           }
-          onExport={handleExportAll}
-          onAdd={handleAddProduct}
+          onImportClick={handleImportClick}
         />
       </div>
 
       <StatsCards
-        total={pagination?.total || 0}
         selected={selectedProducts.length}
+        total={pagination?.total || 0}
       />
 
       <div className='border border-border bg-card'>
@@ -831,16 +853,15 @@ export default function AdminProducts() {
         </div>
         <div className='px-4 py-4'>
           <Filters
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            categoryFilter={categoryFilter}
-            setCategoryFilter={setCategoryFilter}
-            stockFilter={stockFilter}
-            setStockFilter={setStockFilter}
             categories={categories}
+            categoryFilter={categoryFilter}
+            searchTerm={searchTerm}
             selectedProductsCount={selectedProducts.length}
+            setCategoryFilter={setCategoryFilter}
+            setSearchTerm={setSearchTerm}
+            setStockFilter={setStockFilter}
+            stockFilter={stockFilter}
             onBulkOpen={onBulkModalOpen}
-            onDeleteOpen={onDeleteModalOpen}
             onClearFilters={() => {
               setSearchTerm('')
               setSearchQuery('')
@@ -848,6 +869,7 @@ export default function AdminProducts() {
               setStockFilter('')
               setCurrentPage(1)
             }}
+            onDeleteOpen={onDeleteModalOpen}
           />
         </div>
       </div>
@@ -862,13 +884,13 @@ export default function AdminProducts() {
         <div className='overflow-x-auto'>
           <Table
             aria-label='Products table'
-            sortDescriptor={sortDescriptor}
-            onSortChange={setSortDescriptor}
             classNames={{
               wrapper: 'shadow-none rounded-none',
               th: 'bg-muted/50 text-muted-foreground text-[10px] font-semibold uppercase tracking-[0.12em]',
               td: 'py-3',
             }}
+            sortDescriptor={sortDescriptor}
+            onSortChange={setSortDescriptor}
           >
             <TableHeader>
               <TableColumn width={50}>
@@ -904,7 +926,7 @@ export default function AdminProducts() {
               <TableColumn key='subcategory'>Sub-line</TableColumn>
               <TableColumn width={150}>Actions</TableColumn>
             </TableHeader>
-            <TableBody isLoading={isLoading} emptyContent='No products found'>
+            <TableBody emptyContent='No products found' isLoading={isLoading}>
               {sortedProducts.map((product: Product) => (
                 <TableRow
                   key={product.id}
@@ -936,25 +958,25 @@ export default function AdminProducts() {
                   <TableCell>
                     {editingWeightId === product.id ? (
                       <Input
-                        type='number'
-                        value={tempWeight}
-                        onChange={e => setTempWeight(e.target.value)}
-                        onBlur={() => handleWeightBlur(product)}
-                        onKeyDown={e => handleWeightKeyDown(e, product)}
                         autoFocus
-                        size='sm'
-                        variant='bordered'
-                        step='0.1'
                         classNames={{
                           input: 'font-mono tabular-nums',
                           inputWrapper: 'h-8 min-h-8',
                         }}
+                        size='sm'
+                        step='0.1'
+                        type='number'
+                        value={tempWeight}
+                        variant='bordered'
+                        onBlur={() => handleWeightBlur(product)}
+                        onChange={e => setTempWeight(e.target.value)}
+                        onKeyDown={e => handleWeightKeyDown(e, product)}
                       />
                     ) : (
                       <span
                         className='cursor-pointer font-mono text-xs tabular-nums text-muted-foreground hover:underline'
-                        onClick={() => handleWeightClick(product)}
                         title='Click to edit'
+                        onClick={() => handleWeightClick(product)}
                       >
                         {product.weight ? product.weight : '—'}
                       </span>
@@ -963,23 +985,23 @@ export default function AdminProducts() {
                   <TableCell>
                     {editingPriceId === product.id ? (
                       <input
-                        type='number'
-                        inputMode='decimal'
-                        step='0.01'
-                        min='0'
-                        value={tempPrice}
-                        onChange={e => setTempPrice(e.target.value)}
-                        onBlur={() => handlePriceSave(product)}
-                        onKeyDown={e => handlePriceKeyDown(e, product)}
                         autoFocus
-                        className='h-8 w-28 border border-border bg-background px-2 font-mono text-sm font-semibold tabular-nums text-foreground outline-none focus:border-foreground focus:ring-1 focus:ring-foreground'
                         aria-label='Edit unit price'
+                        className='h-8 w-28 border border-border bg-background px-2 font-mono text-sm font-semibold tabular-nums text-foreground outline-none focus:border-foreground focus:ring-1 focus:ring-foreground'
+                        inputMode='decimal'
+                        min='0'
+                        step='0.01'
+                        type='number'
+                        value={tempPrice}
+                        onBlur={() => handlePriceSave(product)}
+                        onChange={e => setTempPrice(e.target.value)}
+                        onKeyDown={e => handlePriceKeyDown(e, product)}
                       />
                     ) : (
                       <span
                         className='cursor-pointer font-mono text-sm font-semibold tabular-nums text-foreground hover:underline'
-                        onClick={() => handlePriceClick(product)}
                         title='Click to edit'
+                        onClick={() => handlePriceClick(product)}
                       >
                         $
                         {Number(product.price).toLocaleString('en-US', {
@@ -991,14 +1013,14 @@ export default function AdminProducts() {
                   </TableCell>
                   <TableCell>
                     <button
-                      type='button'
-                      onClick={() => handleStockToggle(product)}
                       className={`border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide transition-colors duration-200 ease-out cursor-pointer ${
                         product.inStock
                           ? 'border-emerald-600/30 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-200'
                           : 'border-red-600/30 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200'
                       }`}
                       title='Click to toggle stock'
+                      type='button'
+                      onClick={() => handleStockToggle(product)}
                     >
                       {product.inStock ? 'In stock' : 'Out'}
                     </button>
@@ -1016,18 +1038,18 @@ export default function AdminProducts() {
                   <TableCell>
                     <div className='flex gap-1'>
                       <button
-                        type='button'
-                        onClick={() => handleEditProduct(product)}
                         className='inline-flex h-8 w-8 items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                         title='Edit'
+                        type='button'
+                        onClick={() => handleEditProduct(product)}
                       >
                         <Edit className='h-3.5 w-3.5' />
                       </button>
                       <button
-                        type='button'
-                        onClick={() => handleDeleteProduct(product)}
                         className='inline-flex h-8 w-8 items-center justify-center border border-border bg-card text-red-600 transition-colors duration-200 ease-out hover:bg-muted dark:text-red-400 cursor-pointer'
                         title='Delete'
+                        type='button'
+                        onClick={() => handleDeleteProduct(product)}
                       >
                         <Trash2 className='h-3.5 w-3.5' />
                       </button>
@@ -1042,13 +1064,13 @@ export default function AdminProducts() {
           <div className='flex items-center gap-2 text-sm text-muted-foreground'>
             <span>Show</span>
             <select
+              aria-label='Rows per page'
+              className='border border-border bg-background px-2 py-1.5 text-sm text-foreground focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
               value={itemsPerPage}
               onChange={e => {
                 setItemsPerPage(parseInt(e.target.value, 10))
                 setCurrentPage(1)
               }}
-              className='border border-border bg-background px-2 py-1.5 text-sm text-foreground focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
-              aria-label='Rows per page'
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
@@ -1077,11 +1099,11 @@ export default function AdminProducts() {
 
           <div className='flex items-center gap-1'>
             <button
+              aria-label='Previous page'
+              className='inline-flex h-9 w-9 items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:opacity-50'
+              disabled={currentPage === 1 || isLoading}
               type='button'
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1 || isLoading}
-              className='inline-flex h-9 w-9 items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:opacity-50'
-              aria-label='Previous page'
             >
               <ChevronLeft className='h-4 w-4' />
             </button>
@@ -1090,6 +1112,7 @@ export default function AdminProducts() {
                 { length: Math.min(5, pagination.totalPages) },
                 (_, i) => {
                   let pageNum: number
+
                   if (pagination.totalPages <= 5) {
                     pageNum = i + 1
                   } else if (currentPage <= 3) {
@@ -1099,37 +1122,38 @@ export default function AdminProducts() {
                   } else {
                     pageNum = currentPage - 2 + i
                   }
+
                   return pageNum
                 },
               ).map(pageNum => (
                 <button
                   key={pageNum}
-                  type='button'
-                  onClick={() => setCurrentPage(pageNum)}
-                  disabled={isLoading}
                   className={`inline-flex h-9 min-w-9 items-center justify-center border px-2 text-sm font-medium transition-colors duration-200 ease-out disabled:opacity-50 ${
                     currentPage === pageNum
                       ? 'border-primary bg-primary text-primary-foreground'
                       : 'border-border bg-card text-foreground hover:bg-muted'
                   }`}
+                  disabled={isLoading}
+                  type='button'
+                  onClick={() => setCurrentPage(pageNum)}
                 >
                   {pageNum}
                 </button>
               ))}
             <button
+              aria-label='Next page'
+              className='inline-flex h-9 w-9 items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:opacity-50'
+              disabled={
+                !pagination ||
+                currentPage === pagination.totalPages ||
+                isLoading
+              }
               type='button'
               onClick={() =>
                 setCurrentPage(p =>
                   pagination ? Math.min(pagination.totalPages, p + 1) : p,
                 )
               }
-              disabled={
-                !pagination ||
-                currentPage === pagination.totalPages ||
-                isLoading
-              }
-              className='inline-flex h-9 w-9 items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:opacity-50'
-              aria-label='Next page'
             >
               <ChevronRight className='h-4 w-4' />
             </button>
@@ -1138,47 +1162,47 @@ export default function AdminProducts() {
       </div>
 
       <BulkUpdateModal
-        isOpen={isBulkModalOpen}
-        onOpenChange={onBulkModalOpenChange}
-        selectedCount={selectedProducts.length}
         bulkUpdateData={bulkUpdateData}
-        setBulkUpdateData={setBulkUpdateData}
         categories={categories}
+        isOpen={isBulkModalOpen}
+        selectedCount={selectedProducts.length}
+        setBulkUpdateData={setBulkUpdateData}
+        onOpenChange={onBulkModalOpenChange}
         onUpdate={handleBulkUpdate}
       />
 
       <BulkDeleteModal
         isOpen={isDeleteModalOpen}
-        onOpenChange={onDeleteModalOpenChange}
         selectedCount={selectedProducts.length}
         onDelete={handleBulkDelete}
+        onOpenChange={onDeleteModalOpenChange}
       />
 
       <EditProductModal
-        isOpen={isEditModalOpen}
-        onOpenChange={onEditModalOpenChange}
-        editingProduct={editingProduct}
-        editProductData={editProductData}
-        setEditProductData={setEditProductData}
         categories={categories}
+        editProductData={editProductData}
+        editingProduct={editingProduct}
+        isOpen={isEditModalOpen}
         manufacturers={manufacturers}
+        setEditProductData={setEditProductData}
+        onOpenChange={onEditModalOpenChange}
         onSave={handleSaveEdit}
       />
 
       <DeleteSingleModal
         isOpen={isDeleteSingleModalOpen}
-        onOpenChange={onDeleteSingleModalOpenChange}
         product={productToDelete}
         onConfirm={handleConfirmDelete}
+        onOpenChange={onDeleteSingleModalOpenChange}
       />
 
       <AddProductModal
+        categories={categories}
         isOpen={isAddModalOpen}
-        onOpenChange={onAddModalOpenChange}
+        manufacturers={manufacturers}
         newProductData={newProductData}
         setNewProductData={setNewProductData}
-        categories={categories}
-        manufacturers={manufacturers}
+        onOpenChange={onAddModalOpenChange}
         onSave={handleSaveNewProduct}
       />
     </div>

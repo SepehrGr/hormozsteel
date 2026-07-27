@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server'
+
 import { prisma } from '@/lib/prisma'
 import { mapDirectionToLegacy } from '@/lib/product-dto'
 
 export async function GET() {
   try {
     const today = new Date()
+
     today.setHours(0, 0, 0, 0)
 
     const priceChanges = await prisma.priceHistory.findMany({
@@ -40,7 +42,9 @@ export async function GET() {
     const formattedChanges = source
       .map(change => {
         const product = change.product
+
         if (!product) return null
+
         return {
           id: change.id,
           productId: change.productId,
@@ -61,8 +65,10 @@ export async function GET() {
       .filter(Boolean) as Array<Record<string, unknown>>
 
     const latestChangesMap = new Map<string, (typeof formattedChanges)[0]>()
+
     for (const change of formattedChanges) {
       const pid = change.productId as string
+
       if (!latestChangesMap.has(pid)) latestChangesMap.set(pid, change)
     }
     const uniqueChanges = Array.from(latestChangesMap.values())
@@ -82,6 +88,7 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error fetching moment news:', error)
+
     return NextResponse.json(
       { success: false, error: 'Failed to fetch price news' },
       { status: 500 },

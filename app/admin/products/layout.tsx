@@ -7,5 +7,6 @@ export default async function AuthenticatedLayout({
   children: React.ReactNode
 }) {
   await requireAuth()
+
   return <AdminShell>{children}</AdminShell>
 }

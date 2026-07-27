@@ -16,6 +16,7 @@ import {
   ChevronRight,
   ArrowLeft,
 } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 
 const sidebarItems = [
@@ -46,6 +47,7 @@ export default function AdminSidebar({
   const collapsed = collapsedProp ?? internalCollapsed
   const setCollapsed = (next: boolean | ((v: boolean) => boolean)) => {
     const value = typeof next === 'function' ? next(collapsed) : next
+
     if (onCollapsedChange) onCollapsedChange(value)
     else setInternalCollapsed(value)
   }
@@ -60,21 +62,21 @@ export default function AdminSidebar({
 
   return (
     <aside
+      aria-label='Admin sidebar'
       className={cn(
         'fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-card transition-[width] duration-200 ease-out',
         collapsed ? 'w-[4.25rem]' : 'w-60',
       )}
-      aria-label='Admin sidebar'
     >
       <div
         className={`flex h-14 items-center  border-b border-border px-3 ${collapsed ? 'justify-center' : 'justify-between'}`}
       >
         <Link
-          href='/admin/dashboard'
           className={cn(
             'flex min-w-0 items-center gap-2.5',
             collapsed && 'justify-center',
           )}
+          href='/admin/dashboard'
         >
           {!collapsed && (
             <div className='min-w-0'>
@@ -89,10 +91,10 @@ export default function AdminSidebar({
         </Link>
 
         <button
-          type='button'
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          onClick={() => setCollapsed(v => !v)}
           className='flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-background text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground cursor-pointer'
+          type='button'
+          onClick={() => setCollapsed(v => !v)}
         >
           {collapsed ? (
             <ChevronRight className='h-4 w-4' />
@@ -131,11 +133,10 @@ export default function AdminSidebar({
             {allItems.map(item => {
               const Icon = item.icon
               const active = isActive(item.href)
+
               return (
                 <li key={item.href}>
                   <Link
-                    href={item.href}
-                    title={collapsed ? item.title : undefined}
                     className={cn(
                       'flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-out',
                       collapsed && 'justify-center px-0',
@@ -143,6 +144,8 @@ export default function AdminSidebar({
                         ? 'bg-primary text-primary-foreground'
                         : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                     )}
+                    href={item.href}
+                    title={collapsed ? item.title : undefined}
                   >
                     <Icon className='h-5 w-5 shrink-0' />
                     {!collapsed && <span>{item.title}</span>}
@@ -157,8 +160,8 @@ export default function AdminSidebar({
       {!collapsed && (
         <div className='border-t border-border px-3 py-3'>
           <Link
-            href='/'
             className='text-sm font-medium text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground flex items-center gap-1.5'
+            href='/'
           >
             <ArrowLeft className='h-5 w-5' />
             Public site

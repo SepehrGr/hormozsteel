@@ -143,6 +143,7 @@ const Threads: React.FC<ThreadsProps> = ({
     distance,
     enableMouseInteraction,
   })
+
   propsRef.current = { color, amplitude, distance, enableMouseInteraction }
 
   useEffect(() => {
@@ -151,6 +152,7 @@ const Threads: React.FC<ThreadsProps> = ({
 
     const renderer = new Renderer({ alpha: true })
     const gl = renderer.gl
+
     gl.clearColor(0, 0, 0, 0)
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -183,6 +185,7 @@ const Threads: React.FC<ThreadsProps> = ({
     // resolution to keep large / high-DPI screens smooth; the effect is soft
     // enough that the downscale is imperceptible.
     const MAX_RENDER_DIM = 1920
+
     function resize() {
       const { clientWidth, clientHeight } = container
       const baseDpr = Math.min(window.devicePixelRatio || 1, 2)
@@ -191,6 +194,7 @@ const Threads: React.FC<ThreadsProps> = ({
         longestSide > MAX_RENDER_DIM
           ? (baseDpr * MAX_RENDER_DIM) / longestSide
           : baseDpr
+
       renderer.dpr = dpr
       renderer.setSize(clientWidth, clientHeight)
       program.uniforms.iResolution.value.r = gl.canvas.width
@@ -199,6 +203,7 @@ const Threads: React.FC<ThreadsProps> = ({
     }
 
     const resizeObserver = new ResizeObserver(resize)
+
     resizeObserver.observe(container)
     window.addEventListener('resize', resize)
     resize()
@@ -210,6 +215,7 @@ const Threads: React.FC<ThreadsProps> = ({
       const rect = container.getBoundingClientRect()
       const x = (e.clientX - rect.left) / rect.width
       const y = 1.0 - (e.clientY - rect.top) / rect.height
+
       targetMouse = [x, y]
     }
     function handleMouseLeave() {
@@ -227,6 +233,7 @@ const Threads: React.FC<ThreadsProps> = ({
       },
       { threshold: 0 },
     )
+
     intersectionObserver.observe(container)
 
     function update(t: number) {
@@ -242,6 +249,7 @@ const Threads: React.FC<ThreadsProps> = ({
 
       if (enableMouseInteraction) {
         const smoothing = 0.05
+
         currentMouse[0] += smoothing * (targetMouse[0] - currentMouse[0])
         currentMouse[1] += smoothing * (targetMouse[1] - currentMouse[1])
         program.uniforms.uMouse.value[0] = currentMouse[0]

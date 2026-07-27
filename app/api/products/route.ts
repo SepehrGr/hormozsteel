@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ProductUnit, Prisma } from '@prisma/client'
+
 import { prisma } from '@/lib/prisma'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
 import {
@@ -10,6 +11,7 @@ import {
 
 export async function GET(request: NextRequest) {
   const rateLimitResponse = checkApiRateLimitAndRespond(request)
+
   if (rateLimitResponse) return rateLimitResponse
 
   try {
@@ -40,6 +42,7 @@ export async function GET(request: NextRequest) {
         where: { slug: category },
         select: { id: true },
       })
+
       if (!categoryRecord) {
         return NextResponse.json(
           {
@@ -108,6 +111,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching products:', error)
+
     return NextResponse.json(
       {
         success: false,
@@ -125,6 +129,7 @@ export async function POST(request: NextRequest) {
     50,
     15 * 60 * 1000,
   )
+
   if (rateLimitResponse) return rateLimitResponse
 
   try {
@@ -151,6 +156,7 @@ export async function POST(request: NextRequest) {
     const categoryExists = await prisma.category.findUnique({
       where: { id: body.categoryId },
     })
+
     if (!categoryExists) {
       return NextResponse.json(
         { success: false, error: 'Category not found' },
@@ -159,6 +165,7 @@ export async function POST(request: NextRequest) {
     }
 
     const existing = await prisma.product.findUnique({ where: { slug } })
+
     if (existing) {
       return NextResponse.json(
         { success: false, error: 'Product with this name already exists' },
@@ -204,6 +211,7 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error('Error creating product:', error)
+
     return NextResponse.json(
       {
         success: false,

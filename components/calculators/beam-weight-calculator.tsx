@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+
 import {
   Field,
   fieldClass,
@@ -29,8 +30,10 @@ export default function BeamWeightCalculator() {
     const wt = parseFloat(webThickness)
     const ft = parseFloat(flangeThickness)
     const d = parseFloat(density)
+
     if (!l || !h || !fw || !wt || !ft || !d) return
     const area = h * wt + 2 * fw * ft
+
     setResult(Math.round(((area * l * d) / 1000) * 100) / 100)
   }
 
@@ -48,10 +51,10 @@ export default function BeamWeightCalculator() {
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
         <Field id='beamType' label='Section family'>
           <select
+            className={selectClass}
             id='beamType'
             value={beamType}
             onChange={e => setBeamType(e.target.value)}
-            className={selectClass}
           >
             <option value='IPE'>IPE</option>
             <option value='INP'>INP</option>
@@ -60,88 +63,88 @@ export default function BeamWeightCalculator() {
           </select>
         </Field>
         <DensitySelect
-          value={density}
-          onChange={setDensity}
           options={STEEL_DENSITIES.filter(d =>
             ['7.85', '8', '7.84', '2.7', '8.96', '8.5'].includes(d.value),
           )}
+          value={density}
+          onChange={setDensity}
         />
         <Field id='length' label='Length (m)'>
           <input
+            className={fieldClass}
             id='length'
-            type='number'
             inputMode='decimal'
+            placeholder='e.g. 12'
+            type='number'
             value={length}
             onChange={e => setLength(e.target.value)}
-            placeholder='e.g. 12'
-            className={fieldClass}
           />
         </Field>
         <Field id='height' label='Overall height (mm)'>
           <input
+            className={fieldClass}
             id='height'
-            type='number'
             inputMode='decimal'
+            placeholder='e.g. 200'
+            type='number'
             value={height}
             onChange={e => setHeight(e.target.value)}
-            placeholder='e.g. 200'
-            className={fieldClass}
           />
         </Field>
         <Field id='flangeWidth' label='Flange width (mm)'>
           <input
+            className={fieldClass}
             id='flangeWidth'
-            type='number'
             inputMode='decimal'
+            placeholder='e.g. 100'
+            type='number'
             value={flangeWidth}
             onChange={e => setFlangeWidth(e.target.value)}
-            placeholder='e.g. 100'
-            className={fieldClass}
           />
         </Field>
         <Field id='flangeThickness' label='Flange thickness (mm)'>
           <input
+            className={fieldClass}
             id='flangeThickness'
-            type='number'
             inputMode='decimal'
+            placeholder='e.g. 8.5'
+            type='number'
             value={flangeThickness}
             onChange={e => setFlangeThickness(e.target.value)}
-            placeholder='e.g. 8.5'
-            className={fieldClass}
           />
         </Field>
         <Field
+          className='sm:col-span-2'
           id='webThickness'
           label='Web thickness (mm)'
-          className='sm:col-span-2'
         >
           <input
+            className={fieldClass}
             id='webThickness'
-            type='number'
             inputMode='decimal'
+            placeholder='e.g. 5.6'
+            type='number'
             value={webThickness}
             onChange={e => setWebThickness(e.target.value)}
-            placeholder='e.g. 5.6'
-            className={fieldClass}
           />
         </Field>
       </div>
 
       <CalculatorActions
+        calculateLabel='Calculate weight'
         onCalculate={calculateWeight}
         onReset={resetForm}
-        calculateLabel='Calculate weight'
       />
 
       {result != null && (
         <CalculatorResult
-          weightKg={result}
           details={
             <p>
               {beamType}: h {height} · bf {flangeWidth} · tw {webThickness} · tf{' '}
               {flangeThickness} mm · L {length} m
             </p>
           }
+          weightKg={result}
         />
       )}
 

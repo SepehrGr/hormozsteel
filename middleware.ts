@@ -13,9 +13,11 @@ export default withAuth(
           if (req.nextUrl.pathname === '/admin/login') {
             return true
           }
+
           // For other admin routes, require authentication
           return !!token
         }
+
         return true
       },
     },

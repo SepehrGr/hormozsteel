@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+
 import { prisma } from '@/lib/prisma'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
 import { productInclude, toProductDTO } from '@/lib/product-dto'
@@ -9,6 +10,7 @@ interface RouteParams {
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   const rateLimitResponse = checkApiRateLimitAndRespond(request)
+
   if (rateLimitResponse) return rateLimitResponse
 
   try {
@@ -46,6 +48,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ success: true, data })
   } catch (error) {
     console.error('Error fetching category:', error)
+
     return NextResponse.json(
       { success: false, error: 'Failed to fetch category' },
       { status: 500 },
@@ -59,6 +62,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     50,
     15 * 60 * 1000,
   )
+
   if (rateLimitResponse) return rateLimitResponse
 
   try {
@@ -74,9 +78,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         subcategories: body.subcategories,
       },
     })
+
     return NextResponse.json({ success: true, data: category })
   } catch (error) {
     console.error('Error updating category:', error)
+
     return NextResponse.json(
       { success: false, error: 'Failed to update category' },
       { status: 500 },
@@ -90,14 +96,18 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     50,
     15 * 60 * 1000,
   )
+
   if (rateLimitResponse) return rateLimitResponse
 
   try {
     const { id } = await params
+
     await prisma.category.delete({ where: { id } })
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting category:', error)
+
     return NextResponse.json(
       { success: false, error: 'Failed to delete category' },
       { status: 500 },

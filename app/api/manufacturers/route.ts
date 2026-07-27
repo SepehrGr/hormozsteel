@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+
 import { prisma } from '@/lib/prisma'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
 
 // GET /api/manufacturers - Get all manufacturers
 export async function GET(request: NextRequest) {
   const rateLimitResponse = checkApiRateLimitAndRespond(request)
+
   if (rateLimitResponse) {
     return rateLimitResponse
   }
@@ -72,19 +74,25 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching manufacturers:', error)
+
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to fetch manufacturers',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
 
 // POST /api/manufacturers - Create a new manufacturer
 export async function POST(request: NextRequest) {
-  const rateLimitResponse = checkApiRateLimitAndRespond(request, 50, 15 * 60 * 1000)
+  const rateLimitResponse = checkApiRateLimitAndRespond(
+    request,
+    50,
+    15 * 60 * 1000,
+  )
+
   if (rateLimitResponse) {
     return rateLimitResponse
   }
@@ -99,7 +107,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: 'Name is required',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -121,7 +129,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: 'Manufacturer with this name already exists',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -138,16 +146,17 @@ export async function POST(request: NextRequest) {
         success: true,
         data: manufacturer,
       },
-      { status: 201 }
+      { status: 201 },
     )
   } catch (error) {
     console.error('Error creating manufacturer:', error)
+
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to create manufacturer',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

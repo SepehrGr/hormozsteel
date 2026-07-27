@@ -26,20 +26,20 @@ export default function HeaderActions({
     <div className='flex flex-wrap gap-2'>
       <input
         ref={fileInputRef}
-        type='file'
         accept='.xlsx,.xls'
-        onChange={onFileChange}
         className='hidden'
+        type='file'
+        onChange={onFileChange}
       />
-      <button type='button' onClick={onImportClick} className={secondaryBtn}>
+      <button className={secondaryBtn} type='button' onClick={onImportClick}>
         <Upload className='h-4 w-4' />
         Import Excel
       </button>
-      <button type='button' onClick={onExport} className={secondaryBtn}>
+      <button className={secondaryBtn} type='button' onClick={onExport}>
         <Download className='h-4 w-4' />
         Export Excel
       </button>
-      <button type='button' onClick={onAdd} className={primaryBtn}>
+      <button className={primaryBtn} type='button' onClick={onAdd}>
         <Plus className='h-4 w-4' />
         Add product
       </button>

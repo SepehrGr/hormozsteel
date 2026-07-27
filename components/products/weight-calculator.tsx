@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { Calculator, X } from 'lucide-react'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Calculator, X } from 'lucide-react'
 
 interface WeightCalculatorProps {
   isOpen: boolean
@@ -31,6 +32,7 @@ export default function WeightCalculator({
     if (d && l && q) {
       // فرمول محاسبه وزن میلگرد: (قطر^2 × طول × 0.00617) × تعداد
       const weight = d * d * l * 0.00617 * q
+
       setTotalWeight(Math.round(weight * 100) / 100)
     }
   }
@@ -49,7 +51,7 @@ export default function WeightCalculator({
       <Card className='w-full max-w-md'>
         <CardHeader className='flex flex-row items-center justify-between'>
           <CardTitle className='text-xl'>محاسبه وزن میلگرد</CardTitle>
-          <Button variant='ghost' size='sm' onClick={onClose}>
+          <Button size='sm' variant='ghost' onClick={onClose}>
             <X className='w-4 h-4' />
           </Button>
         </CardHeader>
@@ -66,10 +68,10 @@ export default function WeightCalculator({
               <Label htmlFor='diameter'>قطر (میلیمتر)</Label>
               <Input
                 id='diameter'
+                placeholder='مثال: 14'
                 type='number'
                 value={diameter}
                 onChange={e => setDiameter(e.target.value)}
-                placeholder='مثال: 14'
               />
             </div>
 
@@ -77,10 +79,10 @@ export default function WeightCalculator({
               <Label htmlFor='length'>طول (متر)</Label>
               <Input
                 id='length'
+                placeholder='مثال: 12'
                 type='number'
                 value={length}
                 onChange={e => setLength(e.target.value)}
-                placeholder='مثال: 12'
               />
             </div>
 
@@ -88,20 +90,20 @@ export default function WeightCalculator({
               <Label htmlFor='quantity'>تعداد</Label>
               <Input
                 id='quantity'
+                placeholder='مثال: 1'
                 type='number'
                 value={quantity}
                 onChange={e => setQuantity(e.target.value)}
-                placeholder='مثال: 1'
               />
             </div>
           </div>
 
           <div className='flex gap-2'>
-            <Button onClick={calculateWeight} className='flex-1'>
+            <Button className='flex-1' onClick={calculateWeight}>
               <Calculator className='w-4 h-4 ml-2' />
               محاسبه
             </Button>
-            <Button onClick={resetCalculator} variant='outline'>
+            <Button variant='outline' onClick={resetCalculator}>
               پاک کردن
             </Button>
           </div>

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { PriceDirection } from '@prisma/client'
+
 import { prisma } from '@/lib/prisma'
 import { getAuthSession, logAdminAction } from '@/lib/admin-auth'
-import { PriceDirection } from '@prisma/client'
 
 async function requireApiAuth() {
   const session = await getAuthSession()
+
   if (!session?.user?.id) {
     return {
       error: NextResponse.json(
@@ -13,6 +15,7 @@ async function requireApiAuth() {
       ),
     }
   }
+
   return { session }
 }
 
@@ -20,6 +23,7 @@ async function requireApiAuth() {
 export async function PATCH(request: NextRequest) {
   try {
     const auth = await requireApiAuth()
+
     if ('error' in auth && auth.error) return auth.error
     const session = auth.session!
 
@@ -84,6 +88,7 @@ export async function PATCH(request: NextRequest) {
           const newPrice = updateData.price as number
           const diff = newPrice - oldPrice
           let direction: PriceDirection = PriceDirection.STABLE
+
           if (diff > 0) direction = PriceDirection.UP
           else if (diff < 0) direction = PriceDirection.DOWN
 
@@ -132,6 +137,7 @@ export async function PATCH(request: NextRequest) {
     })
   } catch (error) {
     console.error('Bulk update error:', error)
+
     return NextResponse.json(
       { success: false, error: 'Failed to update products' },
       { status: 500 },
@@ -143,10 +149,12 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const auth = await requireApiAuth()
+
     if ('error' in auth && auth.error) return auth.error
     const session = auth.session!
 
     let body: { productIds?: string[] }
+
     try {
       body = await request.json()
     } catch {
@@ -212,6 +220,7 @@ export async function DELETE(request: NextRequest) {
     })
   } catch (error) {
     console.error('Bulk delete error:', error)
+
     return NextResponse.json(
       {
         success: false,

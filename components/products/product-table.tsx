@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo } from 'react'
 import type { Product } from '@/types/products'
+
+import { useMemo } from 'react'
 import {
   Calculator,
   Package,
@@ -29,6 +30,7 @@ function formatUsd(price: number) {
 function directionMeta(product: Product) {
   const raw = product.priceHistory?.changeType || product.priceDirection || ''
   const t = String(raw).toLowerCase()
+
   if (t === 'up' || t === 'increase' || t === 'افزایش') {
     return {
       label: 'Up',
@@ -43,6 +45,7 @@ function directionMeta(product: Product) {
       Icon: TrendingDown,
     }
   }
+
   return {
     label: 'Flat',
     className: 'text-muted-foreground',
@@ -60,10 +63,13 @@ export default function ProductTable({
     return [...products].sort((a, b) => {
       const na = parseFloat(a.size)
       const nb = parseFloat(b.size)
+
       if (!Number.isNaN(na) && !Number.isNaN(nb)) {
         if (na === nb) return a.name.localeCompare(b.name)
+
         return na - nb
       }
+
       return a.size.localeCompare(b.size)
     })
   }, [products])
@@ -112,6 +118,7 @@ export default function ProductTable({
                 product.weightKg != null
                   ? `${Number(product.weightKg).toFixed(2)} kg`
                   : '—'
+
               return (
                 <tr
                   key={product.id}
@@ -152,18 +159,18 @@ export default function ProductTable({
                   <td className='px-3 py-3'>
                     <div className='flex items-center justify-center gap-1.5'>
                       <button
+                        className='inline-flex h-8 cursor-pointer items-center border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                         type='button'
                         onClick={() => onOrder(product)}
-                        className='inline-flex h-8 cursor-pointer items-center border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                       >
                         Request
                       </button>
                       <button
-                        type='button'
-                        onClick={() => onCalculate(product)}
                         aria-label={`Weight calculator for ${product.name}`}
                         className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                         title='Weight calculator'
+                        type='button'
+                        onClick={() => onCalculate(product)}
                       >
                         <Calculator className='h-3.5 w-3.5' />
                       </button>
@@ -203,10 +210,10 @@ export default function ProductTable({
                 </td>
                 <td className='px-2 py-3 text-center'>
                   <button
-                    type='button'
-                    onClick={() => onOrder(product)}
                     className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                     title='Request quote'
+                    type='button'
+                    onClick={() => onOrder(product)}
                   >
                     <Package className='h-3.5 w-3.5' />
                   </button>

@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
 import {
   Package,
   FolderTree,
@@ -10,6 +9,8 @@ import {
   DollarSign,
   ArrowRight,
 } from 'lucide-react'
+
+import { prisma } from '@/lib/prisma'
 
 async function getDashboardStats() {
   const [
@@ -134,8 +135,8 @@ export default async function AdminDashboard() {
           </p>
         </div>
         <Link
-          href='/admin/products'
           className='inline-flex items-center gap-1.5 text-sm font-medium text-foreground underline-offset-4 transition-colors duration-200 ease-out hover:underline'
+          href='/admin/products'
         >
           Manage products
           <ArrowRight className='h-3.5 w-3.5' />
@@ -145,11 +146,12 @@ export default async function AdminDashboard() {
       <div className='grid grid-cols-2 gap-px overflow-hidden border border-border bg-border sm:grid-cols-3 lg:grid-cols-4'>
         {statCards.map(stat => {
           const Icon = stat.icon
+
           return (
             <Link
               key={stat.title}
-              href={stat.href}
               className='group bg-card px-4 py-4 transition-colors duration-200 ease-out hover:bg-muted'
+              href={stat.href}
             >
               <div className='flex items-start justify-between gap-2'>
                 <p className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
@@ -171,8 +173,8 @@ export default async function AdminDashboard() {
             Recent orders
           </h2>
           <Link
-            href='/admin/orders'
             className='text-xs font-medium text-muted-foreground underline-offset-4 transition-colors duration-200 ease-out hover:text-foreground hover:underline'
+            href='/admin/orders'
           >
             View all
           </Link>

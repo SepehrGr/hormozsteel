@@ -65,6 +65,7 @@ export default function OrderRequestModal({
     if (!isOpen) return
 
     const prev = document.body.style.overflow
+
     document.body.style.overflow = 'hidden'
 
     return () => {
@@ -91,6 +92,7 @@ export default function OrderRequestModal({
       !formData.quantity.trim()
     ) {
       setErrorMessage('Please fill in all required fields.')
+
       return
     }
 
@@ -149,6 +151,7 @@ export default function OrderRequestModal({
   // showModal() gives focus trapping, Escape, and focus restore for free
   useEffect(() => {
     const dialog = dialogRef.current
+
     if (!dialog) return
 
     if (isOpen && !dialog.open) dialog.showModal()
@@ -157,6 +160,7 @@ export default function OrderRequestModal({
 
   useEffect(() => {
     const dialog = dialogRef.current
+
     if (!dialog) return
 
     // A click landing on the dialog itself came from the ::backdrop.
@@ -164,6 +168,7 @@ export default function OrderRequestModal({
     const handleBackdropClick = (e: MouseEvent) => {
       if (e.target === dialog) dialog.close()
     }
+
     dialog.addEventListener('click', handleBackdropClick)
 
     return () => dialog.removeEventListener('click', handleBackdropClick)
@@ -179,284 +184,286 @@ export default function OrderRequestModal({
       {isOpen && (
         <>
           <div className='flex items-center justify-between border-b border-border px-5 py-3'>
-          <div>
-            <p className='font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
-              Sales desk
-            </p>
-            <h2
-              id='order-request-title'
-              className='text-base font-semibold tracking-tight text-foreground'
-            >
-              Quote request
-            </h2>
-          </div>
-          <button
-            type='button'
-            onClick={handleClose}
-            className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
-            aria-label='Close'
-          >
-            <X className='h-4 w-4' />
-          </button>
-        </div>
-
-        <div className='overflow-y-auto px-5 py-5'>
-          {isSubmitted ? (
-            <div className='space-y-3 py-8 text-center'>
-              <div className='mx-auto flex h-12 w-12 items-center justify-center border border-emerald-600/30 bg-emerald-50 dark:bg-emerald-950/40'>
-                <CheckCircle className='h-6 w-6 text-emerald-600 dark:text-emerald-400' />
-              </div>
-              <h3 className='text-lg font-semibold text-foreground'>
-                Request received
-              </h3>
-              <p className='text-sm text-muted-foreground'>
-                Sales will follow up with firm pricing against the catalog
-                board.
+            <div>
+              <p className='font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                Sales desk
               </p>
-              {trackingCode ? (
-                <p className='inline-block border border-border bg-muted/40 px-3 py-2 font-mono text-sm text-foreground'>
-                  Order ID: {trackingCode}
-                </p>
-              ) : null}
+              <h2
+                className='text-base font-semibold tracking-tight text-foreground'
+                id='order-request-title'
+              >
+                Quote request
+              </h2>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className='space-y-5'>
-              {productName ? (
-                <div className='border border-border bg-muted/40 px-3 py-2.5 text-sm'>
-                  <p className='text-[10px] uppercase tracking-wide text-muted-foreground'>
-                    Line item
-                  </p>
-                  <p className='mt-0.5 font-medium text-foreground'>
-                    {productName}
-                  </p>
-                </div>
-              ) : null}
+            <button
+              aria-label='Close'
+              className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
+              type='button'
+              onClick={handleClose}
+            >
+              <X className='h-4 w-4' />
+            </button>
+          </div>
 
-              <section className='space-y-3'>
-                <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
-                  Contact
-                </h3>
-                <div className='grid gap-3 sm:grid-cols-2'>
-                  <div className='sm:col-span-2'>
-                    <label htmlFor='customerName' className={labelClass}>
-                      Full name *
-                    </label>
-                    <input
-                      id='customerName'
-                      type='text'
-                      value={formData.customerName}
-                      onChange={e =>
-                        handleInputChange('customerName', e.target.value)
-                      }
-                      className={fieldClass}
-                      placeholder='Name for the quote file'
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor='phoneNumber' className={labelClass}>
-                      Phone *
-                    </label>
-                    <input
-                      id='phoneNumber'
-                      type='tel'
-                      value={formData.phoneNumber}
-                      onChange={e =>
-                        handleInputChange('phoneNumber', e.target.value)
-                      }
-                      className={fieldClass}
-                      dir='ltr'
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor='city' className={labelClass}>
-                      Delivery city *
-                    </label>
-                    <input
-                      id='city'
-                      type='text'
-                      value={formData.city}
-                      onChange={e => handleInputChange('city', e.target.value)}
-                      className={fieldClass}
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <div className='sm:col-span-2'>
-                    <label htmlFor='companyName' className={labelClass}>
-                      Company
-                    </label>
-                    <input
-                      id='companyName'
-                      type='text'
-                      value={formData.companyName}
-                      onChange={e =>
-                        handleInputChange('companyName', e.target.value)
-                      }
-                      className={fieldClass}
-                      disabled={isSubmitting}
-                    />
-                  </div>
+          <div className='overflow-y-auto px-5 py-5'>
+            {isSubmitted ? (
+              <div className='space-y-3 py-8 text-center'>
+                <div className='mx-auto flex h-12 w-12 items-center justify-center border border-emerald-600/30 bg-emerald-50 dark:bg-emerald-950/40'>
+                  <CheckCircle className='h-6 w-6 text-emerald-600 dark:text-emerald-400' />
                 </div>
-              </section>
-
-              <section className='space-y-3'>
-                <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
-                  Order details
+                <h3 className='text-lg font-semibold text-foreground'>
+                  Request received
                 </h3>
+                <p className='text-sm text-muted-foreground'>
+                  Sales will follow up with firm pricing against the catalog
+                  board.
+                </p>
+                {trackingCode ? (
+                  <p className='inline-block border border-border bg-muted/40 px-3 py-2 font-mono text-sm text-foreground'>
+                    Order ID: {trackingCode}
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+              <form className='space-y-5' onSubmit={handleSubmit}>
+                {productName ? (
+                  <div className='border border-border bg-muted/40 px-3 py-2.5 text-sm'>
+                    <p className='text-[10px] uppercase tracking-wide text-muted-foreground'>
+                      Line item
+                    </p>
+                    <p className='mt-0.5 font-medium text-foreground'>
+                      {productName}
+                    </p>
+                  </div>
+                ) : null}
+
+                <section className='space-y-3'>
+                  <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                    Contact
+                  </h3>
+                  <div className='grid gap-3 sm:grid-cols-2'>
+                    <div className='sm:col-span-2'>
+                      <label className={labelClass} htmlFor='customerName'>
+                        Full name *
+                      </label>
+                      <input
+                        required
+                        className={fieldClass}
+                        disabled={isSubmitting}
+                        id='customerName'
+                        placeholder='Name for the quote file'
+                        type='text'
+                        value={formData.customerName}
+                        onChange={e =>
+                          handleInputChange('customerName', e.target.value)
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass} htmlFor='phoneNumber'>
+                        Phone *
+                      </label>
+                      <input
+                        required
+                        className={fieldClass}
+                        dir='ltr'
+                        disabled={isSubmitting}
+                        id='phoneNumber'
+                        type='tel'
+                        value={formData.phoneNumber}
+                        onChange={e =>
+                          handleInputChange('phoneNumber', e.target.value)
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass} htmlFor='city'>
+                        Delivery city *
+                      </label>
+                      <input
+                        required
+                        className={fieldClass}
+                        disabled={isSubmitting}
+                        id='city'
+                        type='text'
+                        value={formData.city}
+                        onChange={e =>
+                          handleInputChange('city', e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className='sm:col-span-2'>
+                      <label className={labelClass} htmlFor='companyName'>
+                        Company
+                      </label>
+                      <input
+                        className={fieldClass}
+                        disabled={isSubmitting}
+                        id='companyName'
+                        type='text'
+                        value={formData.companyName}
+                        onChange={e =>
+                          handleInputChange('companyName', e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <section className='space-y-3'>
+                  <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                    Order details
+                  </h3>
+                  <div>
+                    <label className={labelClass} htmlFor='productSpecs'>
+                      Specs *
+                    </label>
+                    <input
+                      required
+                      className={fieldClass}
+                      disabled={isSubmitting}
+                      id='productSpecs'
+                      placeholder='Size, grade, mill…'
+                      type='text'
+                      value={formData.productSpecs}
+                      onChange={e =>
+                        handleInputChange('productSpecs', e.target.value)
+                      }
+                    />
+                  </div>
+                  <div className='grid gap-3 sm:grid-cols-2'>
+                    <div>
+                      <label className={labelClass} htmlFor='quantity'>
+                        Quantity *
+                      </label>
+                      <input
+                        required
+                        className={fieldClass}
+                        disabled={isSubmitting}
+                        id='quantity'
+                        placeholder='e.g. 5 tons'
+                        type='text'
+                        value={formData.quantity}
+                        onChange={e =>
+                          handleInputChange('quantity', e.target.value)
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass} htmlFor='deliveryDate'>
+                        Preferred date
+                      </label>
+                      <input
+                        className={fieldClass}
+                        disabled={isSubmitting}
+                        id='deliveryDate'
+                        type='date'
+                        value={
+                          formData.deliveryDate
+                            ? formData.deliveryDate.slice(0, 10)
+                            : ''
+                        }
+                        onChange={e =>
+                          handleInputChange(
+                            'deliveryDate',
+                            e.target.value
+                              ? new Date(e.target.value).toISOString()
+                              : '',
+                          )
+                        }
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <section className='space-y-3'>
+                  <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                    Delivery
+                  </h3>
+                  <div className='grid gap-2 sm:grid-cols-2'>
+                    {(
+                      [
+                        { value: 'pickup', label: 'Ex-works pickup' },
+                        { value: 'delivery', label: 'Freight to site' },
+                      ] as const
+                    ).map(option => (
+                      <label
+                        key={option.value}
+                        className={`flex cursor-pointer items-center gap-2 border px-3 py-2.5 text-sm transition-colors duration-200 ease-out ${
+                          formData.deliveryMethod === option.value
+                            ? 'border-foreground bg-muted text-foreground'
+                            : 'border-border bg-background text-muted-foreground hover:bg-muted/50'
+                        }`}
+                      >
+                        <input
+                          checked={formData.deliveryMethod === option.value}
+                          className='sr-only'
+                          disabled={isSubmitting}
+                          name='deliveryMethod'
+                          type='radio'
+                          value={option.value}
+                          onChange={e =>
+                            handleInputChange('deliveryMethod', e.target.value)
+                          }
+                        />
+                        {option.label}
+                      </label>
+                    ))}
+                  </div>
+                </section>
+
                 <div>
-                  <label htmlFor='productSpecs' className={labelClass}>
-                    Specs *
+                  <label className={labelClass} htmlFor='additionalNotes'>
+                    Notes
                   </label>
-                  <input
-                    id='productSpecs'
-                    type='text'
-                    value={formData.productSpecs}
-                    onChange={e =>
-                      handleInputChange('productSpecs', e.target.value)
-                    }
-                    className={fieldClass}
-                    placeholder='Size, grade, mill…'
-                    required
+                  <textarea
+                    className={`${fieldClass} min-h-[5rem] resize-y`}
                     disabled={isSubmitting}
+                    id='additionalNotes'
+                    placeholder='Timing, inspection, mill preference…'
+                    value={formData.additionalNotes}
+                    onChange={e =>
+                      handleInputChange('additionalNotes', e.target.value)
+                    }
                   />
                 </div>
-                <div className='grid gap-3 sm:grid-cols-2'>
-                  <div>
-                    <label htmlFor='quantity' className={labelClass}>
-                      Quantity *
-                    </label>
-                    <input
-                      id='quantity'
-                      type='text'
-                      value={formData.quantity}
-                      onChange={e =>
-                        handleInputChange('quantity', e.target.value)
-                      }
-                      className={fieldClass}
-                      placeholder='e.g. 5 tons'
-                      required
-                      disabled={isSubmitting}
-                    />
+
+                {errorMessage ? (
+                  <div
+                    className='border border-red-600/40 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-100'
+                    role='alert'
+                  >
+                    {errorMessage}
                   </div>
-                  <div>
-                    <label htmlFor='deliveryDate' className={labelClass}>
-                      Preferred date
-                    </label>
-                    <input
-                      id='deliveryDate'
-                      type='date'
-                      value={
-                        formData.deliveryDate
-                          ? formData.deliveryDate.slice(0, 10)
-                          : ''
-                      }
-                      onChange={e =>
-                        handleInputChange(
-                          'deliveryDate',
-                          e.target.value
-                            ? new Date(e.target.value).toISOString()
-                            : '',
-                        )
-                      }
-                      className={fieldClass}
-                      disabled={isSubmitting}
-                    />
-                  </div>
+                ) : null}
+
+                <div className='flex flex-col gap-2 border-t border-border pt-4 sm:flex-row'>
+                  <button
+                    className='inline-flex flex-1 cursor-pointer items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+                    disabled={isSubmitting}
+                    type='button'
+                    onClick={handleClose}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className='inline-flex flex-1 cursor-pointer items-center justify-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'
+                    disabled={isSubmitting}
+                    type='submit'
+                  >
+                    {isSubmitting ? (
+                      'Sending…'
+                    ) : (
+                      <>
+                        <Send className='h-4 w-4' />
+                        Send request
+                      </>
+                    )}
+                  </button>
                 </div>
-              </section>
-
-              <section className='space-y-3'>
-                <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
-                  Delivery
-                </h3>
-                <div className='grid gap-2 sm:grid-cols-2'>
-                  {(
-                    [
-                      { value: 'pickup', label: 'Ex-works pickup' },
-                      { value: 'delivery', label: 'Freight to site' },
-                    ] as const
-                  ).map(option => (
-                    <label
-                      key={option.value}
-                      className={`flex cursor-pointer items-center gap-2 border px-3 py-2.5 text-sm transition-colors duration-200 ease-out ${
-                        formData.deliveryMethod === option.value
-                          ? 'border-foreground bg-muted text-foreground'
-                          : 'border-border bg-background text-muted-foreground hover:bg-muted/50'
-                      }`}
-                    >
-                      <input
-                        type='radio'
-                        name='deliveryMethod'
-                        value={option.value}
-                        checked={formData.deliveryMethod === option.value}
-                        onChange={e =>
-                          handleInputChange('deliveryMethod', e.target.value)
-                        }
-                        className='sr-only'
-                        disabled={isSubmitting}
-                      />
-                      {option.label}
-                    </label>
-                  ))}
-                </div>
-              </section>
-
-              <div>
-                <label htmlFor='additionalNotes' className={labelClass}>
-                  Notes
-                </label>
-                <textarea
-                  id='additionalNotes'
-                  value={formData.additionalNotes}
-                  onChange={e =>
-                    handleInputChange('additionalNotes', e.target.value)
-                  }
-                  className={`${fieldClass} min-h-[5rem] resize-y`}
-                  placeholder='Timing, inspection, mill preference…'
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              {errorMessage ? (
-                <div
-                  role='alert'
-                  className='border border-red-600/40 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-100'
-                >
-                  {errorMessage}
-                </div>
-              ) : null}
-
-              <div className='flex flex-col gap-2 border-t border-border pt-4 sm:flex-row'>
-                <button
-                  type='button'
-                  onClick={handleClose}
-                  disabled={isSubmitting}
-                  className='inline-flex flex-1 cursor-pointer items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
-                >
-                  Cancel
-                </button>
-                <button
-                  type='submit'
-                  disabled={isSubmitting}
-                  className='inline-flex flex-1 cursor-pointer items-center justify-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'
-                >
-                  {isSubmitting ? (
-                    'Sending…'
-                  ) : (
-                    <>
-                      <Send className='h-4 w-4' />
-                      Send request
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
+              </form>
+            )}
+          </div>
         </>
       )}
     </dialog>

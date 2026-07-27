@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import bcrypt from 'bcryptjs'
+
 import { getAuthSession } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
-import bcrypt from 'bcryptjs'
 
 // GET /api/admin/profile - Get current admin's profile
 export async function GET(request: NextRequest) {
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching admin profile:', error)
+
     return NextResponse.json(
       {
         success: false,
@@ -122,8 +124,10 @@ export async function PATCH(request: NextRequest) {
 
     // Hash password if provided
     let hashedPassword: string | undefined
+
     if (password) {
       const salt = await bcrypt.genSalt(10)
+
       hashedPassword = await bcrypt.hash(password, salt)
     }
 
@@ -154,6 +158,7 @@ export async function PATCH(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error updating admin profile:', error)
+
     return NextResponse.json(
       {
         success: false,

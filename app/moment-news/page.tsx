@@ -10,7 +10,6 @@ import {
   ArrowUp,
   ArrowDown,
   Minus,
-  ChartArea,
   ChartNoAxesCombined,
 } from 'lucide-react'
 import moment from 'moment-jalaali'
@@ -103,12 +102,14 @@ export default function MomentNewsPage() {
       return <ArrowUp className='w-4 h-4 text-green-600' />
     if (changeType === 'کاهش')
       return <ArrowDown className='w-4 h-4 text-red-600' />
+
     return <Minus className='w-4 h-4 text-gray-600' />
   }
 
   const getChangeColor = (changeType: string) => {
     if (changeType === 'افزایش') return 'success'
     if (changeType === 'کاهش') return 'danger'
+
     return 'default'
   }
 
@@ -116,9 +117,9 @@ export default function MomentNewsPage() {
     <div className='w-full'>
       {/* Hero Section */}
       <div className='relative overflow-hidden text-white bg-gradient-to-r from-blue-700 via-blue-600 to-cyan-600'>
-        <div className='absolute inset-0 bg-black/10'></div>
-        <div className='absolute top-0 right-0 translate-x-20 -translate-y-20 rounded-full w-96 h-96 bg-white/5'></div>
-        <div className='absolute bottom-0 left-0 w-64 h-64 -translate-x-20 translate-y-20 rounded-full bg-white/5'></div>
+        <div className='absolute inset-0 bg-black/10' />
+        <div className='absolute top-0 right-0 translate-x-20 -translate-y-20 rounded-full w-96 h-96 bg-white/5' />
+        <div className='absolute bottom-0 left-0 w-64 h-64 -translate-x-20 translate-y-20 rounded-full bg-white/5' />
 
         <div className='relative px-6 py-16 mx-auto max-w-7xl'>
           <div className='text-center'>
@@ -147,15 +148,15 @@ export default function MomentNewsPage() {
       <div className='container px-6 py-12 mx-auto'>
         {loading ? (
           <div className='flex items-center justify-center py-20'>
-            <Spinner size='lg' label='در حال بارگذاری...' />
+            <Spinner label='در حال بارگذاری...' size='lg' />
           </div>
         ) : error ? (
           <Card className='p-8 text-center bg-danger-50'>
             <CardBody>
               <p className='text-lg text-danger-600'>{error}</p>
               <button
-                onClick={fetchData}
                 className='px-6 py-2 mt-4 text-white transition-colors rounded-lg bg-danger-500 hover:bg-danger-600'
+                onClick={fetchData}
               >
                 تلاش مجدد
               </button>
@@ -168,7 +169,7 @@ export default function MomentNewsPage() {
               <div className='relative p-8 overflow-hidden border shadow-xl bg-white/80 dark:bg-slate-900/80 border-gray-200/60 dark:border-gray-700/50 rounded-3xl backdrop-blur-md'>
                 <div className='relative text-center'>
                   <div className='inline-flex items-center gap-3 px-4 py-2 mb-4 border rounded-full bg-white/60 dark:bg-slate-800/60 border-gray-200/50 dark:border-gray-700/50'>
-                    <i className='text-lg text-blue-600 dark:text-blue-400 icon-Chart'></i>
+                    <i className='text-lg text-blue-600 dark:text-blue-400 icon-Chart' />
                     <span className='text-sm font-medium text-blue-800 dark:text-blue-200'>
                       تغییرات
                     </span>
@@ -315,11 +316,11 @@ export default function MomentNewsPage() {
                         <td className='px-6 py-4 text-sm border-b border-gray-200 dark:border-gray-700 whitespace-nowrap'>
                           <Chip
                             color={getChangeColor(change.changeType)}
-                            variant='flat'
                             size='sm'
                             startContent={getCompactChangeIcon(
                               change.changeType,
                             )}
+                            variant='flat'
                           >
                             {change.changeAmount.toLocaleString('fa-IR')} تومان{' '}
                             {change.changeType}
