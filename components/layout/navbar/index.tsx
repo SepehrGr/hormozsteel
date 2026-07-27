@@ -103,7 +103,7 @@ export const Navbar = () => {
             href='/'
             onClick={closeMenu}
           >
-            <Logo className='h-8 w-8' />
+            <Logo className='w-10 md:w-11 h-10 md:h-11' />
             <span className='flex flex-col leading-none'>
               <span className='hidden md:block font-semibold tracking-tight sm:text-[1.15rem]'>
                 {siteConfig.name}
