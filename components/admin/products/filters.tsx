@@ -37,12 +37,15 @@ export default function Filters({
   return (
     <div className='grid grid-cols-1 gap-3 md:grid-cols-5'>
       <div className='md:col-span-2'>
-        <label className={labelClass}>Search</label>
+        <label className={labelClass} htmlFor='admin-product-search'>
+          Search
+        </label>
         <div className='flex gap-2'>
           <div className='relative flex-1'>
             <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
             <input
               className={`${fieldClass} pl-9`}
+              id='admin-product-search'
               placeholder='Name or mill…'
               type='search'
               value={searchTerm}
@@ -98,7 +101,7 @@ export default function Filters({
       </div>
 
       <div>
-        <label className={labelClass}>Actions</label>
+        <p className={labelClass}>Actions</p>
         {selectedProductsCount > 0 ? (
           <div className='flex h-10 gap-2'>
             <button

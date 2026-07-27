@@ -217,11 +217,15 @@ export default function ManufacturerEditPage() {
               />
 
               <div className='space-y-2'>
-                <label className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                <label
+                  className='text-sm font-medium text-gray-700 dark:text-gray-300'
+                  htmlFor='manufacturer-description'
+                >
                   توضیحات
                 </label>
                 <textarea
                   className='w-full px-3 py-2 border border-gray-300 rounded-lg resize-none min-h-32 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  id='manufacturer-description'
                   placeholder='توضیحات کامل درباره کارخانه...'
                   value={formData.description}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
@@ -243,6 +247,7 @@ export default function ManufacturerEditPage() {
 
               {formData.logo && (
                 <div className='flex items-center gap-3 p-3 border border-gray-200 rounded-lg dark:border-gray-700'>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- admin-entered URL from any host; next/image needs configured remotePatterns */}
                   <img
                     alt='Logo preview'
                     className='object-cover w-16 h-16 rounded-lg'
@@ -298,11 +303,15 @@ export default function ManufacturerEditPage() {
               />
 
               <div className='space-y-2'>
-                <label className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                <label
+                  className='text-sm font-medium text-gray-700 dark:text-gray-300'
+                  htmlFor='manufacturer-address'
+                >
                   آدرس
                 </label>
                 <textarea
                   className='w-full px-3 py-2 border border-gray-300 rounded-lg resize-none min-h-24 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  id='manufacturer-address'
                   placeholder='آدرس کامل کارخانه...'
                   value={formData.address}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
