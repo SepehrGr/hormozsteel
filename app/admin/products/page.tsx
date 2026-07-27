@@ -65,13 +65,8 @@ interface EditProductData {
 
 export default function AdminProducts() {
   // Excel import/export hook
-  const {
-    fileInputRef,
-    exportProducts,
-    downloadTemplate,
-    handleFileImport,
-    handleImportClick,
-  } = useProductExcel()
+  const { fileInputRef, exportProducts, handleFileImport, handleImportClick } =
+    useProductExcel()
 
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -636,10 +631,7 @@ export default function AdminProducts() {
     }
   }
 
-  const handlePriceKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    product: Product,
-  ) => {
+  const handlePriceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault()
       // Blur once — onBlur will save (avoids double PATCH from Enter + blur)
@@ -948,6 +940,7 @@ export default function AdminProducts() {
                   <TableCell>
                     {editingWeightId === product.id ? (
                       <Input
+                        // eslint-disable-next-line jsx-a11y/no-autofocus -- focus follows the click that opened this inline editor
                         autoFocus
                         classNames={{
                           input: 'font-mono tabular-nums',
@@ -963,18 +956,20 @@ export default function AdminProducts() {
                         onKeyDown={e => handleWeightKeyDown(e, product)}
                       />
                     ) : (
-                      <span
+                      <button
                         className='cursor-pointer font-mono text-xs tabular-nums text-muted-foreground hover:underline'
                         title='Click to edit'
+                        type='button'
                         onClick={() => handleWeightClick(product)}
                       >
                         {product.weight ? product.weight : '—'}
-                      </span>
+                      </button>
                     )}
                   </TableCell>
                   <TableCell>
                     {editingPriceId === product.id ? (
                       <input
+                        // eslint-disable-next-line jsx-a11y/no-autofocus -- focus follows the click that opened this inline editor
                         autoFocus
                         aria-label='Edit unit price'
                         className='h-8 w-28 border border-border bg-background px-2 font-mono text-sm font-semibold tabular-nums text-foreground outline-none focus:border-foreground focus:ring-1 focus:ring-foreground'
@@ -985,12 +980,13 @@ export default function AdminProducts() {
                         value={tempPrice}
                         onBlur={() => handlePriceSave(product)}
                         onChange={e => setTempPrice(e.target.value)}
-                        onKeyDown={e => handlePriceKeyDown(e, product)}
+                        onKeyDown={handlePriceKeyDown}
                       />
                     ) : (
-                      <span
+                      <button
                         className='cursor-pointer font-mono text-sm font-semibold tabular-nums text-foreground hover:underline'
                         title='Click to edit'
+                        type='button'
                         onClick={() => handlePriceClick(product)}
                       >
                         $
@@ -998,7 +994,7 @@ export default function AdminProducts() {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}
-                      </span>
+                      </button>
                     )}
                   </TableCell>
                   <TableCell>

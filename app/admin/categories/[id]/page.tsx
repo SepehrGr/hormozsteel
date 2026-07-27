@@ -223,11 +223,15 @@ export default function CategoryEditPage() {
               />
 
               <div className='space-y-2'>
-                <label className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                <label
+                  className='text-sm font-medium text-gray-700 dark:text-gray-300'
+                  htmlFor='category-description'
+                >
                   توضیحات
                 </label>
                 <textarea
                   className='w-full px-3 py-2 border border-gray-300 rounded-lg resize-none min-h-32 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  id='category-description'
                   placeholder='توضیحات کامل درباره دسته‌بندی...'
                   value={formData.description}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
@@ -264,11 +268,15 @@ export default function CategoryEditPage() {
             </CardHeader>
             <CardBody className='space-y-4'>
               <div className='space-y-2'>
-                <label className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                <label
+                  className='text-sm font-medium text-gray-700 dark:text-gray-300'
+                  htmlFor='category-new-subcategory'
+                >
                   افزودن زیردسته
                 </label>
                 <div className='flex gap-2'>
                   <Input
+                    id='category-new-subcategory'
                     placeholder='نام زیردسته...'
                     value={newSubcategory}
                     variant='bordered'
