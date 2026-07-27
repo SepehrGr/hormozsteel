@@ -1,4 +1,24 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
-  "prisma.pinToPrisma6": true
+  "prisma.pinToPrisma6": true,
+
+  // Live squiggles from eslint.config.mjs (flat config) while typing
+  "eslint.useFlatConfig": true,
+  "eslint.run": "onType",
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+
+  // Apply the auto-fixable rules on every save — formatting, import order,
+  // jsx-sort-props, padding-line-between-statements. These are what pile up.
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  // Prettier runs *through* eslint-plugin-prettier here. Do not also enable the
+  // Prettier extension as a formatter — the two passes fight over the same lines.
+  "editor.formatOnSave": false
 }
