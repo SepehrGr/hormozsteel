@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
+
 import RebarWeightCalculator from '@/components/calculators/rebar-weight-calculator'
 import SheetWeightCalculator from '@/components/calculators/sheet-weight-calculator'
 import BeamWeightCalculator from '@/components/calculators/beam-weight-calculator'
@@ -73,6 +74,7 @@ export default function WeightCalculatorModal({
       searchText.includes('قوطی')
     )
       return 'square-tube'
+
     return 'rebar'
   })()
 
@@ -85,6 +87,7 @@ export default function WeightCalculatorModal({
       includeVAT,
       formatPrice,
     }
+
     switch (calculatorType) {
       case 'sheet':
         return <SheetWeightCalculator {...priceProps} />
@@ -108,6 +111,7 @@ export default function WeightCalculatorModal({
   // showModal() gives focus trapping, Escape, and focus restore for free
   useEffect(() => {
     const dialog = dialogRef.current
+
     if (!dialog) return
 
     if (isOpen && !dialog.open) dialog.showModal()
@@ -116,6 +120,7 @@ export default function WeightCalculatorModal({
 
   useEffect(() => {
     const dialog = dialogRef.current
+
     if (!dialog) return
 
     // A click landing on the dialog itself came from the ::backdrop.
@@ -123,6 +128,7 @@ export default function WeightCalculatorModal({
     const handleBackdropClick = (e: MouseEvent) => {
       if (e.target === dialog) dialog.close()
     }
+
     dialog.addEventListener('click', handleBackdropClick)
 
     return () => dialog.removeEventListener('click', handleBackdropClick)
@@ -132,6 +138,7 @@ export default function WeightCalculatorModal({
     if (!isOpen) return
 
     const prev = document.body.style.overflow
+
     document.body.style.overflow = 'hidden'
 
     return () => {
@@ -152,8 +159,8 @@ export default function WeightCalculatorModal({
           <div className='flex items-start justify-between border-b border-border px-5 py-4'>
             <div>
               <h2
-                id='weight-calc-title'
                 className='text-base font-semibold tracking-tight text-foreground'
+                id='weight-calc-title'
               >
                 {TITLES[calculatorType] ?? 'Weight calculator'}
               </h2>
@@ -165,10 +172,10 @@ export default function WeightCalculatorModal({
               </p>
             </div>
             <button
+              aria-label='Close'
+              className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               type='button'
               onClick={onClose}
-              className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-              aria-label='Close'
             >
               <X className='h-4 w-4' />
             </button>

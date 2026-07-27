@@ -1,23 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server'
+
+import { prisma } from '@/lib/prisma'
 
 // GET /api/contact - Get all contact forms (Admin only)
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const { searchParams } = new URL(request.url)
+    const status = searchParams.get('status')
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '50')
 
     // Build where clause
-    const where: any = {};
+    const where: any = {}
 
     if (status && status !== 'all') {
-      where.status = status.toUpperCase();
+      where.status = status.toUpperCase()
     }
 
     // Calculate skip for pagination
-    const skip = (page - 1) * limit;
+    const skip = (page - 1) * limit
 
     // Get contact forms
     const [contactForms, total] = await Promise.all([
@@ -30,12 +31,12 @@ export async function GET(request: NextRequest) {
         take: limit,
       }),
       prisma.contactForm.count({ where }),
-    ]);
+    ])
 
     // Calculate pagination info
-    const totalPages = Math.ceil(total / limit);
-    const hasNextPage = page < totalPages;
-    const hasPrevPage = page > 1;
+    const totalPages = Math.ceil(total / limit)
+    const hasNextPage = page < totalPages
+    const hasPrevPage = page > 1
 
     return NextResponse.json({
       success: true,
@@ -50,24 +51,25 @@ export async function GET(request: NextRequest) {
           hasPrevPage,
         },
       },
-    });
+    })
   } catch (error) {
-    console.error('Error fetching contact forms:', error);
+    console.error('Error fetching contact forms:', error)
+
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to fetch contact forms',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }
 
 // POST /api/contact - Create a new contact form submission
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { name, phone, email, message } = body;
+    const body = await request.json()
+    const { name, phone, email, message } = body
 
     // Validation
     if (!name || !phone || !message) {
@@ -76,21 +78,22 @@ export async function POST(request: NextRequest) {
           success: false,
           error: 'Name, phone, and message are required.',
         },
-        { status: 400 }
-      );
+        { status: 400 },
+      )
     }
 
     // Validate email format if provided
     if (email && email.trim()) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
       if (!emailRegex.test(email)) {
         return NextResponse.json(
           {
             success: false,
             error: 'Enter a valid email address.',
           },
-          { status: 400 }
-        );
+          { status: 400 },
+        )
       }
     }
 
@@ -103,7 +106,7 @@ export async function POST(request: NextRequest) {
         message: message.trim(),
         status: 'NEW',
       },
-    });
+    })
 
     return NextResponse.json(
       {
@@ -112,25 +115,26 @@ export async function POST(request: NextRequest) {
           'Message received. Sales will follow up on the next business day.',
         data: contactForm,
       },
-      { status: 201 }
-    );
+      { status: 201 },
+    )
   } catch (error) {
-    console.error('Error creating contact form:', error);
+    console.error('Error creating contact form:', error)
+
     return NextResponse.json(
       {
         success: false,
         error: 'خطا در ارسال پیام. لطفاً دوباره تلاش کنید.',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }
 
 // PATCH /api/contact - Update contact form status
 export async function PATCH(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { id, status, reply } = body;
+    const body = await request.json()
+    const { id, status, reply } = body
 
     if (!id) {
       return NextResponse.json(
@@ -138,49 +142,50 @@ export async function PATCH(request: NextRequest) {
           success: false,
           error: 'شناسه فرم الزامی است',
         },
-        { status: 400 }
-      );
+        { status: 400 },
+      )
     }
 
-    const updateData: any = {};
+    const updateData: any = {}
 
     if (status) {
-      updateData.status = status.toUpperCase();
+      updateData.status = status.toUpperCase()
     }
 
     if (reply) {
-      updateData.reply = reply;
-      updateData.repliedAt = new Date();
-      updateData.status = 'REPLIED';
+      updateData.reply = reply
+      updateData.repliedAt = new Date()
+      updateData.status = 'REPLIED'
     }
 
     const contactForm = await prisma.contactForm.update({
       where: { id },
       data: updateData,
-    });
+    })
 
     return NextResponse.json({
       success: true,
       message: 'وضعیت با موفقیت بروزرسانی شد',
       data: contactForm,
-    });
+    })
   } catch (error) {
-    console.error('Error updating contact form:', error);
+    console.error('Error updating contact form:', error)
+
     return NextResponse.json(
       {
         success: false,
         error: 'خطا در بروزرسانی وضعیت',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }
 
 // DELETE /api/contact - Delete a contact form
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
 
     if (!id) {
       return NextResponse.json(
@@ -188,26 +193,27 @@ export async function DELETE(request: NextRequest) {
           success: false,
           error: 'شناسه فرم الزامی است',
         },
-        { status: 400 }
-      );
+        { status: 400 },
+      )
     }
 
     await prisma.contactForm.delete({
       where: { id },
-    });
+    })
 
     return NextResponse.json({
       success: true,
       message: 'فرم تماس با موفقیت حذف شد',
-    });
+    })
   } catch (error) {
-    console.error('Error deleting contact form:', error);
+    console.error('Error deleting contact form:', error)
+
     return NextResponse.json(
       {
         success: false,
         error: 'خطا در حذف فرم تماس',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }

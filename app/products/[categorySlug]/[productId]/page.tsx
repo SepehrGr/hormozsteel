@@ -1,5 +1,6 @@
 import { cache } from 'react'
 import { notFound } from 'next/navigation'
+
 import UnifiedProductPage from '@/components/products/unified-product-page'
 import { prisma } from '@/lib/prisma'
 import { subcategorySlug } from '@/types/products'
@@ -58,28 +59,28 @@ export default async function DynamicProductPage({ params }: PageProps) {
   const { categorySlug, productId } = await params
 
   const category = await getCategory(categorySlug)
+
   if (!category) notFound()
 
   const subcategory = findSubcategory(category.subcategories, productId)
+
   if (!subcategory) notFound()
 
   const title = `${subcategory} ${category.name}`
 
   return (
     <UnifiedProductPage
+      applications={[
+        'Procurement and bid estimates',
+        'Job-site material takeoff',
+        'Mill / merchant stock comparison',
+      ]}
       categorySlug={category.slug}
-      subcategory={subcategory}
-      title={title}
       description={`${category.description ?? category.name}. Filtered to the ${subcategory} line. Unit prices in USD.`}
       features={[
         'Unit prices from the demo catalog seed (not live market feeds)',
         'Filter by mill brand, size, stock, and price range',
         'Row actions for quote requests and weight estimation',
-      ]}
-      applications={[
-        'Procurement and bid estimates',
-        'Job-site material takeoff',
-        'Mill / merchant stock comparison',
       ]}
       specifications={{
         Category: category.name,
@@ -88,6 +89,8 @@ export default async function DynamicProductPage({ params }: PageProps) {
         'Quote basis': 'Ex-works style demo rates',
         Units: 'Per product (kg / ton / meter / piece)',
       }}
+      subcategory={subcategory}
+      title={title}
     />
   )
 }

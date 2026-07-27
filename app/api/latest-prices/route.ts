@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+
 import { prisma } from '@/lib/prisma'
 import { mapDirectionToLegacy } from '@/lib/product-dto'
 import { resolveCategoryIcon } from '@/config/category-icons'
@@ -44,6 +45,7 @@ export async function GET() {
       string,
       (typeof recentPriceChanges)[number]
     >()
+
     for (const change of recentPriceChanges) {
       if (!priceChangesMap.has(change.productId)) {
         priceChangesMap.set(change.productId, change)
@@ -61,7 +63,9 @@ export async function GET() {
         category: product.category?.name || 'Other',
         categorySlug: product.category?.slug || '',
         categoryIcon: resolveCategoryIcon(
-          product.category?.icon || product.category?.slug || product.category?.name,
+          product.category?.icon ||
+            product.category?.slug ||
+            product.category?.name,
         ),
         subcategory: product.subcategory || '',
         size: product.size || '',
@@ -84,7 +88,9 @@ export async function GET() {
             ? {
                 changeType: mapDirectionToLegacy(product.priceDirection),
                 changeAmount: product.priceDelta ?? 0,
-                changedAt: (product.priceUpdatedAt ?? product.updatedAt).toISOString(),
+                changedAt: (
+                  product.priceUpdatedAt ?? product.updatedAt
+                ).toISOString(),
               }
             : null,
       }
@@ -97,6 +103,7 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error fetching latest prices:', error)
+
     return NextResponse.json(
       { success: false, error: 'Failed to fetch latest prices' },
       { status: 500 },

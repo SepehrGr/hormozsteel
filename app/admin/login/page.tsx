@@ -23,13 +23,18 @@ function getLoginErrorMessage(
 
   const minutesLabel = minutes && minutes !== '' ? minutes : '15'
 
-  if (rawError === 'RateLimitExceeded' || rawError.includes('RateLimitExceeded')) {
+  if (
+    rawError === 'RateLimitExceeded' ||
+    rawError.includes('RateLimitExceeded')
+  ) {
     return `Too many login attempts. Please wait ${minutesLabel} minutes and try again.`
   }
 
   const lockedMatch = rawError.match(/AccountLocked(?::(\d+))?/)
+
   if (rawError === 'AccountLocked' || lockedMatch) {
     const mins = lockedMatch?.[1] || minutesLabel
+
     return `Account temporarily locked after too many failed attempts. Try again in ${mins} minutes.`
   }
 
@@ -91,6 +96,7 @@ function AdminLoginForm() {
   const applyUrlError = useCallback(() => {
     const authError = searchParams.get('error')
     const minutes = searchParams.get('minutes')
+
     if (authError) {
       setError(getLoginErrorMessage(authError, minutes))
     }
@@ -104,6 +110,7 @@ function AdminLoginForm() {
         if (cancelled) return
         if (session?.user) {
           router.replace('/admin/dashboard')
+
           return
         }
         applyUrlError()
@@ -137,6 +144,7 @@ function AdminLoginForm() {
     }
 
     setFieldErrors(next)
+
     return Object.keys(next).length === 0
   }
 
@@ -158,7 +166,10 @@ function AdminLoginForm() {
       })
 
       if (!result) {
-        setError('No response from the authentication service. Please try again.')
+        setError(
+          'No response from the authentication service. Please try again.',
+        )
+
         return
       }
 
@@ -172,21 +183,26 @@ function AdminLoginForm() {
         ) {
           const match = result.error.match(/AccountLocked:(\d+)/)
           const minutes = match?.[1] || minutesFromUrl || '15'
+
           setError(getLoginErrorMessage(`AccountLocked:${minutes}`, minutes))
         } else if (
           result.error.includes('RateLimitExceeded') ||
           errorFromUrl === 'RateLimitExceeded'
         ) {
-          setError(getLoginErrorMessage('RateLimitExceeded', minutesFromUrl || '15'))
+          setError(
+            getLoginErrorMessage('RateLimitExceeded', minutesFromUrl || '15'),
+          )
         } else {
           setError(getLoginErrorMessage(result.error, minutesFromUrl))
         }
+
         return
       }
 
       if (result.ok) {
         // Full navigation so middleware / session cookie are applied
         window.location.href = '/admin/dashboard'
+
         return
       }
 
@@ -216,8 +232,8 @@ function AdminLoginForm() {
       <div className='border-b border-border'>
         <div className='mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6'>
           <Link
-            href='/'
             className='inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground'
+            href='/'
           >
             <ArrowLeft className='h-3.5 w-3.5' />
             Back to site
@@ -233,7 +249,7 @@ function AdminLoginForm() {
           {/* Header */}
           <div className='mb-8 text-center'>
             <div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center border border-border bg-card'>
-              <Lock className='h-5 w-5 text-foreground' aria-hidden />
+              <Lock aria-hidden className='h-5 w-5 text-foreground' />
             </div>
             <p className='mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
               Restricted access
@@ -255,16 +271,31 @@ function AdminLoginForm() {
               <span className='text-xs text-muted-foreground'>* Required</span>
             </div>
 
-            <form onSubmit={handleSubmit} className='space-y-5 px-5 py-6' noValidate>
+            <form
+              noValidate
+              className='space-y-5 px-5 py-6'
+              onSubmit={handleSubmit}
+            >
               <div>
-                <label htmlFor='admin-email' className={labelClass}>
+                <label className={labelClass} htmlFor='admin-email'>
                   Email *
                 </label>
                 <input
-                  id='admin-email'
-                  type='email'
+                  aria-describedby={
+                    fieldErrors.email ? 'admin-email-error' : undefined
+                  }
+                  aria-invalid={Boolean(fieldErrors.email)}
                   autoComplete='email'
+                  className={`${fieldClass} ${
+                    fieldErrors.email
+                      ? 'border-red-600/60 focus:border-red-600 focus:ring-red-600'
+                      : ''
+                  }`}
+                  disabled={isLoading}
+                  id='admin-email'
                   inputMode='email'
+                  placeholder='admin@hormozsteel.demo'
+                  type='email'
                   value={email}
                   onChange={e => {
                     setEmail(e.target.value)
@@ -273,22 +304,11 @@ function AdminLoginForm() {
                     }
                     if (error) setError('')
                   }}
-                  disabled={isLoading}
-                  className={`${fieldClass} ${
-                    fieldErrors.email
-                      ? 'border-red-600/60 focus:border-red-600 focus:ring-red-600'
-                      : ''
-                  }`}
-                  placeholder='admin@hormozsteel.demo'
-                  aria-invalid={Boolean(fieldErrors.email)}
-                  aria-describedby={
-                    fieldErrors.email ? 'admin-email-error' : undefined
-                  }
                 />
                 {fieldErrors.email ? (
                   <p
-                    id='admin-email-error'
                     className='mt-1.5 text-xs text-red-600 dark:text-red-400'
+                    id='admin-email-error'
                     role='alert'
                   >
                     {fieldErrors.email}
@@ -297,14 +317,25 @@ function AdminLoginForm() {
               </div>
 
               <div>
-                <label htmlFor='admin-password' className={labelClass}>
+                <label className={labelClass} htmlFor='admin-password'>
                   Password *
                 </label>
                 <div className='relative'>
                   <input
-                    id='admin-password'
-                    type={isVisible ? 'text' : 'password'}
+                    aria-describedby={
+                      fieldErrors.password ? 'admin-password-error' : undefined
+                    }
+                    aria-invalid={Boolean(fieldErrors.password)}
                     autoComplete='current-password'
+                    className={`${fieldClass} pr-11 ${
+                      fieldErrors.password
+                        ? 'border-red-600/60 focus:border-red-600 focus:ring-red-600'
+                        : ''
+                    }`}
+                    disabled={isLoading}
+                    id='admin-password'
+                    placeholder='••••••••'
+                    type={isVisible ? 'text' : 'password'}
                     value={password}
                     onChange={e => {
                       setPassword(e.target.value)
@@ -316,24 +347,13 @@ function AdminLoginForm() {
                       }
                       if (error) setError('')
                     }}
-                    disabled={isLoading}
-                    className={`${fieldClass} pr-11 ${
-                      fieldErrors.password
-                        ? 'border-red-600/60 focus:border-red-600 focus:ring-red-600'
-                        : ''
-                    }`}
-                    placeholder='••••••••'
-                    aria-invalid={Boolean(fieldErrors.password)}
-                    aria-describedby={
-                      fieldErrors.password ? 'admin-password-error' : undefined
-                    }
                   />
                   <button
+                    aria-label={isVisible ? 'Hide password' : 'Show password'}
+                    className='absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground disabled:opacity-50'
+                    disabled={isLoading}
                     type='button'
                     onClick={() => setIsVisible(v => !v)}
-                    disabled={isLoading}
-                    className='absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground disabled:opacity-50'
-                    aria-label={isVisible ? 'Hide password' : 'Show password'}
                   >
                     {isVisible ? (
                       <EyeOff className='h-4 w-4' />
@@ -344,8 +364,8 @@ function AdminLoginForm() {
                 </div>
                 {fieldErrors.password ? (
                   <p
-                    id='admin-password-error'
                     className='mt-1.5 text-xs text-red-600 dark:text-red-400'
+                    id='admin-password-error'
                     role='alert'
                   >
                     {fieldErrors.password}
@@ -355,8 +375,8 @@ function AdminLoginForm() {
 
               {error ? (
                 <div
-                  role='alert'
                   className='flex items-start gap-2.5 border border-red-600/40 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-100'
+                  role='alert'
                 >
                   <AlertCircle className='mt-0.5 h-4 w-4 shrink-0' />
                   <p>{error}</p>
@@ -365,9 +385,9 @@ function AdminLoginForm() {
 
               <div className='border-t border-border pt-5'>
                 <button
-                  type='submit'
-                  disabled={isLoading}
                   className='inline-flex w-full items-center justify-center bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'
+                  disabled={isLoading}
+                  type='submit'
                 >
                   {isLoading ? (
                     <span className='inline-flex items-center gap-2'>
@@ -384,7 +404,9 @@ function AdminLoginForm() {
 
           <p className='mt-6 text-center text-xs text-muted-foreground'>
             Demo admin:{' '}
-            <span className='font-mono text-foreground'>admin@hormozsteel.demo</span>{' '}
+            <span className='font-mono text-foreground'>
+              admin@hormozsteel.demo
+            </span>{' '}
             · <span className='font-mono text-foreground'>admin123</span>
           </p>
         </div>

@@ -52,6 +52,7 @@ const labelClass =
 function productCount(m: Manufacturer) {
   if (typeof m._count?.products === 'number') return m._count.products
   if (Array.isArray(m.products)) return m.products.length
+
   return 0
 }
 
@@ -127,6 +128,7 @@ export default function ManufacturersPage() {
         description: 'Name is required',
         color: 'warning',
       })
+
       return
     }
     try {
@@ -147,6 +149,7 @@ export default function ManufacturersPage() {
         }),
       })
       const result = await response.json()
+
       if (result.success) {
         addToast({
           title: 'Saved',
@@ -186,6 +189,7 @@ export default function ManufacturersPage() {
         description: 'Name is required',
         color: 'warning',
       })
+
       return
     }
     try {
@@ -206,6 +210,7 @@ export default function ManufacturersPage() {
         }),
       })
       const result = await response.json()
+
       if (result.success) {
         addToast({
           title: 'Created',
@@ -246,6 +251,7 @@ export default function ManufacturersPage() {
         method: 'DELETE',
       })
       const result = await response.json()
+
       if (result.success) {
         addToast({
           title: 'Deleted',
@@ -294,9 +300,9 @@ export default function ManufacturersPage() {
           </p>
         </div>
         <button
+          className='inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
           type='button'
           onClick={handleAddClick}
-          className='inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
         >
           <Plus className='h-4 w-4' />
           Add manufacturer
@@ -342,39 +348,39 @@ export default function ManufacturersPage() {
           <div className='relative min-w-0 flex-1 sm:max-w-md'>
             <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
             <input
+              className={`${fieldClass} !mt-0 pl-9`}
+              placeholder='Search manufacturers…'
               type='search'
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
-              placeholder='Search manufacturers…'
-              className={`${fieldClass} !mt-0 pl-9`}
             />
           </div>
           <div className='flex flex-wrap gap-2'>
             <button
+              className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               type='button'
               onClick={handleSearch}
-              className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
               <Search className='h-4 w-4' />
               Search
             </button>
             {searchQuery ? (
               <button
+                className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                 type='button'
                 onClick={() => {
                   setSearchQuery('')
                   fetchManufacturers('')
                 }}
-                className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               >
                 Clear
               </button>
             ) : null}
             <button
+              className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               type='button'
               onClick={() => fetchManufacturers(searchQuery)}
-              className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
               <RefreshCw className='h-4 w-4' />
               Refresh
@@ -410,9 +416,9 @@ export default function ManufacturersPage() {
             </p>
             {!searchQuery ? (
               <button
+                className='mt-4 inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
                 type='button'
                 onClick={handleAddClick}
-                className='mt-4 inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
               >
                 <Plus className='h-4 w-4' />
                 Add manufacturer
@@ -442,9 +448,9 @@ export default function ManufacturersPage() {
                         {m.logo ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={m.logo}
                             alt=''
                             className='h-9 w-9 border border-border object-cover'
+                            src={m.logo}
                           />
                         ) : (
                           <span className='flex h-9 w-9 shrink-0 items-center justify-center border border-border bg-muted/50 text-muted-foreground'>
@@ -501,18 +507,18 @@ export default function ManufacturersPage() {
                     <td className='px-4 py-3'>
                       <div className='flex items-center justify-end gap-1'>
                         <button
+                          aria-label='Edit'
+                          className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                           type='button'
                           onClick={() => handleEditClick(m)}
-                          className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-                          aria-label='Edit'
                         >
                           <Edit className='h-3.5 w-3.5' />
                         </button>
                         <button
+                          aria-label='Delete'
+                          className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-red-700 transition-colors duration-200 ease-out hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
                           type='button'
                           onClick={() => handleDeleteClick(m)}
-                          className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-red-700 transition-colors duration-200 ease-out hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
-                          aria-label='Delete'
                         >
                           <Trash2 className='h-3.5 w-3.5' />
                         </button>
@@ -534,17 +540,17 @@ export default function ManufacturersPage() {
           <ManufacturerForm form={editForm} setForm={setEditForm} />
           <div className='mt-6 flex justify-end gap-2 border-t border-border pt-4'>
             <button
+              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               type='button'
               onClick={() => setEditModalOpen(false)}
-              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
               Cancel
             </button>
             <button
+              className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50'
+              disabled={saveLoading}
               type='button'
               onClick={handleSaveEdit}
-              disabled={saveLoading}
-              className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50'
             >
               <Save className='h-4 w-4' />
               {saveLoading ? 'Saving…' : 'Save'}
@@ -561,17 +567,17 @@ export default function ManufacturersPage() {
           <ManufacturerForm form={addForm} setForm={setAddForm} />
           <div className='mt-6 flex justify-end gap-2 border-t border-border pt-4'>
             <button
+              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               type='button'
               onClick={() => setAddModalOpen(false)}
-              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
               Cancel
             </button>
             <button
+              className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50'
+              disabled={addLoading}
               type='button'
               onClick={handleSaveAdd}
-              disabled={addLoading}
-              className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50'
             >
               <Plus className='h-4 w-4' />
               {addLoading ? 'Creating…' : 'Create'}
@@ -605,17 +611,17 @@ export default function ManufacturersPage() {
           ) : null}
           <div className='mt-6 flex justify-end gap-2 border-t border-border pt-4'>
             <button
+              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               type='button'
               onClick={() => setDeleteModalOpen(false)}
-              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
               Cancel
             </button>
             <button
+              className='inline-flex items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50 dark:bg-red-600'
+              disabled={deleteLoading}
               type='button'
               onClick={confirmDelete}
-              disabled={deleteLoading}
-              className='inline-flex items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50 dark:bg-red-600'
             >
               <Trash2 className='h-4 w-4' />
               {deleteLoading ? 'Deleting…' : 'Delete'}
@@ -638,9 +644,9 @@ function ModalShell({
 }) {
   return (
     <div
+      aria-modal='true'
       className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
       role='dialog'
-      aria-modal='true'
     >
       <div className='max-h-[90vh] w-full max-w-lg overflow-y-auto border border-border bg-card shadow-sm'>
         <div className='flex items-center justify-between border-b border-border px-5 py-3'>
@@ -648,10 +654,10 @@ function ModalShell({
             {title}
           </h2>
           <button
+            aria-label='Close'
+            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             type='button'
             onClick={onClose}
-            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-            aria-label='Close'
           >
             <X className='h-4 w-4' />
           </button>
@@ -672,94 +678,94 @@ function ManufacturerForm({
   return (
     <div className='space-y-4'>
       <div>
-        <label htmlFor='mfr-name' className={labelClass}>
+        <label className={labelClass} htmlFor='mfr-name'>
           Name *
         </label>
         <input
+          className={fieldClass}
           id='mfr-name'
+          placeholder='e.g. Caspian Steel Mills'
           value={form.name}
           onChange={e => setForm({ ...form, name: e.target.value })}
-          className={fieldClass}
-          placeholder='e.g. Caspian Steel Mills'
         />
       </div>
       <div>
-        <label htmlFor='mfr-slug' className={labelClass}>
+        <label className={labelClass} htmlFor='mfr-slug'>
           Slug
         </label>
         <input
+          className={fieldClass}
+          dir='ltr'
           id='mfr-slug'
+          placeholder='auto from name if empty'
           value={form.slug}
           onChange={e => setForm({ ...form, slug: e.target.value })}
-          className={fieldClass}
-          placeholder='auto from name if empty'
-          dir='ltr'
         />
       </div>
       <div>
-        <label htmlFor='mfr-desc' className={labelClass}>
+        <label className={labelClass} htmlFor='mfr-desc'>
           Description
         </label>
         <textarea
+          className={`${fieldClass} resize-y`}
           id='mfr-desc'
+          placeholder='Short note about the mill'
           rows={3}
           value={form.description}
           onChange={e => setForm({ ...form, description: e.target.value })}
-          className={`${fieldClass} resize-y`}
-          placeholder='Short note about the mill'
         />
       </div>
       <div className='grid gap-4 sm:grid-cols-2'>
         <div>
-          <label htmlFor='mfr-web' className={labelClass}>
+          <label className={labelClass} htmlFor='mfr-web'>
             Website
           </label>
           <input
+            className={fieldClass}
+            dir='ltr'
             id='mfr-web'
+            placeholder='https://…'
             value={form.website}
             onChange={e => setForm({ ...form, website: e.target.value })}
-            className={fieldClass}
-            placeholder='https://…'
-            dir='ltr'
           />
         </div>
         <div>
-          <label htmlFor='mfr-email' className={labelClass}>
+          <label className={labelClass} htmlFor='mfr-email'>
             Email
           </label>
           <input
+            className={fieldClass}
+            dir='ltr'
             id='mfr-email'
+            placeholder='sales@…'
             type='email'
             value={form.email}
             onChange={e => setForm({ ...form, email: e.target.value })}
-            className={fieldClass}
-            placeholder='sales@…'
-            dir='ltr'
           />
         </div>
         <div>
-          <label htmlFor='mfr-phone' className={labelClass}>
+          <label className={labelClass} htmlFor='mfr-phone'>
             Phone
           </label>
           <input
+            className={fieldClass}
+            dir='ltr'
             id='mfr-phone'
+            placeholder='+98 …'
             value={form.phone}
             onChange={e => setForm({ ...form, phone: e.target.value })}
-            className={fieldClass}
-            placeholder='+98 …'
-            dir='ltr'
           />
         </div>
         <div>
-          <label htmlFor='mfr-address' className={labelClass}>
+          <label className={labelClass} htmlFor='mfr-address'>
             Address
           </label>
           <input
+            className={fieldClass}
             id='mfr-address'
+            placeholder='City, region'
             value={form.address}
             onChange={e => setForm({ ...form, address: e.target.value })}
-            className={fieldClass}
-            placeholder='City, region'
           />
         </div>
       </div>

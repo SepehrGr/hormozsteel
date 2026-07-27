@@ -80,8 +80,8 @@ export default function AboutSection() {
                     </span>
                   </span>
                   <Link
-                    href='/about'
                     className='font-medium text-foreground underline-offset-4 transition-colors duration-200 ease-out hover:underline'
+                    href='/about'
                   >
                     Company overview →
                   </Link>

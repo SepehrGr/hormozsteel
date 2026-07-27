@@ -28,6 +28,7 @@ const cleanupInterval = setInterval(
 
     // Clean up login rate limit map
     const loginEntries = Array.from(loginRateLimitMap.entries())
+
     for (const [ip, entry] of loginEntries) {
       if (entry.resetTime < now) {
         loginRateLimitMap.delete(ip)
@@ -36,6 +37,7 @@ const cleanupInterval = setInterval(
 
     // Clean up API rate limit map
     const apiEntries = Array.from(apiRateLimitMap.entries())
+
     for (const [ip, entry] of apiEntries) {
       if (entry.resetTime < now) {
         apiRateLimitMap.delete(ip)
@@ -106,6 +108,7 @@ function checkRateLimitWithConfig(
       attempts: 1,
       resetTime: now + windowMs,
     })
+
     return { isLimited: false, remainingMinutes: 0 }
   }
 
@@ -115,6 +118,7 @@ function checkRateLimitWithConfig(
       attempts: 1,
       resetTime: now + windowMs,
     })
+
     return { isLimited: false, remainingMinutes: 0 }
   }
 
@@ -122,12 +126,14 @@ function checkRateLimitWithConfig(
   if (entry.attempts >= maxAttempts) {
     const remainingMs = entry.resetTime - now
     const remainingMinutes = Math.ceil(remainingMs / (60 * 1000))
+
     return { isLimited: true, remainingMinutes }
   }
 
   // Increment attempts
   entry.attempts++
   rateLimitMap.set(ip, entry)
+
   return { isLimited: false, remainingMinutes: 0 }
 }
 
@@ -139,11 +145,13 @@ function checkRateLimitWithConfig(
 export function getClientIP(request: Request): string {
   // Try to get IP from various headers (for proxies/load balancers)
   const forwarded = request.headers.get('x-forwarded-for')
+
   if (forwarded) {
     return forwarded.split(',')[0].trim()
   }
 
   const realIP = request.headers.get('x-real-ip')
+
   if (realIP) {
     return realIP
   }

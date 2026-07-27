@@ -47,6 +47,7 @@ export default function CategoryEditPage() {
 
       if (result.success) {
         const category = result.data
+
         setFormData({
           name: category.name || '',
           description: category.description || '',
@@ -84,6 +85,7 @@ export default function CategoryEditPage() {
         description: 'نام دسته‌بندی الزامی است',
         color: 'warning',
       })
+
       return
     }
 
@@ -132,7 +134,7 @@ export default function CategoryEditPage() {
   }
 
   const handleInputChange = (field: keyof CategoryFormData, value: string) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [field]: value,
     }))
@@ -147,10 +149,11 @@ export default function CategoryEditPage() {
         description: 'این زیردسته قبلاً اضافه شده است',
         color: 'warning',
       })
+
       return
     }
 
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       subcategories: [...prev.subcategories, newSubcategory.trim()],
     }))
@@ -158,7 +161,7 @@ export default function CategoryEditPage() {
   }
 
   const handleRemoveSubcategory = (index: number) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       subcategories: prev.subcategories.filter((_, i) => i !== index),
     }))
@@ -166,30 +169,30 @@ export default function CategoryEditPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Spinner size="lg" />
+      <div className='flex items-center justify-center py-20'>
+        <Spinner size='lg' />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className='space-y-6' dir='rtl'>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center gap-3'>
           <Button
             isIconOnly
-            variant="flat"
+            variant='flat'
             onPress={() => router.push('/admin/categories')}
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className='w-5 h-5' />
           </Button>
           <div>
-            <h1 className="flex items-center gap-3 text-3xl font-bold text-gray-900 dark:text-white">
-              <FolderTree className="w-8 h-8 text-primary" />
+            <h1 className='flex items-center gap-3 text-3xl font-bold text-gray-900 dark:text-white'>
+              <FolderTree className='w-8 h-8 text-primary' />
               {isNew ? 'افزودن دسته‌بندی جدید' : 'ویرایش دسته‌بندی'}
             </h1>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            <p className='mt-2 text-sm text-gray-500 dark:text-gray-400'>
               {isNew
                 ? 'اطلاعات دسته‌بندی جدید را وارد کنید'
                 : 'اطلاعات دسته‌بندی را ویرایش کنید'}
@@ -200,32 +203,32 @@ export default function CategoryEditPage() {
 
       {/* Form */}
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <h3 className="text-lg font-semibold">اطلاعات اصلی</h3>
+              <h3 className='text-lg font-semibold'>اطلاعات اصلی</h3>
             </CardHeader>
-            <CardBody className="space-y-4">
+            <CardBody className='space-y-4'>
               <Input
-                label="نام دسته‌بندی"
-                placeholder="مثال: میلگرد"
+                isRequired
+                label='نام دسته‌بندی'
+                placeholder='مثال: میلگرد'
+                startContent={<FolderTree className='w-4 h-4 text-gray-400' />}
                 value={formData.name}
+                variant='bordered'
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   handleInputChange('name', e.target.value)
                 }
-                isRequired
-                variant="bordered"
-                startContent={<FolderTree className="w-4 h-4 text-gray-400" />}
               />
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <div className='space-y-2'>
+                <label className='text-sm font-medium text-gray-700 dark:text-gray-300'>
                   توضیحات
                 </label>
                 <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none min-h-32 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="توضیحات کامل درباره دسته‌بندی..."
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg resize-none min-h-32 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  placeholder='توضیحات کامل درباره دسته‌بندی...'
                   value={formData.description}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                     handleInputChange('description', e.target.value)
@@ -234,21 +237,21 @@ export default function CategoryEditPage() {
               </div>
 
               <Input
-                label="آیکون (Emoji)"
-                placeholder="مثال: 🏗️ یا 🔧"
+                description='یک ایموجی برای نمایش در کنار نام دسته‌بندی'
+                label='آیکون (Emoji)'
+                placeholder='مثال: 🏗️ یا 🔧'
+                startContent={<Smile className='w-4 h-4 text-gray-400' />}
                 value={formData.icon}
+                variant='bordered'
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   handleInputChange('icon', e.target.value)
                 }
-                variant="bordered"
-                startContent={<Smile className="w-4 h-4 text-gray-400" />}
-                description="یک ایموجی برای نمایش در کنار نام دسته‌بندی"
               />
 
               {formData.icon && (
-                <div className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg dark:border-gray-700">
-                  <div className="text-4xl">{formData.icon}</div>
-                  <div className="text-sm text-gray-500">پیش‌نمایش آیکون</div>
+                <div className='flex items-center gap-3 p-4 border border-gray-200 rounded-lg dark:border-gray-700'>
+                  <div className='text-4xl'>{formData.icon}</div>
+                  <div className='text-sm text-gray-500'>پیش‌نمایش آیکون</div>
                 </div>
               )}
             </CardBody>
@@ -257,17 +260,18 @@ export default function CategoryEditPage() {
           {/* Subcategories */}
           <Card>
             <CardHeader>
-              <h3 className="text-lg font-semibold">زیردسته‌ها</h3>
+              <h3 className='text-lg font-semibold'>زیردسته‌ها</h3>
             </CardHeader>
-            <CardBody className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <CardBody className='space-y-4'>
+              <div className='space-y-2'>
+                <label className='text-sm font-medium text-gray-700 dark:text-gray-300'>
                   افزودن زیردسته
                 </label>
-                <div className="flex gap-2">
+                <div className='flex gap-2'>
                   <Input
-                    placeholder="نام زیردسته..."
+                    placeholder='نام زیردسته...'
                     value={newSubcategory}
+                    variant='bordered'
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       setNewSubcategory(e.target.value)
                     }
@@ -277,48 +281,47 @@ export default function CategoryEditPage() {
                         handleAddSubcategory()
                       }
                     }}
-                    variant="bordered"
                   />
                   <Button
-                    color="primary"
-                    variant="flat"
                     isIconOnly
+                    color='primary'
+                    variant='flat'
                     onPress={handleAddSubcategory}
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className='w-4 h-4' />
                   </Button>
                 </div>
               </div>
 
               {/* Subcategories List */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <div className='space-y-2'>
+                <label className='text-sm font-medium text-gray-700 dark:text-gray-300'>
                   لیست زیردسته‌ها ({formData.subcategories.length})
                 </label>
                 {formData.subcategories.length === 0 ? (
-                  <div className="p-8 text-center border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700">
-                    <p className="text-sm text-gray-500">
+                  <div className='p-8 text-center border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700'>
+                    <p className='text-sm text-gray-500'>
                       هیچ زیردسته‌ای اضافه نشده است
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-2 overflow-y-auto max-h-96">
+                  <div className='space-y-2 overflow-y-auto max-h-96'>
                     {formData.subcategories.map((sub, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between gap-2 p-3 border border-gray-200 rounded-lg dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+                        className='flex items-center justify-between gap-2 p-3 border border-gray-200 rounded-lg dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
                       >
-                        <Chip size="sm" variant="flat" color="primary">
+                        <Chip color='primary' size='sm' variant='flat'>
                           {sub}
                         </Chip>
                         <Button
-                          size="sm"
-                          color="danger"
-                          variant="light"
                           isIconOnly
+                          color='danger'
+                          size='sm'
+                          variant='light'
                           onPress={() => handleRemoveSubcategory(index)}
                         >
-                          <X className="w-4 h-4" />
+                          <X className='w-4 h-4' />
                         </Button>
                       </div>
                     ))}
@@ -330,18 +333,18 @@ export default function CategoryEditPage() {
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 mt-6">
+        <div className='flex justify-end gap-3 mt-6'>
           <Button
-            variant="flat"
+            variant='flat'
             onPress={() => router.push('/admin/categories')}
           >
             انصراف
           </Button>
           <Button
-            type="submit"
-            color="primary"
+            color='primary'
             isLoading={saving}
-            startContent={!saving && <Save className="w-4 h-4" />}
+            startContent={!saving && <Save className='w-4 h-4' />}
+            type='submit'
           >
             {isNew ? 'ایجاد دسته‌بندی' : 'ذخیره تغییرات'}
           </Button>

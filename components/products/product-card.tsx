@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+
 import { Product } from '@/types/products'
 import { productCategoryHref, subcategorySlug } from '@/types/products'
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
 interface ProductCardProps {
   product: Product
@@ -23,7 +24,9 @@ function formatUsd(price: number) {
 function formatTime(value?: string | null) {
   if (!value) return null
   const date = new Date(value)
+
   if (Number.isNaN(date.getTime())) return null
+
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
@@ -37,8 +40,10 @@ type Move = 'up' | 'down' | 'flat'
 function resolveMove(product: Product): Move {
   const raw = product.priceHistory?.changeType || product.priceDirection || ''
   const t = String(raw).toLowerCase()
+
   if (t === 'up' || t === 'increase' || t === 'افزایش') return 'up'
   if (t === 'down' || t === 'decrease' || t === 'کاهش') return 'down'
+
   return 'flat'
 }
 
@@ -79,8 +84,8 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link
-      href={href}
       className='group flex h-full min-h-[12.5rem] flex-col bg-card px-5 py-5 text-left transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-[13.5rem] sm:px-6 sm:py-6'
+      href={href}
     >
       {/* 1. Identity */}
       <div className='min-w-0'>

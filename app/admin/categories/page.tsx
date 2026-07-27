@@ -16,6 +16,7 @@ import {
   Save,
 } from 'lucide-react'
 import { addToast } from '@heroui/toast'
+
 import { CATEGORY_ICONS, resolveCategoryIcon } from '@/config/category-icons'
 
 interface Category {
@@ -78,6 +79,7 @@ export default function CategoriesPage() {
       })
       const response = await fetch(`/api/categories?${params}`)
       const result = await response.json()
+
       if (result.success) {
         setCategories(result.data)
       } else {
@@ -108,8 +110,10 @@ export default function CategoriesPage() {
   const toggleCategory = (categoryId: string) => {
     setExpandedCategories(prev => {
       const next = new Set(prev)
+
       if (next.has(categoryId)) next.delete(categoryId)
       else next.add(categoryId)
+
       return next
     })
   }
@@ -134,6 +138,7 @@ export default function CategoriesPage() {
         description: 'Name is required',
         color: 'warning',
       })
+
       return
     }
     try {
@@ -152,6 +157,7 @@ export default function CategoriesPage() {
         }),
       })
       const result = await response.json()
+
       if (result.success) {
         addToast({
           title: 'Saved',
@@ -191,6 +197,7 @@ export default function CategoriesPage() {
         description: 'Name is required',
         color: 'warning',
       })
+
       return
     }
     try {
@@ -209,6 +216,7 @@ export default function CategoriesPage() {
         }),
       })
       const result = await response.json()
+
       if (result.success) {
         addToast({
           title: 'Created',
@@ -249,6 +257,7 @@ export default function CategoriesPage() {
         method: 'DELETE',
       })
       const result = await response.json()
+
       if (result.success) {
         addToast({
           title: 'Deleted',
@@ -292,6 +301,7 @@ export default function CategoriesPage() {
     value: string,
   ) => {
     const next = [...form.subcategories]
+
     next[index] = value
     setForm({ ...form, subcategories: next })
   }
@@ -328,9 +338,9 @@ export default function CategoriesPage() {
           </p>
         </div>
         <button
+          className='inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
           type='button'
           onClick={handleAddClick}
-          className='inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
         >
           <Plus className='h-4 w-4' />
           Add category
@@ -357,6 +367,7 @@ export default function CategoriesPage() {
           },
         ].map(stat => {
           const Icon = stat.icon
+
           return (
             <div key={stat.label} className='bg-card px-4 py-4'>
               <div className='flex items-start justify-between gap-2'>
@@ -384,39 +395,39 @@ export default function CategoriesPage() {
           <div className='relative min-w-0 flex-1 sm:max-w-md'>
             <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
             <input
+              className={`${fieldClass} !mt-0 pl-9`}
+              placeholder='Search categories…'
               type='search'
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
-              placeholder='Search categories…'
-              className={`${fieldClass} !mt-0 pl-9`}
             />
           </div>
           <div className='flex flex-wrap gap-2'>
             <button
+              className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               type='button'
               onClick={handleSearch}
-              className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
               <Search className='h-4 w-4' />
               Search
             </button>
             {searchQuery ? (
               <button
+                className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                 type='button'
                 onClick={() => {
                   setSearchQuery('')
                   fetchCategories('')
                 }}
-                className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               >
                 Clear
               </button>
             ) : null}
             <button
+              className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               type='button'
               onClick={() => fetchCategories(searchQuery)}
-              className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
               <RefreshCw className='h-4 w-4' />
               Refresh
@@ -452,9 +463,9 @@ export default function CategoriesPage() {
             </p>
             {!searchQuery ? (
               <button
+                className='mt-4 inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
                 type='button'
                 onClick={handleAddClick}
-                className='mt-4 inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
               >
                 <Plus className='h-4 w-4' />
                 Add category
@@ -480,18 +491,19 @@ export default function CategoriesPage() {
                   const iconClass = resolveCategoryIcon(
                     category.icon || category.slug,
                   )
+
                   return (
                     <Fragment key={category.id}>
                       <tr className='transition-colors duration-200 ease-out hover:bg-muted/40'>
                         <td className='px-2 py-3 text-center'>
                           <button
-                            type='button'
-                            onClick={() => toggleCategory(category.id)}
-                            disabled={category.subcategories.length === 0}
-                            className='inline-flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground disabled:opacity-30'
                             aria-label={
                               isExpanded ? 'Collapse' : 'Expand sub-lines'
                             }
+                            className='inline-flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground disabled:opacity-30'
+                            disabled={category.subcategories.length === 0}
+                            type='button'
+                            onClick={() => toggleCategory(category.id)}
                           >
                             {isExpanded ? (
                               <ChevronDown className='h-4 w-4' />
@@ -529,18 +541,18 @@ export default function CategoriesPage() {
                         <td className='px-4 py-3'>
                           <div className='flex items-center justify-end gap-1'>
                             <button
+                              aria-label='Edit'
+                              className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                               type='button'
                               onClick={() => handleEditClick(category)}
-                              className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-                              aria-label='Edit'
                             >
                               <Edit className='h-3.5 w-3.5' />
                             </button>
                             <button
+                              aria-label='Delete'
+                              className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-red-700 transition-colors duration-200 ease-out hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
                               type='button'
                               onClick={() => handleDeleteClick(category)}
-                              className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-red-700 transition-colors duration-200 ease-out hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
-                              aria-label='Delete'
                             >
                               <Trash2 className='h-3.5 w-3.5' />
                             </button>
@@ -549,7 +561,7 @@ export default function CategoriesPage() {
                       </tr>
                       {isExpanded && category.subcategories.length > 0 ? (
                         <tr className='bg-muted/30'>
-                          <td colSpan={6} className='px-4 py-3 pl-16'>
+                          <td className='px-4 py-3 pl-16' colSpan={6}>
                             <p className='mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground'>
                               Sub-lines
                             </p>
@@ -585,22 +597,22 @@ export default function CategoriesPage() {
             form={editForm}
             setForm={setEditForm}
             onAddSub={() => addSub(editForm, setEditForm)}
-            onRemoveSub={i => removeSub(editForm, setEditForm, i)}
             onChangeSub={(i, v) => updateSubs(editForm, setEditForm, i, v)}
+            onRemoveSub={i => removeSub(editForm, setEditForm, i)}
           />
           <div className='mt-6 flex justify-end gap-2 border-t border-border pt-4'>
             <button
+              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               type='button'
               onClick={() => setEditModalOpen(false)}
-              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
               Cancel
             </button>
             <button
+              className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50'
+              disabled={saveLoading}
               type='button'
               onClick={handleSaveEdit}
-              disabled={saveLoading}
-              className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50'
             >
               <Save className='h-4 w-4' />
               {saveLoading ? 'Saving…' : 'Save'}
@@ -616,22 +628,22 @@ export default function CategoriesPage() {
             form={addForm}
             setForm={setAddForm}
             onAddSub={() => addSub(addForm, setAddForm)}
-            onRemoveSub={i => removeSub(addForm, setAddForm, i)}
             onChangeSub={(i, v) => updateSubs(addForm, setAddForm, i, v)}
+            onRemoveSub={i => removeSub(addForm, setAddForm, i)}
           />
           <div className='mt-6 flex justify-end gap-2 border-t border-border pt-4'>
             <button
+              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               type='button'
               onClick={() => setAddModalOpen(false)}
-              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
               Cancel
             </button>
             <button
+              className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50'
+              disabled={addLoading}
               type='button'
               onClick={handleSaveAdd}
-              disabled={addLoading}
-              className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50'
             >
               <Plus className='h-4 w-4' />
               {addLoading ? 'Creating…' : 'Create'}
@@ -662,17 +674,17 @@ export default function CategoriesPage() {
           ) : null}
           <div className='mt-6 flex justify-end gap-2 border-t border-border pt-4'>
             <button
+              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               type='button'
               onClick={() => setDeleteModalOpen(false)}
-              className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
               Cancel
             </button>
             <button
+              className='inline-flex items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50 dark:bg-red-600'
+              disabled={deleteLoading}
               type='button'
               onClick={confirmDelete}
-              disabled={deleteLoading}
-              className='inline-flex items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50 dark:bg-red-600'
             >
               <Trash2 className='h-4 w-4' />
               {deleteLoading ? 'Deleting…' : 'Delete'}
@@ -695,9 +707,9 @@ function ModalShell({
 }) {
   return (
     <div
+      aria-modal='true'
       className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
       role='dialog'
-      aria-modal='true'
     >
       <div className='max-h-[90vh] w-full max-w-lg overflow-y-auto border border-border bg-card shadow-sm'>
         <div className='flex items-center justify-between border-b border-border px-5 py-3'>
@@ -705,10 +717,10 @@ function ModalShell({
             {title}
           </h2>
           <button
+            aria-label='Close'
+            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             type='button'
             onClick={onClose}
-            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-            aria-label='Close'
           >
             <X className='h-4 w-4' />
           </button>
@@ -735,32 +747,32 @@ function CategoryForm({
   return (
     <div className='space-y-4'>
       <div>
-        <label htmlFor='cat-name' className={labelClass}>
+        <label className={labelClass} htmlFor='cat-name'>
           Name *
         </label>
         <input
+          className={fieldClass}
           id='cat-name'
+          placeholder='e.g. Rebar'
           value={form.name}
           onChange={e => setForm({ ...form, name: e.target.value })}
-          className={fieldClass}
-          placeholder='e.g. Rebar'
         />
       </div>
       <div>
-        <label htmlFor='cat-slug' className={labelClass}>
+        <label className={labelClass} htmlFor='cat-slug'>
           Slug
         </label>
         <input
+          className={fieldClass}
+          dir='ltr'
           id='cat-slug'
+          placeholder='auto from name if empty'
           value={form.slug}
           onChange={e => setForm({ ...form, slug: e.target.value })}
-          className={fieldClass}
-          placeholder='auto from name if empty'
-          dir='ltr'
         />
       </div>
       <div>
-        <label htmlFor='cat-icon' className={labelClass}>
+        <label className={labelClass} htmlFor='cat-icon'>
           Icon
         </label>
         <div className='mt-1.5 flex items-center gap-2'>
@@ -770,10 +782,10 @@ function CategoryForm({
             />
           </span>
           <select
+            className={`${fieldClass} !mt-0 flex-1`}
             id='cat-icon'
             value={form.icon}
             onChange={e => setForm({ ...form, icon: e.target.value })}
-            className={`${fieldClass} !mt-0 flex-1`}
           >
             <option value=''>Default from slug</option>
             {ICON_OPTIONS.map(opt => (
@@ -785,25 +797,25 @@ function CategoryForm({
         </div>
       </div>
       <div>
-        <label htmlFor='cat-desc' className={labelClass}>
+        <label className={labelClass} htmlFor='cat-desc'>
           Description
         </label>
         <textarea
+          className={`${fieldClass} resize-y`}
           id='cat-desc'
+          placeholder='Short catalog blurb'
           rows={3}
           value={form.description}
           onChange={e => setForm({ ...form, description: e.target.value })}
-          className={`${fieldClass} resize-y`}
-          placeholder='Short catalog blurb'
         />
       </div>
       <div>
         <div className='mb-1.5 flex items-center justify-between'>
           <span className={labelClass}>Sub-lines</span>
           <button
+            className='text-xs font-medium text-foreground underline-offset-4 hover:underline'
             type='button'
             onClick={onAddSub}
-            className='text-xs font-medium text-foreground underline-offset-4 hover:underline'
           >
             + Add
           </button>
@@ -815,16 +827,16 @@ function CategoryForm({
             {form.subcategories.map((sub, index) => (
               <li key={index} className='flex gap-2'>
                 <input
-                  value={sub}
-                  onChange={e => onChangeSub(index, e.target.value)}
                   className={`${fieldClass} !mt-0 flex-1`}
                   placeholder='e.g. Ribbed'
+                  value={sub}
+                  onChange={e => onChangeSub(index, e.target.value)}
                 />
                 <button
+                  aria-label='Remove sub-line'
+                  className='flex h-10 w-10 shrink-0 items-center justify-center border border-border text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
                   type='button'
                   onClick={() => onRemoveSub(index)}
-                  className='flex h-10 w-10 shrink-0 items-center justify-center border border-border text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
-                  aria-label='Remove sub-line'
                 >
                   <X className='h-4 w-4' />
                 </button>

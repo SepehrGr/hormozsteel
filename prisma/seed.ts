@@ -27,8 +27,10 @@ function usd(n: number) {
 
 function pickDirection(i: number): PriceDirection {
   const mod = i % 5
+
   if (mod === 0) return PriceDirection.UP
   if (mod === 1) return PriceDirection.DOWN
+
   return PriceDirection.STABLE
 }
 
@@ -39,8 +41,10 @@ function pickDirection(i: number): PriceDirection {
 function withPriceMotion(base: number, i: number) {
   const price = usd(base)
   const direction = pickDirection(i)
+
   if (direction === PriceDirection.UP) {
     const prev = usd(price * 0.97)
+
     return {
       price,
       previousPrice: prev,
@@ -51,6 +55,7 @@ function withPriceMotion(base: number, i: number) {
   }
   if (direction === PriceDirection.DOWN) {
     const prev = usd(price * 1.03)
+
     return {
       price,
       previousPrice: prev,
@@ -59,6 +64,7 @@ function withPriceMotion(base: number, i: number) {
       priceUpdatedAt: new Date(),
     }
   }
+
   return {
     price,
     previousPrice: price,
@@ -70,6 +76,7 @@ function withPriceMotion(base: number, i: number) {
 
 async function main() {
   const dbUrl = process.env.DATABASE_URL ?? ''
+
   if (!dbUrl.includes('ahanhormoz_demo')) {
     throw new Error(
       `Refusing to seed: DATABASE_URL must target ahanhormoz_demo (got: ${dbUrl.replace(/:[^:@/]+@/, ':***@')})`,
@@ -148,6 +155,7 @@ async function main() {
       },
     ].map(m => prisma.manufacturer.create({ data: m })),
   )
+
   console.log(`✅ ${manufacturers.length} manufacturers`)
 
   // Icons = icomoon class names from styles/icomoon.css (never emoji)
@@ -242,6 +250,7 @@ async function main() {
   ]
 
   const categories = []
+
   for (const def of categoryDefs) {
     categories.push(await prisma.category.create({ data: def }))
   }
@@ -374,6 +383,7 @@ async function main() {
       { sub: 'Stainless', thick: ['1mm', '2mm'], base: 2.35, step: 0.12 },
     ]
   let sheetI = 0
+
   for (const group of sheets) {
     for (const [tIdx, t] of group.thick.entries()) {
       catalog.push({
@@ -582,8 +592,10 @@ async function main() {
   }
 
   let created = 0
+
   for (const [i, item] of catalog.entries()) {
     const category = bySlug[item.categorySlug]
+
     if (!category) continue
     const priceFields = withPriceMotion(item.basePrice, i)
     const manufacturer = m(item.manufacturerIndex)

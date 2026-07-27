@@ -42,19 +42,19 @@ export default function Filters({
           <div className='relative flex-1'>
             <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
             <input
-              type='search'
+              className={`${fieldClass} pl-9`}
               placeholder='Name or mill…'
+              type='search'
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className={`${fieldClass} pl-9`}
             />
           </div>
           {searchTerm ? (
             <button
+              aria-label='Clear search'
+              className='inline-flex h-10 w-10 items-center justify-center border border-border bg-card text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
               type='button'
               onClick={() => setSearchTerm('')}
-              className='inline-flex h-10 w-10 items-center justify-center border border-border bg-card text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
-              aria-label='Clear search'
             >
               <X className='h-4 w-4' />
             </button>
@@ -67,10 +67,10 @@ export default function Filters({
           Category
         </label>
         <select
+          className={fieldClass}
           id='admin-category-filter'
           value={categoryFilter}
           onChange={e => setCategoryFilter(e.target.value)}
-          className={fieldClass}
         >
           <option value=''>All categories</option>
           {(categories || []).map((category: any) => (
@@ -86,10 +86,10 @@ export default function Filters({
           Stock
         </label>
         <select
+          className={fieldClass}
           id='admin-stock-filter'
           value={stockFilter}
           onChange={e => setStockFilter(e.target.value)}
-          className={fieldClass}
         >
           <option value=''>All</option>
           <option value='true'>In stock</option>
@@ -102,25 +102,25 @@ export default function Filters({
         {selectedProductsCount > 0 ? (
           <div className='flex h-10 gap-2'>
             <button
+              className='flex-1 border border-border bg-card px-2 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               type='button'
               onClick={onBulkOpen}
-              className='flex-1 border border-border bg-card px-2 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
               Edit ({selectedProductsCount})
             </button>
             <button
+              className='flex-1 border border-red-600/40 bg-red-50 px-2 text-xs font-medium text-red-800 transition-colors duration-200 ease-out hover:bg-red-100 dark:bg-red-950/40 dark:text-red-200'
               type='button'
               onClick={onDeleteOpen}
-              className='flex-1 border border-red-600/40 bg-red-50 px-2 text-xs font-medium text-red-800 transition-colors duration-200 ease-out hover:bg-red-100 dark:bg-red-950/40 dark:text-red-200'
             >
               Delete ({selectedProductsCount})
             </button>
           </div>
         ) : (
           <button
+            className='inline-flex h-10 w-full items-center justify-center gap-2 border border-border bg-card text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             type='button'
             onClick={onClearFilters}
-            className='inline-flex h-10 w-full items-center justify-center gap-2 border border-border bg-card text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
           >
             <RefreshCw className='h-4 w-4' />
             Clear filters

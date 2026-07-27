@@ -1,7 +1,8 @@
 import Link from 'next/link'
+import { ArrowRight, ChevronRight } from 'lucide-react'
+
 import { prisma } from '@/lib/prisma'
 import { resolveCategoryIcon } from '@/config/category-icons'
-import { ArrowRight, ChevronRight } from 'lucide-react'
 
 /** Category index changes only when categories do — refreshed hourly. */
 export const revalidate = 3600
@@ -81,8 +82,8 @@ export default async function ProductsPage() {
               </p>
             </div>
             <Link
-              href='/contact'
               className='inline-flex items-center gap-1.5 text-sm font-medium text-foreground underline-offset-4 transition-colors duration-200 ease-out hover:underline'
+              href='/contact'
             >
               Request a quote
               <ArrowRight className='h-3.5 w-3.5' />
@@ -95,15 +96,16 @@ export default async function ProductsPage() {
                 category.icon ?? category.slug,
               )
               const code = category.slug.toUpperCase()
+
               return (
                 <Link
                   key={category.id}
-                  href={`/products/${category.slug}`}
                   className='group relative flex min-h-[9.5rem] flex-col justify-between overflow-hidden bg-card px-5 py-5 transition-colors duration-200 ease-out hover:bg-muted border border-border'
+                  href={`/products/${category.slug}`}
                 >
                   <i
-                    className={`${iconClass} pointer-events-none absolute -right-1 bottom-1 text-[4.5rem] leading-none text-foreground/10 transition-colors duration-200 ease-out group-hover:text-foreground/15`}
                     aria-hidden
+                    className={`${iconClass} pointer-events-none absolute -right-1 bottom-1 text-[4.5rem] leading-none text-foreground/10 transition-colors duration-200 ease-out group-hover:text-foreground/15`}
                   />
                   <div className='relative z-[1] flex items-start justify-between gap-2'>
                     <span className='font-mono text-[10px] font-medium tracking-[0.16em] text-muted-foreground transition-colors duration-200 ease-out group-hover:text-amber-800 dark:group-hover:text-amber-500'>
@@ -146,15 +148,15 @@ export default async function ProductsPage() {
           </div>
           <div className='flex flex-wrap gap-3'>
             <Link
-              href='/contact'
               className='inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
+              href='/contact'
             >
               Contact sales
               <ArrowRight className='h-4 w-4' />
             </Link>
             <Link
-              href='/weight/rebar'
               className='inline-flex items-center border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+              href='/weight/rebar'
             >
               Weight calculators
             </Link>

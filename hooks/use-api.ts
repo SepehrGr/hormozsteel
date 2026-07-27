@@ -55,6 +55,7 @@ export function useProducts(filters?: ProductFilters) {
             if (value !== undefined && value !== null) {
               acc[key] = value.toString()
             }
+
             return acc
           },
           {} as Record<string, string>,
@@ -62,6 +63,8 @@ export function useProducts(filters?: ProductFilters) {
       ).toString()
     : ''
 
+  // ponytail: stays `any` — ProductDTO here conflicts with the local Product
+  // interface in app/admin/products/page.tsx; type both together, not one.
   const { data, error, mutate } = useSWR<PaginatedResponse<any>>(
     `/api/products${queryString ? `?${queryString}` : ''}`,
     fetcher,
@@ -119,6 +122,7 @@ export function useCreateProduct() {
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to create product'
+
       setError(errorMessage)
       throw err
     } finally {
@@ -156,6 +160,7 @@ export function useUpdateProduct() {
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to update product'
+
       setError(errorMessage)
       throw err
     } finally {
@@ -189,6 +194,7 @@ export function useDeleteProduct() {
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to delete product'
+
       setError(errorMessage)
       throw err
     } finally {
@@ -243,6 +249,7 @@ export function useManufacturers(
             if (value !== undefined && value !== null) {
               acc[key] = value.toString()
             }
+
             return acc
           },
           {} as Record<string, string>,
@@ -296,6 +303,7 @@ export function useOrders(
             if (value !== undefined && value !== null) {
               acc[key] = value.toString()
             }
+
             return acc
           },
           {} as Record<string, string>,
@@ -345,6 +353,7 @@ export function useCreateOrder() {
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to create order'
+
       setError(errorMessage)
       throw err
     } finally {

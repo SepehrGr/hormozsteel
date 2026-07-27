@@ -44,7 +44,9 @@ const fieldClass =
 
 function formatDate(dateString: string) {
   const date = new Date(dateString)
+
   if (Number.isNaN(date.getTime())) return '—'
+
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
@@ -80,6 +82,7 @@ function StatusPill({ status }: { status: string }) {
     cancelled:
       'border-red-600/30 bg-red-50 text-red-900 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-100',
   }
+
   return (
     <span
       className={`inline-flex border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
@@ -111,6 +114,7 @@ export default function OrdersManagementPage() {
         `/api/contact?status=${statusFilter === 'all' ? 'all' : statusFilter}`,
       )
       const data = await response.json()
+
       if (data.success) {
         setContactForms(
           data.data.contactForms.map((form: Record<string, string>) => ({
@@ -135,6 +139,7 @@ export default function OrdersManagementPage() {
         `/api/quick-orders?status=${statusFilter === 'all' ? 'all' : statusFilter}`,
       )
       const data = await response.json()
+
       if (data.success) {
         setQuickOrders(
           data.data.quickOrders.map((order: Record<string, string>) => ({
@@ -166,7 +171,6 @@ export default function OrdersManagementPage() {
 
   useEffect(() => {
     loadData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter])
 
   const handleDeleteContactForm = async (id: string) => {
@@ -176,6 +180,7 @@ export default function OrdersManagementPage() {
         method: 'DELETE',
       })
       const data = await response.json()
+
       if (data.success) {
         addToast({
           title: 'Deleted',
@@ -208,6 +213,7 @@ export default function OrdersManagementPage() {
         body: JSON.stringify({ id, status: 'READ' }),
       })
       const data = await response.json()
+
       if (data.success) await fetchContactForms()
     } catch (error) {
       console.error('Error updating contact form:', error)
@@ -222,6 +228,7 @@ export default function OrdersManagementPage() {
         body: JSON.stringify({ id, status: 'REPLIED' }),
       })
       const data = await response.json()
+
       if (data.success) {
         await fetchContactForms()
         setDetailContact(prev =>
@@ -240,6 +247,7 @@ export default function OrdersManagementPage() {
         method: 'DELETE',
       })
       const data = await response.json()
+
       if (data.success) {
         addToast({
           title: 'Deleted',
@@ -272,6 +280,7 @@ export default function OrdersManagementPage() {
         body: JSON.stringify({ id, status }),
       })
       const data = await response.json()
+
       if (data.success) {
         await fetchQuickOrders()
         setDetailOrder(prev =>
@@ -310,6 +319,7 @@ export default function OrdersManagementPage() {
           form.message.toLowerCase().includes(q)
         const matchesStatus =
           statusFilter === 'all' || form.status === statusFilter
+
         return matchesSearch && matchesStatus
       }),
     [contactForms, searchQuery, statusFilter],
@@ -327,6 +337,7 @@ export default function OrdersManagementPage() {
           (order.companyName && order.companyName.toLowerCase().includes(q))
         const matchesStatus =
           statusFilter === 'all' || order.status === statusFilter
+
         return matchesSearch && matchesStatus
       }),
     [quickOrders, searchQuery, statusFilter],
@@ -353,9 +364,9 @@ export default function OrdersManagementPage() {
           </p>
         </div>
         <button
+          className='inline-flex items-center gap-2 border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
           type='button'
           onClick={loadData}
-          className='inline-flex items-center gap-2 border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh
@@ -387,6 +398,7 @@ export default function OrdersManagementPage() {
           },
         ].map(stat => {
           const Icon = stat.icon
+
           return (
             <div key={stat.label} className='bg-card px-4 py-4'>
               <div className='flex items-start justify-between gap-2'>
@@ -407,16 +419,16 @@ export default function OrdersManagementPage() {
       <div className='border border-border bg-card'>
         <div className='flex flex-wrap items-center gap-0 border-b border-border'>
           <button
-            type='button'
-            onClick={() => {
-              setActiveTab('quick')
-              setStatusFilter('all')
-            }}
             className={`px-4 py-3 text-sm font-medium transition-colors duration-200 ease-out ${
               activeTab === 'quick'
                 ? 'border-b-2 border-foreground text-foreground'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
+            type='button'
+            onClick={() => {
+              setActiveTab('quick')
+              setStatusFilter('all')
+            }}
           >
             Quote requests
             <span className='ml-2 font-mono text-xs tabular-nums text-muted-foreground'>
@@ -424,16 +436,16 @@ export default function OrdersManagementPage() {
             </span>
           </button>
           <button
-            type='button'
-            onClick={() => {
-              setActiveTab('contact')
-              setStatusFilter('all')
-            }}
             className={`px-4 py-3 text-sm font-medium transition-colors duration-200 ease-out ${
               activeTab === 'contact'
                 ? 'border-b-2 border-foreground text-foreground'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
+            type='button'
+            onClick={() => {
+              setActiveTab('contact')
+              setStatusFilter('all')
+            }}
           >
             Contact forms
             <span className='ml-2 font-mono text-xs tabular-nums text-muted-foreground'>
@@ -446,22 +458,22 @@ export default function OrdersManagementPage() {
           <div className='relative min-w-0 flex-1 sm:max-w-md'>
             <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
             <input
-              type='search'
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && applySearch()}
+              className={`${fieldClass} pl-9`}
               placeholder={
                 activeTab === 'quick'
                   ? 'Search name, phone, specs…'
                   : 'Search name, phone, message…'
               }
-              className={`${fieldClass} pl-9`}
+              type='search'
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && applySearch()}
             />
           </div>
           <select
+            className={`${fieldClass} sm:w-44`}
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className={`${fieldClass} sm:w-44`}
           >
             <option value='all'>All statuses</option>
             {activeTab === 'quick' ? (
@@ -482,21 +494,21 @@ export default function OrdersManagementPage() {
           </select>
           <div className='flex gap-2'>
             <button
+              className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               type='button'
               onClick={applySearch}
-              className='inline-flex items-center gap-2 border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
               <Search className='h-4 w-4' />
               Search
             </button>
             {(searchTerm || searchQuery) && (
               <button
+                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                 type='button'
                 onClick={() => {
                   setSearchTerm('')
                   setSearchQuery('')
                 }}
-                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               >
                 Clear
               </button>
@@ -590,20 +602,20 @@ export default function OrdersManagementPage() {
                       <td className='px-4 py-3'>
                         <div className='flex items-center justify-end gap-1'>
                           <button
+                            aria-label='View'
+                            className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                             type='button'
                             onClick={() => setDetailOrder(order)}
-                            className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-                            aria-label='View'
                           >
                             <Eye className='h-3.5 w-3.5' />
                           </button>
                           {order.status === 'pending' && (
                             <button
+                              className='inline-flex h-8 items-center gap-1 border border-border bg-background px-2 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                               type='button'
                               onClick={() =>
                                 handleUpdateOrderStatus(order.id, 'CONFIRMED')
                               }
-                              className='inline-flex h-8 items-center gap-1 border border-border bg-background px-2 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                             >
                               <CheckCircle className='h-3.5 w-3.5' />
                               Confirm
@@ -611,31 +623,31 @@ export default function OrdersManagementPage() {
                           )}
                           {order.status === 'confirmed' && (
                             <button
+                              className='inline-flex h-8 items-center border border-border bg-background px-2 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                               type='button'
                               onClick={() =>
                                 handleUpdateOrderStatus(order.id, 'PROCESSING')
                               }
-                              className='inline-flex h-8 items-center border border-border bg-background px-2 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                             >
                               Process
                             </button>
                           )}
                           {order.status === 'processing' && (
                             <button
+                              className='inline-flex h-8 items-center border border-border bg-background px-2 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                               type='button'
                               onClick={() =>
                                 handleUpdateOrderStatus(order.id, 'COMPLETED')
                               }
-                              className='inline-flex h-8 items-center border border-border bg-background px-2 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                             >
                               Complete
                             </button>
                           )}
                           <button
+                            aria-label='Delete'
+                            className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-red-700 transition-colors duration-200 ease-out hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
                             type='button'
                             onClick={() => handleDeleteQuickOrder(order.id)}
-                            className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-red-700 transition-colors duration-200 ease-out hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
-                            aria-label='Delete'
                           >
                             <Trash2 className='h-3.5 w-3.5' />
                           </button>
@@ -690,21 +702,21 @@ export default function OrdersManagementPage() {
                     <td className='px-4 py-3'>
                       <div className='flex items-center justify-end gap-1'>
                         <button
+                          aria-label='View'
+                          className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                           type='button'
                           onClick={() => {
                             setDetailContact(form)
                             if (form.status === 'new') handleMarkAsRead(form.id)
                           }}
-                          className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-                          aria-label='View'
                         >
                           <Eye className='h-3.5 w-3.5' />
                         </button>
                         <button
+                          aria-label='Delete'
+                          className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-red-700 transition-colors duration-200 ease-out hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
                           type='button'
                           onClick={() => handleDeleteContactForm(form.id)}
-                          className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-red-700 transition-colors duration-200 ease-out hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
-                          aria-label='Delete'
                         >
                           <Trash2 className='h-3.5 w-3.5' />
                         </button>
@@ -758,41 +770,41 @@ export default function OrdersManagementPage() {
           <div className='mt-6 flex flex-wrap justify-end gap-2 border-t border-border pt-4'>
             {detailOrder.status === 'pending' && (
               <button
+                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted'
                 type='button'
                 onClick={() =>
                   handleUpdateOrderStatus(detailOrder.id, 'CONFIRMED')
                 }
-                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted'
               >
                 Confirm
               </button>
             )}
             {detailOrder.status === 'confirmed' && (
               <button
+                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted'
                 type='button'
                 onClick={() =>
                   handleUpdateOrderStatus(detailOrder.id, 'PROCESSING')
                 }
-                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted'
               >
                 Start processing
               </button>
             )}
             {detailOrder.status === 'processing' && (
               <button
+                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted'
                 type='button'
                 onClick={() =>
                   handleUpdateOrderStatus(detailOrder.id, 'COMPLETED')
                 }
-                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted'
               >
                 Mark completed
               </button>
             )}
             <button
+              className='bg-red-700 px-3 py-2 text-sm font-medium text-white hover:opacity-90 dark:bg-red-600'
               type='button'
               onClick={() => handleDeleteQuickOrder(detailOrder.id)}
-              className='bg-red-700 px-3 py-2 text-sm font-medium text-white hover:opacity-90 dark:bg-red-600'
             >
               Delete
             </button>
@@ -830,17 +842,17 @@ export default function OrdersManagementPage() {
           <div className='mt-6 flex flex-wrap justify-end gap-2 border-t border-border pt-4'>
             {detailContact.status !== 'replied' && (
               <button
+                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted'
                 type='button'
                 onClick={() => handleMarkReplied(detailContact.id)}
-                className='border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted'
               >
                 Mark replied
               </button>
             )}
             <button
+              className='bg-red-700 px-3 py-2 text-sm font-medium text-white hover:opacity-90 dark:bg-red-600'
               type='button'
               onClick={() => handleDeleteContactForm(detailContact.id)}
-              className='bg-red-700 px-3 py-2 text-sm font-medium text-white hover:opacity-90 dark:bg-red-600'
             >
               Delete
             </button>
@@ -879,9 +891,9 @@ function DetailModal({
 }) {
   return (
     <div
+      aria-modal='true'
       className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
       role='dialog'
-      aria-modal='true'
     >
       <div className='max-h-[90vh] w-full max-w-lg overflow-y-auto border border-border bg-card shadow-sm'>
         <div className='flex items-center justify-between border-b border-border px-5 py-3'>
@@ -889,9 +901,9 @@ function DetailModal({
             {title}
           </h2>
           <button
+            className='border border-border bg-background px-2 py-1 text-xs font-medium text-foreground hover:bg-muted'
             type='button'
             onClick={onClose}
-            className='border border-border bg-background px-2 py-1 text-xs font-medium text-foreground hover:bg-muted'
           >
             Close
           </button>

@@ -3,17 +3,6 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
-  Product,
-  PriceFilter,
-  productCategoryHref,
-} from '@/types/products'
-import { useCategories, useProducts } from '@/hooks/use-api'
-import { resolveCategoryIcon } from '@/config/category-icons'
-import ProductTable from '@/components/products/product-table'
-import AdvancedFilters from '@/components/products/advanced-filters'
-import WeightCalculatorModal from '@/components/products/weight-calculator-modal'
-import OrderRequestModal from '@/components/products/order-request-modal'
-import {
   Calculator,
   Filter,
   Search,
@@ -24,6 +13,14 @@ import {
   FileText,
   Wrench,
 } from 'lucide-react'
+
+import { Product, PriceFilter, productCategoryHref } from '@/types/products'
+import { useCategories, useProducts } from '@/hooks/use-api'
+import { resolveCategoryIcon } from '@/config/category-icons'
+import ProductTable from '@/components/products/product-table'
+import AdvancedFilters from '@/components/products/advanced-filters'
+import WeightCalculatorModal from '@/components/products/weight-calculator-modal'
+import OrderRequestModal from '@/components/products/order-request-modal'
 
 interface ProductPageProps {
   categorySlug: string
@@ -49,8 +46,10 @@ function normalizeUnit(
 ): 'kg' | 'ton' | 'piece' | undefined {
   if (!unit) return undefined
   const u = unit.toLowerCase()
+
   if (u === 'kg' || u === 'ton' || u === 'piece') return u
   if (u === 'meter' || u === 'm') return 'kg'
+
   return 'kg'
 }
 
@@ -109,6 +108,7 @@ export default function ProductPage({
         if (Array.isArray(filterValue)) {
           return filterValue.includes(productValue)
         }
+
         return filterValue === productValue
       }
 
@@ -137,6 +137,7 @@ export default function ProductPage({
           .filter(Boolean)
           .join(' ')
           .toLowerCase()
+
         if (!haystack.includes(q)) return false
       }
 
@@ -146,11 +147,14 @@ export default function ProductPage({
 
   const productsByBrand = useMemo(() => {
     const grouped: Record<string, Product[]> = {}
+
     for (const product of filteredProducts) {
       const brand = product.brand || 'Unspecified mill'
+
       if (!grouped[brand]) grouped[brand] = []
       grouped[brand].push(product)
     }
+
     return grouped
   }, [filteredProducts])
 
@@ -159,6 +163,7 @@ export default function ProductPage({
       return { count: 0, min: 0, max: 0, inStock: 0 }
     }
     const prices = filteredProducts.map(p => p.price)
+
     return {
       count: filteredProducts.length,
       min: Math.min(...prices),
@@ -181,7 +186,9 @@ export default function ProductPage({
     ).sort((a, b) => {
       const na = parseFloat(a)
       const nb = parseFloat(b)
+
       if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb
+
       return a.localeCompare(b)
     })
   }, [products])
@@ -219,9 +226,9 @@ export default function ProductPage({
           </h2>
           <p className='mb-4 text-sm text-muted-foreground'>{error}</p>
           <button
+            className='bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
             type='button'
             onClick={() => window.location.reload()}
-            className='bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
           >
             Retry
           </button>
@@ -236,19 +243,19 @@ export default function ProductPage({
       <header className='border-b border-border'>
         <div className='mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14'>
           <nav
-            className='mb-4 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground'
             aria-label='Breadcrumb'
+            className='mb-4 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground'
           >
             <Link
-              href='/products'
               className='transition-colors duration-200 ease-out hover:text-foreground'
+              href='/products'
             >
               Products
             </Link>
             <ChevronRight className='h-3 w-3' />
             <Link
-              href={productCategoryHref(categorySlug)}
               className='transition-colors duration-200 ease-out hover:text-foreground'
+              href={productCategoryHref(categorySlug)}
             >
               {categoryInfo?.name ?? categorySlug}
             </Link>
@@ -266,8 +273,8 @@ export default function ProductPage({
               <div className='flex items-start gap-4'>
                 <div className='flex h-12 w-12 shrink-0 items-center justify-center border border-border bg-card'>
                   <i
-                    className={`${iconClass} text-2xl text-foreground`}
                     aria-hidden
+                    className={`${iconClass} text-2xl text-foreground`}
                   />
                 </div>
                 <div>
@@ -319,22 +326,22 @@ export default function ProductPage({
           <div className='relative flex-1'>
             <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
             <input
-              type='search'
+              className='w-full border border-border bg-background py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
               placeholder='Search size, mill, or product name…'
+              type='search'
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className='w-full border border-border bg-background py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
             />
           </div>
           <div className='flex items-center gap-2'>
             <button
-              type='button'
-              onClick={() => setShowFilters(v => !v)}
               className={`inline-flex items-center gap-2 border px-3 py-2 text-sm font-medium transition-colors duration-200 ease-out ${
                 showFilters
                   ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-border bg-card text-foreground hover:bg-muted'
               }`}
+              type='button'
+              onClick={() => setShowFilters(v => !v)}
             >
               <Filter className='h-4 w-4' />
               Filters
@@ -354,11 +361,11 @@ export default function ProductPage({
           {showFilters && (
             <aside className='lg:col-span-1'>
               <AdvancedFilters
-                filters={filters}
-                onFiltersChange={setFilters}
-                onClearFilters={() => setFilters({})}
                 availableBrands={availableBrands}
                 availableSizes={availableSizes}
+                filters={filters}
+                onClearFilters={() => setFilters({})}
+                onFiltersChange={setFilters}
               />
             </aside>
           )}
@@ -376,12 +383,12 @@ export default function ProductPage({
                 </p>
                 {(searchTerm || Object.keys(filters).length > 0) && (
                   <button
+                    className='mt-4 text-sm font-medium text-foreground underline-offset-4 hover:underline'
                     type='button'
                     onClick={() => {
                       setSearchTerm('')
                       setFilters({})
                     }}
-                    className='mt-4 text-sm font-medium text-foreground underline-offset-4 hover:underline'
                   >
                     Clear search & filters
                   </button>
@@ -402,10 +409,10 @@ export default function ProductPage({
                         </span>
                       </div>
                       <ProductTable
-                        products={brandProducts}
-                        onOrder={handleOrder}
-                        onCalculate={handleCalculate}
                         formatPrice={formatUsd}
+                        products={brandProducts}
+                        onCalculate={handleCalculate}
+                        onOrder={handleOrder}
                       />
                     </section>
                   ),
@@ -484,30 +491,30 @@ export default function ProductPage({
       </div>
 
       <WeightCalculatorModal
+        formatPrice={formatUsd}
         isOpen={isCalculatorOpen}
+        productCategory={selectedProduct?.category?.name || categorySlug}
+        productName={selectedProduct?.name}
+        productPrice={selectedProduct?.price}
+        productUnit={normalizeUnit(selectedProduct?.unit)}
         onClose={() => {
           setIsCalculatorOpen(false)
           setSelectedProduct(null)
         }}
-        productName={selectedProduct?.name}
-        productCategory={selectedProduct?.category?.name || categorySlug}
-        productPrice={selectedProduct?.price}
-        productUnit={normalizeUnit(selectedProduct?.unit)}
-        formatPrice={formatUsd}
       />
 
       <OrderRequestModal
         isOpen={isOrderModalOpen}
-        onClose={() => {
-          setIsOrderModalOpen(false)
-          setSelectedOrderProduct(null)
-        }}
         productName={selectedOrderProduct?.name}
         productSpecs={
           selectedOrderProduct
             ? `${selectedOrderProduct.name} · ${selectedOrderProduct.size} · ${selectedOrderProduct.brand ?? '—'}`
             : ''
         }
+        onClose={() => {
+          setIsOrderModalOpen(false)
+          setSelectedOrderProduct(null)
+        }}
       />
     </div>
   )

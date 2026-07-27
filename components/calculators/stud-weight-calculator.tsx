@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+
 import {
   Field,
   fieldClass,
@@ -26,8 +27,10 @@ export default function StudWeightCalculator() {
     const wt = parseFloat(webThickness)
     const l = parseFloat(length)
     const d = parseFloat(density)
+
     if (!fw || !ft || !wh || !wt || !l || !d) return
     const area = wt * wh + 2 * ft * fw
+
     setResult(Math.round(((area * l * d) / 1000) * 100) / 100)
   }
 
@@ -45,77 +48,77 @@ export default function StudWeightCalculator() {
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
         <Field id='flangeWidth' label='Flange width (mm)'>
           <input
+            className={fieldClass}
             id='flangeWidth'
-            type='number'
             inputMode='decimal'
+            placeholder='e.g. 50'
+            type='number'
             value={flangeWidth}
             onChange={e => setFlangeWidth(e.target.value)}
-            placeholder='e.g. 50'
-            className={fieldClass}
           />
         </Field>
         <Field id='flangeThickness' label='Flange thickness (mm)'>
           <input
+            className={fieldClass}
             id='flangeThickness'
-            type='number'
             inputMode='decimal'
+            placeholder='e.g. 4'
+            type='number'
             value={flangeThickness}
             onChange={e => setFlangeThickness(e.target.value)}
-            placeholder='e.g. 4'
-            className={fieldClass}
           />
         </Field>
         <Field id='webHeight' label='Web height (mm)'>
           <input
+            className={fieldClass}
             id='webHeight'
-            type='number'
             inputMode='decimal'
+            placeholder='e.g. 100'
+            type='number'
             value={webHeight}
             onChange={e => setWebHeight(e.target.value)}
-            placeholder='e.g. 100'
-            className={fieldClass}
           />
         </Field>
         <Field id='webThickness' label='Web thickness (mm)'>
           <input
+            className={fieldClass}
             id='webThickness'
-            type='number'
             inputMode='decimal'
+            placeholder='e.g. 3'
+            type='number'
             value={webThickness}
             onChange={e => setWebThickness(e.target.value)}
-            placeholder='e.g. 3'
-            className={fieldClass}
           />
         </Field>
         <Field id='length' label='Length (m)'>
           <input
+            className={fieldClass}
             id='length'
-            type='number'
             inputMode='decimal'
+            placeholder='e.g. 6'
+            type='number'
             value={length}
             onChange={e => setLength(e.target.value)}
-            placeholder='e.g. 6'
-            className={fieldClass}
           />
         </Field>
         <DensitySelect value={density} onChange={setDensity} />
       </div>
 
       <CalculatorActions
+        calculateLabel='Calculate weight'
         onCalculate={calculateWeight}
         onReset={resetForm}
-        calculateLabel='Calculate weight'
       />
 
       {result != null && (
         <CalculatorResult
-          weightKg={result}
           details={
             <p>
-              Channel · bf {flangeWidth} · tf {flangeThickness} · h{' '}
-              {webHeight} · tw {webThickness} mm · L {length} m
+              Channel · bf {flangeWidth} · tf {flangeThickness} · h {webHeight}{' '}
+              · tw {webThickness} mm · L {length} m
             </p>
           }
+          weightKg={result}
         />
       )}
 

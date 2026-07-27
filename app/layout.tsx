@@ -36,16 +36,16 @@ export default function RootLayout({
   return (
     <html
       suppressHydrationWarning
-      lang='en'
       className={clsx(geistSans.variable, geistMono.variable)}
+      lang='en'
     >
       <head />
       <body
-        dir='ltr'
         className={clsx(
           'min-h-screen bg-background font-sans text-foreground antialiased',
           geistSans.className,
         )}
+        dir='ltr'
       >
         <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>
           <ConditionalLayout>{children}</ConditionalLayout>

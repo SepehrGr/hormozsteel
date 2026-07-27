@@ -1,9 +1,4 @@
-import {
-  Plus,
-  Trash2,
-  CheckCircle2,
-  X,
-} from 'lucide-react'
+import { Plus, Trash2, CheckCircle2, X } from 'lucide-react'
 
 const productFieldClass =
   'mt-1.5 w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground tabular-nums placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground disabled:cursor-not-allowed disabled:opacity-50'
@@ -39,11 +34,11 @@ export function BulkUpdateModal({
 
   return (
     <div
-      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
-      role='dialog'
-      aria-modal='true'
       aria-labelledby='bulk-update-title'
+      aria-modal='true'
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
       dir='ltr'
+      role='dialog'
       onClick={e => {
         if (e.target === e.currentTarget) close()
       }}
@@ -52,8 +47,8 @@ export function BulkUpdateModal({
         <div className='flex items-start justify-between border-b border-border px-5 py-3'>
           <div>
             <h2
-              id='bulk-update-title'
               className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+              id='bulk-update-title'
             >
               Bulk edit
             </h2>
@@ -65,10 +60,10 @@ export function BulkUpdateModal({
             </p>
           </div>
           <button
+            aria-label='Close'
+            className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             type='button'
             onClick={close}
-            className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-            aria-label='Close'
           >
             <X className='h-4 w-4' />
           </button>
@@ -76,22 +71,24 @@ export function BulkUpdateModal({
 
         <div className='space-y-5 px-5 py-5'>
           <div>
-            <label htmlFor='bulk-price' className={productLabelClass}>
+            <label className={productLabelClass} htmlFor='bulk-price'>
               New price (USD)
             </label>
             <input
+              className={productFieldClass}
               id='bulk-price'
-              type='number'
               min={0}
+              placeholder='Leave blank to keep current'
               step='0.01'
+              type='number'
               value={bulkUpdateData.price?.toString() ?? ''}
               onChange={e =>
                 update({
-                  price: e.target.value ? parseFloat(e.target.value) : undefined,
+                  price: e.target.value
+                    ? parseFloat(e.target.value)
+                    : undefined,
                 })
               }
-              className={productFieldClass}
-              placeholder='Leave blank to keep current'
             />
           </div>
 
@@ -99,23 +96,23 @@ export function BulkUpdateModal({
             <p className={productLabelClass}>Stock</p>
             <div className='mt-1.5 flex gap-2'>
               <button
+                className={stockBtn(bulkUpdateData.inStock === true)}
                 type='button'
                 onClick={() => update({ inStock: true })}
-                className={stockBtn(bulkUpdateData.inStock === true)}
               >
                 In stock
               </button>
               <button
+                className={stockBtn(bulkUpdateData.inStock === false)}
                 type='button'
                 onClick={() => update({ inStock: false })}
-                className={stockBtn(bulkUpdateData.inStock === false)}
               >
                 On inquiry
               </button>
               <button
+                className={stockBtn(bulkUpdateData.inStock === undefined)}
                 type='button'
                 onClick={() => update({ inStock: undefined })}
-                className={stockBtn(bulkUpdateData.inStock === undefined)}
               >
                 No change
               </button>
@@ -123,16 +120,16 @@ export function BulkUpdateModal({
           </div>
 
           <div>
-            <label htmlFor='bulk-category' className={productLabelClass}>
+            <label className={productLabelClass} htmlFor='bulk-category'>
               Category
             </label>
             <select
+              className={`${productFieldClass} cursor-pointer`}
               id='bulk-category'
               value={bulkUpdateData.categoryId || ''}
               onChange={e =>
                 update({ categoryId: e.target.value || undefined })
               }
-              className={`${productFieldClass} cursor-pointer`}
             >
               <option value=''>No change</option>
               {categories?.map((cat: any) => (
@@ -150,16 +147,16 @@ export function BulkUpdateModal({
 
         <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
           <button
+            className='cursor-pointer border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             type='button'
             onClick={close}
-            className='cursor-pointer border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
           >
             Cancel
           </button>
           <button
+            className='inline-flex cursor-pointer items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
             type='button'
             onClick={onUpdate}
-            className='inline-flex cursor-pointer items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
           >
             <CheckCircle2 className='h-4 w-4' />
             Apply to {selectedCount} product{selectedCount === 1 ? '' : 's'}
@@ -185,11 +182,11 @@ export function BulkDeleteModal({
 
   return (
     <div
-      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
-      role='dialog'
-      aria-modal='true'
       aria-labelledby='bulk-delete-title'
+      aria-modal='true'
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
       dir='ltr'
+      role='dialog'
       onClick={e => {
         if (e.target === e.currentTarget) close()
       }}
@@ -197,16 +194,16 @@ export function BulkDeleteModal({
       <div className='w-full max-w-md border border-border bg-card shadow-sm'>
         <div className='flex items-center justify-between border-b border-border px-5 py-3'>
           <h2
-            id='bulk-delete-title'
             className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+            id='bulk-delete-title'
           >
             Delete products
           </h2>
           <button
+            aria-label='Close'
+            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             type='button'
             onClick={close}
-            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-            aria-label='Close'
           >
             <X className='h-4 w-4' />
           </button>
@@ -228,17 +225,17 @@ export function BulkDeleteModal({
 
         <div className='flex justify-start gap-2 border-t border-border px-5 py-4'>
           <button
+            className='inline-flex items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 dark:bg-red-600'
             type='button'
             onClick={onDelete}
-            className='inline-flex items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 dark:bg-red-600'
           >
             <Trash2 className='h-4 w-4' />
             Delete {selectedCount} product{selectedCount > 1 && 's'}
           </button>
           <button
+            className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             type='button'
             onClick={close}
-            className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
           >
             Cancel
           </button>
@@ -263,11 +260,11 @@ export function DeleteSingleModal({
 
   return (
     <div
-      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
-      role='dialog'
-      aria-modal='true'
       aria-labelledby='delete-product-title'
+      aria-modal='true'
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
       dir='ltr'
+      role='dialog'
       onClick={e => {
         if (e.target === e.currentTarget) close()
       }}
@@ -275,16 +272,16 @@ export function DeleteSingleModal({
       <div className='w-full max-w-md border border-border bg-card shadow-sm'>
         <div className='flex items-center justify-between border-b border-border px-5 py-3'>
           <h2
-            id='delete-product-title'
             className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+            id='delete-product-title'
           >
             Delete product
           </h2>
           <button
+            aria-label='Close'
+            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             type='button'
             onClick={close}
-            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-            aria-label='Close'
           >
             <X className='h-4 w-4' />
           </button>
@@ -310,17 +307,17 @@ export function DeleteSingleModal({
 
         <div className='flex justify-start gap-2 border-t border-border px-5 py-4'>
           <button
+            className='inline-flex items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 dark:bg-red-600'
             type='button'
             onClick={onConfirm}
-            className='inline-flex items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 dark:bg-red-600'
           >
             <Trash2 className='h-4 w-4' />
             Yes, delete the product
           </button>
           <button
+            className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             type='button'
             onClick={close}
-            className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
           >
             Cancel
           </button>
@@ -354,10 +351,11 @@ function MillField({
   return (
     <div className='space-y-2'>
       <div>
-        <label htmlFor={`${idPrefix}-mill`} className={productLabelClass}>
+        <label className={productLabelClass} htmlFor={`${idPrefix}-mill`}>
           Mill *
         </label>
         <select
+          className={productFieldClass}
           id={`${idPrefix}-mill`}
           value={
             manufacturerId && manufacturers.some(m => m.id === manufacturerId)
@@ -368,18 +366,21 @@ function MillField({
           }
           onChange={e => {
             const v = e.target.value
+
             if (!v) {
               onChange({ manufacturerId: '', brand: '' })
+
               return
             }
             if (v === '__custom__') {
               onChange({ manufacturerId: '__custom__', brand: brand || '' })
+
               return
             }
             const mill = manufacturers.find(m => m.id === v)
+
             onChange({ manufacturerId: v, brand: mill?.name || '' })
           }}
-          className={productFieldClass}
         >
           <option value=''>Select mill…</option>
           {manufacturers.map(m => (
@@ -391,19 +392,21 @@ function MillField({
         </select>
       </div>
       {(manufacturerId === '__custom__' ||
-        (isCustom && brand && !manufacturers.some(m => m.id === manufacturerId))) && (
+        (isCustom &&
+          brand &&
+          !manufacturers.some(m => m.id === manufacturerId))) && (
         <div>
-          <label htmlFor={`${idPrefix}-brand`} className={productLabelClass}>
+          <label className={productLabelClass} htmlFor={`${idPrefix}-brand`}>
             New mill name *
           </label>
           <input
+            className={productFieldClass}
             id={`${idPrefix}-brand`}
+            placeholder='e.g. Caspian Steel Mills'
             value={brand || ''}
             onChange={e =>
               onChange({ manufacturerId: '__custom__', brand: e.target.value })
             }
-            className={productFieldClass}
-            placeholder='e.g. Caspian Steel Mills'
           />
         </div>
       )}
@@ -435,11 +438,11 @@ export function EditProductModal({
 
   return (
     <div
-      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
-      role='dialog'
-      aria-modal='true'
       aria-labelledby='edit-product-title'
+      aria-modal='true'
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
       dir='ltr'
+      role='dialog'
       onClick={e => {
         if (e.target === e.currentTarget) close()
       }}
@@ -448,8 +451,8 @@ export function EditProductModal({
         <div className='flex items-start justify-between border-b border-border px-5 py-3'>
           <div className='min-w-0'>
             <h2
-              id='edit-product-title'
               className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+              id='edit-product-title'
             >
               Edit product
             </h2>
@@ -460,10 +463,10 @@ export function EditProductModal({
             </p>
           </div>
           <button
+            aria-label='Close'
+            className='flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             type='button'
             onClick={close}
-            className='flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-            aria-label='Close'
           >
             <X className='h-4 w-4' />
           </button>
@@ -472,68 +475,70 @@ export function EditProductModal({
         <div className='space-y-5 px-5 py-5'>
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
             <div className='sm:col-span-2'>
-              <label htmlFor='edit-name' className={productLabelClass}>
+              <label className={productLabelClass} htmlFor='edit-name'>
                 Name *
               </label>
               <input
+                className={productFieldClass}
                 id='edit-name'
+                placeholder='e.g. Ribbed rebar 16mm'
                 value={editProductData.name}
                 onChange={e => update({ name: e.target.value })}
-                className={productFieldClass}
-                placeholder='e.g. Ribbed rebar 16mm'
               />
             </div>
 
             <MillField
-              manufacturers={manufacturers}
-              manufacturerId={editProductData.manufacturerId}
               brand={editProductData.brand}
-              onChange={patch => update(patch)}
               idPrefix='edit'
+              manufacturerId={editProductData.manufacturerId}
+              manufacturers={manufacturers}
+              onChange={patch => update(patch)}
             />
 
             <div>
-              <label htmlFor='edit-size' className={productLabelClass}>
+              <label className={productLabelClass} htmlFor='edit-size'>
                 Size *
               </label>
               <input
+                className={productFieldClass}
                 id='edit-size'
+                placeholder='e.g. 16mm, IPE 200'
                 value={editProductData.size}
                 onChange={e => update({ size: e.target.value })}
-                className={productFieldClass}
-                placeholder='e.g. 16mm, IPE 200'
               />
             </div>
 
             <div>
-              <label htmlFor='edit-price' className={productLabelClass}>
+              <label className={productLabelClass} htmlFor='edit-price'>
                 Unit price (USD) *
               </label>
               <input
+                className={productFieldClass}
                 id='edit-price'
-                type='number'
                 inputMode='decimal'
-                step='0.01'
                 min='0'
+                placeholder='0.00'
+                step='0.01'
+                type='number'
                 value={editProductData.price ?? ''}
                 onChange={e =>
                   update({ price: parseFloat(e.target.value) || 0 })
                 }
-                className={productFieldClass}
-                placeholder='0.00'
               />
             </div>
 
             <div>
-              <label htmlFor='edit-weight' className={productLabelClass}>
+              <label className={productLabelClass} htmlFor='edit-weight'>
                 Weight (kg)
               </label>
               <input
+                className={productFieldClass}
                 id='edit-weight'
-                type='number'
                 inputMode='decimal'
-                step='0.01'
                 min='0'
+                placeholder='Optional'
+                step='0.01'
+                type='number'
                 value={editProductData.weight?.toString() || ''}
                 onChange={e =>
                   update({
@@ -542,22 +547,20 @@ export function EditProductModal({
                       : undefined,
                   })
                 }
-                className={productFieldClass}
-                placeholder='Optional'
               />
             </div>
 
             <div>
-              <label htmlFor='edit-category' className={productLabelClass}>
+              <label className={productLabelClass} htmlFor='edit-category'>
                 Category *
               </label>
               <select
+                className={productFieldClass}
                 id='edit-category'
                 value={editProductData.categoryId}
                 onChange={e =>
                   update({ categoryId: e.target.value, subcategory: '' })
                 }
-                className={productFieldClass}
               >
                 <option value=''>Select category</option>
                 {categories?.map((category: any) => (
@@ -569,15 +572,15 @@ export function EditProductModal({
             </div>
 
             <div>
-              <label htmlFor='edit-sub' className={productLabelClass}>
+              <label className={productLabelClass} htmlFor='edit-sub'>
                 Sub-line *
               </label>
               <select
+                className={productFieldClass}
+                disabled={!editProductData.categoryId}
                 id='edit-sub'
                 value={editProductData.subcategory}
                 onChange={e => update({ subcategory: e.target.value })}
-                disabled={!editProductData.categoryId}
-                className={productFieldClass}
               >
                 <option value=''>
                   {editProductData.categoryId
@@ -596,24 +599,24 @@ export function EditProductModal({
               <p className={productLabelClass}>Stock</p>
               <div className='mt-1.5 flex gap-2'>
                 <button
-                  type='button'
-                  onClick={() => update({ inStock: true })}
                   className={`flex-1 border px-3 py-2.5 text-sm font-medium transition-colors duration-200 ease-out ${
                     editProductData.inStock === true
                       ? 'border-foreground bg-foreground text-background'
                       : 'border-border bg-background text-foreground hover:bg-muted'
                   }`}
+                  type='button'
+                  onClick={() => update({ inStock: true })}
                 >
                   In stock
                 </button>
                 <button
-                  type='button'
-                  onClick={() => update({ inStock: false })}
                   className={`flex-1 border px-3 py-2.5 text-sm font-medium transition-colors duration-200 ease-out ${
                     editProductData.inStock === false
                       ? 'border-foreground bg-foreground text-background'
                       : 'border-border bg-background text-foreground hover:bg-muted'
                   }`}
+                  type='button'
+                  onClick={() => update({ inStock: false })}
                 >
                   On inquiry
                 </button>
@@ -628,16 +631,16 @@ export function EditProductModal({
 
         <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
           <button
+            className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             type='button'
             onClick={close}
-            className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
           >
             Cancel
           </button>
           <button
+            className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
             type='button'
             onClick={onSave}
-            className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
           >
             <CheckCircle2 className='h-4 w-4' />
             Save changes
@@ -675,11 +678,11 @@ export function AddProductModal({
 
   return (
     <div
-      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
-      role='dialog'
-      aria-modal='true'
       aria-labelledby='add-product-title'
+      aria-modal='true'
+      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
       dir='ltr'
+      role='dialog'
       onClick={e => {
         if (e.target === e.currentTarget) close()
       }}
@@ -688,8 +691,8 @@ export function AddProductModal({
         <div className='flex items-start justify-between border-b border-border px-5 py-3'>
           <div>
             <h2
-              id='add-product-title'
               className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+              id='add-product-title'
             >
               Add product
             </h2>
@@ -698,10 +701,10 @@ export function AddProductModal({
             </p>
           </div>
           <button
+            aria-label='Close'
+            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             type='button'
             onClick={close}
-            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-            aria-label='Close'
           >
             <X className='h-4 w-4' />
           </button>
@@ -710,68 +713,70 @@ export function AddProductModal({
         <div className='space-y-5 px-5 py-5'>
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
             <div className='sm:col-span-2'>
-              <label htmlFor='add-name' className={productLabelClass}>
+              <label className={productLabelClass} htmlFor='add-name'>
                 Name *
               </label>
               <input
+                className={productFieldClass}
                 id='add-name'
+                placeholder='e.g. Ribbed rebar 16mm'
                 value={newProductData.name}
                 onChange={e => update({ name: e.target.value })}
-                className={productFieldClass}
-                placeholder='e.g. Ribbed rebar 16mm'
               />
             </div>
 
             <MillField
-              manufacturers={manufacturers}
-              manufacturerId={newProductData.manufacturerId}
               brand={newProductData.brand}
-              onChange={patch => update(patch)}
               idPrefix='add'
+              manufacturerId={newProductData.manufacturerId}
+              manufacturers={manufacturers}
+              onChange={patch => update(patch)}
             />
 
             <div>
-              <label htmlFor='add-size' className={productLabelClass}>
+              <label className={productLabelClass} htmlFor='add-size'>
                 Size *
               </label>
               <input
+                className={productFieldClass}
                 id='add-size'
+                placeholder='e.g. 16mm, IPE 200'
                 value={newProductData.size}
                 onChange={e => update({ size: e.target.value })}
-                className={productFieldClass}
-                placeholder='e.g. 16mm, IPE 200'
               />
             </div>
 
             <div>
-              <label htmlFor='add-price' className={productLabelClass}>
+              <label className={productLabelClass} htmlFor='add-price'>
                 Unit price (USD) *
               </label>
               <input
+                className={productFieldClass}
                 id='add-price'
-                type='number'
                 inputMode='decimal'
-                step='0.01'
                 min='0'
+                placeholder='0.00'
+                step='0.01'
+                type='number'
                 value={newProductData.price || ''}
                 onChange={e =>
                   update({ price: parseFloat(e.target.value) || 0 })
                 }
-                className={productFieldClass}
-                placeholder='0.00'
               />
             </div>
 
             <div>
-              <label htmlFor='add-weight' className={productLabelClass}>
+              <label className={productLabelClass} htmlFor='add-weight'>
                 Weight (kg)
               </label>
               <input
+                className={productFieldClass}
                 id='add-weight'
-                type='number'
                 inputMode='decimal'
-                step='0.01'
                 min='0'
+                placeholder='Optional'
+                step='0.01'
+                type='number'
                 value={newProductData.weight?.toString() || ''}
                 onChange={e =>
                   update({
@@ -780,22 +785,20 @@ export function AddProductModal({
                       : undefined,
                   })
                 }
-                className={productFieldClass}
-                placeholder='Optional'
               />
             </div>
 
             <div>
-              <label htmlFor='add-category' className={productLabelClass}>
+              <label className={productLabelClass} htmlFor='add-category'>
                 Category *
               </label>
               <select
+                className={productFieldClass}
                 id='add-category'
                 value={newProductData.categoryId}
                 onChange={e =>
                   update({ categoryId: e.target.value, subcategory: '' })
                 }
-                className={productFieldClass}
               >
                 <option value=''>Select category</option>
                 {categories?.map((category: any) => (
@@ -807,15 +810,15 @@ export function AddProductModal({
             </div>
 
             <div>
-              <label htmlFor='add-sub' className={productLabelClass}>
+              <label className={productLabelClass} htmlFor='add-sub'>
                 Sub-line *
               </label>
               <select
+                className={productFieldClass}
+                disabled={!newProductData.categoryId}
                 id='add-sub'
                 value={newProductData.subcategory}
                 onChange={e => update({ subcategory: e.target.value })}
-                disabled={!newProductData.categoryId}
-                className={productFieldClass}
               >
                 <option value=''>
                   {newProductData.categoryId
@@ -834,24 +837,24 @@ export function AddProductModal({
               <p className={productLabelClass}>Stock</p>
               <div className='mt-1.5 flex gap-2'>
                 <button
-                  type='button'
-                  onClick={() => update({ inStock: true })}
                   className={`flex-1 border px-3 py-2.5 text-sm font-medium transition-colors duration-200 ease-out ${
                     newProductData.inStock === true
                       ? 'border-foreground bg-foreground text-background'
                       : 'border-border bg-background text-foreground hover:bg-muted'
                   }`}
+                  type='button'
+                  onClick={() => update({ inStock: true })}
                 >
                   In stock
                 </button>
                 <button
-                  type='button'
-                  onClick={() => update({ inStock: false })}
                   className={`flex-1 border px-3 py-2.5 text-sm font-medium transition-colors duration-200 ease-out ${
                     newProductData.inStock === false
                       ? 'border-foreground bg-foreground text-background'
                       : 'border-border bg-background text-foreground hover:bg-muted'
                   }`}
+                  type='button'
+                  onClick={() => update({ inStock: false })}
                 >
                   On inquiry
                 </button>
@@ -867,16 +870,16 @@ export function AddProductModal({
 
         <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
           <button
+            className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             type='button'
             onClick={close}
-            className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
           >
             Cancel
           </button>
           <button
+            className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
             type='button'
             onClick={onSave}
-            className='inline-flex items-center gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
           >
             <Plus className='h-4 w-4' />
             Add product

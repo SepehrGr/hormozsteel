@@ -13,6 +13,7 @@ import {
   Package,
   X,
 } from 'lucide-react'
+
 import { ThemeSwitch } from '@/components/layout/theme-switch'
 
 interface Notification {
@@ -40,6 +41,7 @@ function getPageTitle(pathname: string) {
   const match = Object.keys(PAGE_TITLES).find(
     key => key !== '/admin/dashboard' && pathname.startsWith(key),
   )
+
   return match ? PAGE_TITLES[match] : 'Admin'
 }
 
@@ -53,6 +55,7 @@ function getTimeAgo(date: Date): string {
   if (diffMins < 1) return 'Just now'
   if (diffMins < 60) return `${diffMins}m ago`
   if (diffHours < 24) return `${diffHours}h ago`
+
   return `${diffDays}d ago`
 }
 
@@ -122,6 +125,7 @@ export default function AdminHeader() {
   useEffect(() => {
     fetchNotifications()
     const interval = setInterval(fetchNotifications, 30000)
+
     return () => clearInterval(interval)
   }, [])
 
@@ -153,13 +157,13 @@ export default function AdminHeader() {
           {/* Notifications */}
           <div className='relative'>
             <button
+              aria-label='Notifications'
+              className='relative flex h-8 w-8 items-center justify-center border border-border bg-card text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground cursor-pointer'
               type='button'
               onClick={() => {
                 setShowNotifications(v => !v)
                 setShowUserMenu(false)
               }}
-              className='relative flex h-8 w-8 items-center justify-center border border-border bg-card text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground cursor-pointer'
-              aria-label='Notifications'
             >
               <Bell className='h-4.5 w-4.5' />
               {notificationCount > 0 && (
@@ -176,10 +180,10 @@ export default function AdminHeader() {
                     Inbox
                   </p>
                   <button
+                    aria-label='Close'
+                    className='cursor-pointer text-muted-foreground hover:text-foreground'
                     type='button'
                     onClick={() => setShowNotifications(false)}
-                    className='cursor-pointer text-muted-foreground hover:text-foreground'
-                    aria-label='Close'
                   >
                     <X className='h-4 w-4' />
                   </button>
@@ -201,12 +205,12 @@ export default function AdminHeader() {
                       {notifications.map(notif => (
                         <li key={notif.id}>
                           <button
+                            className='flex w-full items-start gap-3 px-3 py-3 text-left transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                             type='button'
                             onClick={() => {
                               setShowNotifications(false)
                               router.push(notif.link)
                             }}
-                            className='flex w-full items-start gap-3 px-3 py-3 text-left transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                           >
                             <span className='mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center border border-border bg-background'>
                               {notif.icon === 'mail' ? (
@@ -231,12 +235,12 @@ export default function AdminHeader() {
                 </div>
                 {notifications.length > 0 && (
                   <button
+                    className='w-full border-t border-border px-3 py-2.5 text-center text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                     type='button'
                     onClick={() => {
                       setShowNotifications(false)
                       router.push('/admin/orders')
                     }}
-                    className='w-full border-t border-border px-3 py-2.5 text-center text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                   >
                     View orders desk
                   </button>
@@ -253,12 +257,12 @@ export default function AdminHeader() {
           {session?.user && (
             <div className='relative'>
               <button
+                className='flex items-center gap-2 border border-border bg-card px-2 py-1.5 transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                 type='button'
                 onClick={() => {
                   setShowUserMenu(v => !v)
                   setShowNotifications(false)
                 }}
-                className='flex items-center gap-2 border border-border bg-card px-2 py-1.5 transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
               >
                 <div className='hidden text-right sm:block'>
                   <p className='text-xs font-semibold text-foreground'>
@@ -294,23 +298,23 @@ export default function AdminHeader() {
                     )}
                   </div>
                   <button
+                    className='flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                     type='button'
                     onClick={() => {
                       setShowUserMenu(false)
                       router.push('/admin/settings')
                     }}
-                    className='flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                   >
                     <Settings className='h-4 w-4 text-muted-foreground' />
                     Settings
                   </button>
                   <button
+                    className='flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-sm text-red-600 transition-colors duration-200 ease-out hover:bg-muted dark:text-red-400 cursor-pointer'
                     type='button'
                     onClick={() => {
                       setShowUserMenu(false)
                       setShowLogoutModal(true)
                     }}
-                    className='flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left text-sm text-red-600 transition-colors duration-200 ease-out hover:bg-muted dark:text-red-400 cursor-pointer'
                   >
                     <LogOut className='h-4 w-4' />
                     Sign out
@@ -339,16 +343,16 @@ export default function AdminHeader() {
               </p>
               <div className='mt-5 flex gap-2'>
                 <button
+                  className='inline-flex flex-1 items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                   type='button'
                   onClick={() => setShowLogoutModal(false)}
-                  className='inline-flex flex-1 items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                 >
                   Cancel
                 </button>
                 <button
+                  className='inline-flex flex-1 items-center justify-center bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
                   type='button'
                   onClick={handleSignOut}
-                  className='inline-flex flex-1 items-center justify-center bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
                 >
                   Sign out
                 </button>

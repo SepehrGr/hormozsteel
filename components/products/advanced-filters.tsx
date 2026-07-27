@@ -1,7 +1,8 @@
 'use client'
 
-import { PriceFilter } from '@/types/products'
 import { Filter, RefreshCw } from 'lucide-react'
+
+import { PriceFilter } from '@/types/products'
 
 interface AdvancedFiltersProps {
   filters: PriceFilter
@@ -49,9 +50,11 @@ export default function AdvancedFilters({
 
   const isFilterActive = (key: keyof PriceFilter, value: string): boolean => {
     const currentValue = filters[key]
+
     if (Array.isArray(currentValue)) {
       return currentValue.includes(value)
     }
+
     return currentValue === value
   }
 
@@ -75,9 +78,9 @@ export default function AdvancedFilters({
         </h2>
         {hasActiveFilters && (
           <button
+            className='inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground'
             type='button'
             onClick={onClearFilters}
-            className='inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground'
           >
             <RefreshCw className='h-3.5 w-3.5' />
             Clear
@@ -95,11 +98,11 @@ export default function AdvancedFilters({
               {availableBrands.map(brand => (
                 <button
                   key={brand}
-                  type='button'
-                  onClick={() => handleMultiSelectFilter('brand', brand)}
                   className={`justify-start text-left ${chipClass(
                     isFilterActive('brand', brand),
                   )}`}
+                  type='button'
+                  onClick={() => handleMultiSelectFilter('brand', brand)}
                 >
                   {brand}
                 </button>
@@ -117,9 +120,9 @@ export default function AdvancedFilters({
               {availableSizes.map(size => (
                 <button
                   key={size}
+                  className={chipClass(isFilterActive('size', size))}
                   type='button'
                   onClick={() => handleMultiSelectFilter('size', size)}
-                  className={chipClass(isFilterActive('size', size))}
                 >
                   {size}
                 </button>
@@ -135,16 +138,18 @@ export default function AdvancedFilters({
           <div className='grid grid-cols-2 gap-2'>
             <div>
               <label
-                htmlFor='minPrice'
                 className='mb-1 block text-[10px] uppercase tracking-wide text-muted-foreground'
+                htmlFor='minPrice'
               >
                 Min
               </label>
               <input
+                className='w-full border border-border bg-background px-2.5 py-2 text-sm tabular-nums text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
                 id='minPrice'
-                type='number'
                 min={0}
+                placeholder='0'
                 step='0.01'
+                type='number'
                 value={filters.minPrice != null ? String(filters.minPrice) : ''}
                 onChange={e =>
                   handleFilterChange(
@@ -152,22 +157,22 @@ export default function AdvancedFilters({
                     e.target.value === '' ? undefined : Number(e.target.value),
                   )
                 }
-                className='w-full border border-border bg-background px-2.5 py-2 text-sm tabular-nums text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
-                placeholder='0'
               />
             </div>
             <div>
               <label
-                htmlFor='maxPrice'
                 className='mb-1 block text-[10px] uppercase tracking-wide text-muted-foreground'
+                htmlFor='maxPrice'
               >
                 Max
               </label>
               <input
+                className='w-full border border-border bg-background px-2.5 py-2 text-sm tabular-nums text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
                 id='maxPrice'
-                type='number'
                 min={0}
+                placeholder='—'
                 step='0.01'
+                type='number'
                 value={filters.maxPrice != null ? String(filters.maxPrice) : ''}
                 onChange={e =>
                   handleFilterChange(
@@ -175,8 +180,6 @@ export default function AdvancedFilters({
                     e.target.value === '' ? undefined : Number(e.target.value),
                   )
                 }
-                className='w-full border border-border bg-background px-2.5 py-2 text-sm tabular-nums text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
-                placeholder='—'
               />
             </div>
           </div>
@@ -184,11 +187,11 @@ export default function AdvancedFilters({
 
         <div>
           <button
+            className={`w-full text-left ${chipClass(Boolean(filters.inStock))}`}
             type='button'
             onClick={() =>
               handleFilterChange('inStock', filters.inStock ? undefined : true)
             }
-            className={`w-full text-left ${chipClass(Boolean(filters.inStock))}`}
           >
             In stock only
           </button>

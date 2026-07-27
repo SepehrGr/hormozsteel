@@ -30,6 +30,7 @@ export default function AdminSettings() {
     const fetchAdminData = async () => {
       try {
         const response = await fetch('/api/admin/profile')
+
         if (response.ok) {
           const data = await response.json()
           const profile = {
@@ -37,6 +38,7 @@ export default function AdminSettings() {
             name: data.data.name,
             email: data.data.email,
           }
+
           setAdmin(profile)
           setFormData(profile)
         } else {
@@ -91,6 +93,7 @@ export default function AdminSettings() {
 
   const toggleShowPassword = (field: string) => {
     const next = new Set(showPassword)
+
     if (next.has(field)) next.delete(field)
     else next.add(field)
     setShowPassword(next)
@@ -106,6 +109,7 @@ export default function AdminSettings() {
           description: 'Password must be at least 6 characters',
           color: 'warning',
         })
+
         return
       }
       if (formData.password !== formData.passwordConfirm) {
@@ -114,6 +118,7 @@ export default function AdminSettings() {
           description: 'Passwords do not match',
           color: 'warning',
         })
+
         return
       }
     }
@@ -121,6 +126,7 @@ export default function AdminSettings() {
     setIsSaving(true)
     try {
       const payload: Record<string, string> = {}
+
       if (editingFields.has('name') && formData.name !== admin.name) {
         payload.name = formData.name
       }
@@ -134,6 +140,7 @@ export default function AdminSettings() {
       if (Object.keys(payload).length === 0) {
         setEditingFields(new Set())
         setIsSaving(false)
+
         return
       }
 
@@ -151,6 +158,7 @@ export default function AdminSettings() {
           name: data.data.name,
           email: data.data.email,
         }
+
         setAdmin(updated)
         setFormData(updated)
         setEditingFields(new Set())
@@ -221,7 +229,10 @@ export default function AdminSettings() {
             {editing ? (
               <div className='relative'>
                 <input
+                  className={`${fieldClass} ${isPassword ? 'pr-11' : ''}`}
+                  disabled={isSaving}
                   id={`settings-${field}`}
+                  placeholder={isPassword ? '••••••••' : undefined}
                   type={
                     isPassword
                       ? showPassword.has(field)
@@ -233,16 +244,13 @@ export default function AdminSettings() {
                   onChange={e =>
                     setFormData({ ...formData, [field]: e.target.value })
                   }
-                  className={`${fieldClass} ${isPassword ? 'pr-11' : ''}`}
-                  placeholder={isPassword ? '••••••••' : undefined}
-                  disabled={isSaving}
                 />
                 {isPassword ? (
                   <button
+                    aria-label='Toggle visibility'
+                    className='absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground'
                     type='button'
                     onClick={() => toggleShowPassword(field)}
-                    className='absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground'
-                    aria-label='Toggle visibility'
                   >
                     {showPassword.has(field) ? (
                       <EyeOff className='h-4 w-4' />
@@ -260,10 +268,12 @@ export default function AdminSettings() {
           </div>
           {field !== 'passwordConfirm' ? (
             <button
-              type='button'
-              onClick={() => toggleEdit(field === 'password' ? 'password' : field)}
-              className='inline-flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-card text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
               aria-label={editing ? 'Cancel edit' : 'Edit'}
+              className='inline-flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-card text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground'
+              type='button'
+              onClick={() =>
+                toggleEdit(field === 'password' ? 'password' : field)
+              }
             >
               {editing ? (
                 <X className='h-3.5 w-3.5' />
@@ -298,33 +308,33 @@ export default function AdminSettings() {
             Profile
           </h2>
         </div>
-        <FieldRow label='Name' field='name' />
-        <FieldRow label='Email' field='email' type='email' />
-        <FieldRow label='New password' field='password' />
+        <FieldRow field='name' label='Name' />
+        <FieldRow field='email' label='Email' type='email' />
+        <FieldRow field='password' label='New password' />
         {editingFields.has('password') ? (
-          <FieldRow label='Confirm password' field='passwordConfirm' />
+          <FieldRow field='passwordConfirm' label='Confirm password' />
         ) : null}
       </div>
 
       {editingFields.size > 0 ? (
         <div className='flex gap-2'>
           <button
+            className='inline-flex flex-1 items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:opacity-50'
+            disabled={isSaving}
             type='button'
             onClick={() => {
               setFormData(admin)
               setEditingFields(new Set())
               setShowPassword(new Set())
             }}
-            disabled={isSaving}
-            className='inline-flex flex-1 items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted disabled:opacity-50'
           >
             Cancel
           </button>
           <button
+            className='inline-flex flex-1 items-center justify-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50'
+            disabled={isSaving}
             type='button'
             onClick={handleSave}
-            disabled={isSaving}
-            className='inline-flex flex-1 items-center justify-center gap-2 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:opacity-50'
           >
             {isSaving ? (
               'Saving…'

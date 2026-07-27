@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+
 import {
   Field,
   fieldClass,
@@ -51,11 +52,14 @@ export default function SheetWeightCalculator({
     const w = parseFloat(width)
     const t = parseFloat(thickness)
     const d = parseFloat(density)
+
     if (!l || !w || !t || !d) return
 
     let weight = l * w * t * d
+
     if (sheetType === 'chequered') {
       const x = t <= 3 ? 0.3 : 0.4
+
       weight = (x + t) * l * w * d
     } else if (sheetType === 'hardox') {
       weight = (0.3 + t) * l * w * d
@@ -64,6 +68,7 @@ export default function SheetWeightCalculator({
     }
 
     const rounded = Math.round(weight * 100) / 100
+
     setResult(rounded)
     setTotalPrice(
       computeLinePrice(rounded, productPrice, productUnit, includeVAT),
@@ -86,10 +91,10 @@ export default function SheetWeightCalculator({
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
         <Field id='sheetType' label='Sheet type'>
           <select
+            className={selectClass}
             id='sheetType'
             value={sheetType}
             onChange={e => setSheetType(e.target.value)}
-            className={selectClass}
           >
             {SHEET_TYPES.map(t => (
               <option key={t.value} value={t.value}>
@@ -99,68 +104,68 @@ export default function SheetWeightCalculator({
           </select>
         </Field>
         <DensitySelect
-          value={density}
-          onChange={setDensity}
           options={STEEL_DENSITIES.filter(d =>
             ['7.85', '8', '7.86', '7.84', '2.73'].includes(d.value),
           )}
+          value={density}
+          onChange={setDensity}
         />
         <Field id='length' label='Length (m)'>
           <input
+            className={fieldClass}
             id='length'
-            type='number'
             inputMode='decimal'
+            placeholder='e.g. 6'
+            type='number'
             value={length}
             onChange={e => setLength(e.target.value)}
-            placeholder='e.g. 6'
-            className={fieldClass}
           />
         </Field>
         <Field id='width' label='Width (m)'>
           <input
+            className={fieldClass}
             id='width'
-            type='number'
             inputMode='decimal'
+            placeholder='e.g. 1.5'
+            type='number'
             value={width}
             onChange={e => setWidth(e.target.value)}
-            placeholder='e.g. 1.5'
-            className={fieldClass}
           />
         </Field>
-        <Field id='thickness' label='Thickness (mm)' className='sm:col-span-2'>
+        <Field className='sm:col-span-2' id='thickness' label='Thickness (mm)'>
           <input
+            className={fieldClass}
             id='thickness'
-            type='number'
             inputMode='decimal'
+            placeholder='e.g. 3'
+            type='number'
             value={thickness}
             onChange={e => setThickness(e.target.value)}
-            placeholder='e.g. 3'
-            className={fieldClass}
           />
         </Field>
       </div>
 
       <CalculatorActions
+        calculateLabel='Calculate weight'
         onCalculate={calculateWeight}
         onReset={resetForm}
-        calculateLabel='Calculate weight'
       />
 
       {result != null && (
         <CalculatorResult
-          weightKg={result}
-          totalPrice={totalPrice}
-          priceLabel={
-            totalPrice != null
-              ? `${formatPrice(totalPrice)}${includeVAT ? ' incl. tax' : ''}`
-              : undefined
-          }
           details={
             <p>
               {typeLabel}: {length} m × {width} m × {thickness} mm · ρ{' '}
               {sheetType === 'aluminum' ? '2.73' : density}
             </p>
           }
+          priceLabel={
+            totalPrice != null
+              ? `${formatPrice(totalPrice)}${includeVAT ? ' incl. tax' : ''}`
+              : undefined
+          }
+          totalPrice={totalPrice}
+          weightKg={result}
         />
       )}
 

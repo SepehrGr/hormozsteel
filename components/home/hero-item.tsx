@@ -1,4 +1,5 @@
 import Link from 'next/link'
+
 import { productCategoryHref } from '@/types/products'
 
 export default function HeroItem({
@@ -16,13 +17,13 @@ export default function HeroItem({
 
   return (
     <Link
-      href={productCategoryHref(categoryId)}
       className='group relative flex h-full min-h-[7.5rem] flex-col justify-between overflow-hidden bg-card px-4 py-4 text-left transition-colors duration-200 ease-out hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-[8.5rem] sm:px-5 sm:py-5'
+      href={productCategoryHref(categoryId)}
     >
       {/* Soft watermark icon — functional identity, not a gradient badge */}
       <i
-        className={`${icon} pointer-events-none absolute -right-1 bottom-1 text-[4.5rem] leading-none text-foreground/15 transition-colors duration-200 ease-out group-hover:text-foreground/15 dark:text-foreground/10 dark:group-hover:text-foreground/15`}
         aria-hidden
+        className={`${icon} pointer-events-none absolute -right-1 bottom-1 text-[4.5rem] leading-none text-foreground/15 transition-colors duration-200 ease-out group-hover:text-foreground/15 dark:text-foreground/10 dark:group-hover:text-foreground/15`}
       />
 
       <div className='relative z-[1] flex items-start justify-between gap-2'>
@@ -30,8 +31,8 @@ export default function HeroItem({
           {code}
         </span>
         <span
-          className='mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-border transition-colors duration-200 ease-out group-hover:bg-amber-700 dark:group-hover:bg-amber-500'
           aria-hidden
+          className='mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-border transition-colors duration-200 ease-out group-hover:bg-amber-700 dark:group-hover:bg-amber-500'
         />
       </div>
 
@@ -44,8 +45,8 @@ export default function HeroItem({
             {lineCount != null ? `${lineCount} sub-lines` : 'Open board'}
           </span>
           <span
-            className='translate-x-0 opacity-0 transition-[opacity,transform] duration-200 ease-out group-hover:translate-x-0.5 group-hover:opacity-100'
             aria-hidden
+            className='translate-x-0 opacity-0 transition-[opacity,transform] duration-200 ease-out group-hover:translate-x-0.5 group-hover:opacity-100'
           >
             →
           </span>

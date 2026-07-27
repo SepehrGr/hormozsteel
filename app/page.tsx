@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <main className='flex flex-col bg-background'>
       <Hero />
-      <ProductSlider title='Latest prices' fetchFromApi={true} />
+      <ProductSlider fetchFromApi={true} title='Latest prices' />
       <AboutSection />
       <Traits />
     </main>

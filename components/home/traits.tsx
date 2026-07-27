@@ -1,4 +1,5 @@
 import TraitItem from './trait-item'
+
 import { traitItems } from '@/config/trait-items'
 
 export default function Traits() {
@@ -25,9 +26,9 @@ export default function Traits() {
             {traitItems.map((item, index) => (
               <TraitItem
                 key={item.id}
+                description={item.description}
                 index={index}
                 title={item.title}
-                description={item.description}
               />
             ))}
           </div>

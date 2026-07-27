@@ -1,6 +1,7 @@
 import type { CategoryDTO } from '@/types/products'
 
 import Link from 'next/link'
+
 import { productCategoryHref } from '@/types/products'
 import { resolveCategoryIcon } from '@/config/category-icons'
 
@@ -17,8 +18,8 @@ export default function ProductsSidebar({ categories, currentSlug }: Props) {
           Categories
         </h2>
         <Link
-          href='/products'
           className='text-xs font-medium text-muted-foreground underline-offset-4 transition-colors duration-200 ease-out hover:text-foreground hover:underline'
+          href='/products'
         >
           Index
         </Link>
@@ -32,21 +33,21 @@ export default function ProductsSidebar({ categories, currentSlug }: Props) {
           return (
             <li key={cat.slug}>
               <Link
-                href={productCategoryHref(cat.slug)}
-                scroll={false}
                 className={`group flex items-center gap-3 px-4 py-6 text-sm transition-colors duration-200 ease-out ${
                   active
                     ? 'bg-muted text-foreground'
                     : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                 }`}
+                href={productCategoryHref(cat.slug)}
+                scroll={false}
               >
                 <i
+                  aria-hidden
                   className={`${iconClass} text-3xl ${
                     active
                       ? 'text-amber-800 dark:text-amber-500'
                       : 'text-muted-foreground group-hover:text-foreground'
                   }`}
-                  aria-hidden
                 />
                 <span className='min-w-0 flex-1'>
                   <span className='block font-medium text-foreground'>
@@ -55,8 +56,8 @@ export default function ProductsSidebar({ categories, currentSlug }: Props) {
                 </span>
                 {active ? (
                   <span
-                    className='h-2 w-2 shrink-0 rounded-full bg-amber-700 dark:bg-amber-500'
                     aria-hidden
+                    className='h-2 w-2 shrink-0 rounded-full bg-amber-700 dark:bg-amber-500'
                   />
                 ) : null}
               </Link>

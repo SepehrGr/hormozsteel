@@ -1,9 +1,11 @@
 import { PriceDirection } from '@prisma/client'
+
 import { prisma } from '@/lib/prisma'
 
 function directionFromDelta(delta: number): PriceDirection {
   if (delta > 0) return PriceDirection.UP
   if (delta < 0) return PriceDirection.DOWN
+
   return PriceDirection.STABLE
 }
 
@@ -14,10 +16,13 @@ export async function updateProductPrice(
   productId: string,
   newPrice: number,
   note?: string,
-): Promise<{ success: true; data: unknown } | { success: false; error: string }> {
+): Promise<
+  { success: true; data: unknown } | { success: false; error: string }
+> {
   try {
     const updated = await prisma.$transaction(async tx => {
       const product = await tx.product.findUnique({ where: { id: productId } })
+
       if (!product) {
         throw new Error(`Product not found: ${productId}`)
       }

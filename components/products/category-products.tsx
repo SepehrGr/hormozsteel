@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { Search, Package, AlertCircle } from 'lucide-react'
+
 import { useProducts } from '@/hooks/use-api'
 import ProductTable from '@/components/products/product-table'
 import WeightCalculatorModal from '@/components/products/weight-calculator-modal'
 import OrderRequestModal from '@/components/products/order-request-modal'
 import { Product, ProductCategory } from '@/types/products'
-import { Search, Package, AlertCircle } from 'lucide-react'
 
 interface CategoryProductsProps {
   category: ProductCategory
@@ -26,8 +27,10 @@ function normalizeUnit(
 ): 'kg' | 'ton' | 'piece' | undefined {
   if (!unit) return undefined
   const u = unit.toLowerCase()
+
   if (u === 'kg' || u === 'ton' || u === 'piece') return u
   if (u === 'meter' || u === 'm') return 'kg'
+
   return 'kg'
 }
 
@@ -58,11 +61,13 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
 
   const filteredProducts = useMemo(() => {
     let list = products
+
     if (selectedSubcategory !== 'all') {
       list = list.filter(p => p.subcategory === selectedSubcategory)
     }
     if (searchTerm.trim() !== '') {
       const q = searchTerm.trim().toLowerCase()
+
       list = list.filter(product => {
         const haystack = [
           product.name,
@@ -73,9 +78,11 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
           .filter(Boolean)
           .join(' ')
           .toLowerCase()
+
         return haystack.includes(q)
       })
     }
+
     return list
   }, [products, selectedSubcategory, searchTerm])
 
@@ -89,11 +96,14 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
 
   const productsByBrand = useMemo(() => {
     const grouped: Record<string, Product[]> = {}
+
     for (const product of filteredProducts) {
       const brand = product.brand || 'Unspecified mill'
+
       if (!grouped[brand]) grouped[brand] = []
       grouped[brand].push(product)
     }
+
     return grouped
   }, [filteredProducts])
 
@@ -132,9 +142,9 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
           </h2>
           <p className='mb-4 text-sm text-muted-foreground'>{error}</p>
           <button
+            className='bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
             type='button'
             onClick={() => window.location.reload()}
-            className='bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
           >
             Retry
           </button>
@@ -161,20 +171,20 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
             <div className='relative flex-1'>
               <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
               <input
-                type='search'
+                className='w-full border border-border bg-background py-2.5 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
                 placeholder='Search size, mill, or product name…'
+                type='search'
                 value={searchDraft}
                 onChange={e => setSearchDraft(e.target.value)}
                 onKeyDown={e => {
                   if (e.key === 'Enter') setSearchTerm(searchDraft)
                 }}
-                className='w-full border border-border bg-background py-2.5 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
               />
             </div>
             <button
+              className='inline-flex items-center justify-center gap-2 border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
               type='button'
               onClick={() => setSearchTerm(searchDraft)}
-              className='inline-flex items-center justify-center gap-2 border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
             >
               <Search className='h-4 w-4' />
               Search
@@ -184,13 +194,13 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
           {availableSubcategories.length > 0 && (
             <div className='flex flex-wrap gap-2'>
               <button
-                type='button'
-                onClick={() => setSelectedSubcategory('all')}
                 className={`px-2.5 py-1.5 text-xs font-medium transition-colors duration-200 ease-out ${
                   selectedSubcategory === 'all'
                     ? 'bg-primary text-primary-foreground'
                     : 'border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
+                type='button'
+                onClick={() => setSelectedSubcategory('all')}
               >
                 All ({products.length})
               </button>
@@ -198,16 +208,17 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
                 const count = products.filter(
                   p => p.subcategory === subcategory,
                 ).length
+
                 return (
                   <button
                     key={subcategory}
-                    type='button'
-                    onClick={() => setSelectedSubcategory(subcategory)}
                     className={`px-2.5 py-1.5 text-xs font-medium transition-colors duration-200 ease-out ${
                       selectedSubcategory === subcategory
                         ? 'bg-primary text-primary-foreground'
                         : 'border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground'
                     }`}
+                    type='button'
+                    onClick={() => setSelectedSubcategory(subcategory)}
                   >
                     {subcategory} ({count})
                   </button>
@@ -233,10 +244,10 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
                 </span>
               </div>
               <ProductTable
-                products={productsByBrand[brand]}
-                onOrder={handleOrder}
-                onCalculate={handleCalculate}
                 formatPrice={formatUsd}
+                products={productsByBrand[brand]}
+                onCalculate={handleCalculate}
+                onOrder={handleOrder}
               />
             </section>
           ))}
@@ -254,13 +265,13 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
           </p>
           {(searchTerm || selectedSubcategory !== 'all') && (
             <button
+              className='mt-4 text-sm font-medium text-foreground underline-offset-4 hover:underline'
               type='button'
               onClick={() => {
                 setSearchTerm('')
                 setSearchDraft('')
                 setSelectedSubcategory('all')
               }}
-              className='mt-4 text-sm font-medium text-foreground underline-offset-4 hover:underline'
             >
               Clear search & filters
             </button>
@@ -269,30 +280,30 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
       )}
 
       <WeightCalculatorModal
+        formatPrice={formatUsd}
         isOpen={isCalculatorOpen}
+        productCategory={selectedProduct?.category?.name || category.name}
+        productName={selectedProduct?.name}
+        productPrice={selectedProduct?.price}
+        productUnit={normalizeUnit(selectedProduct?.unit)}
         onClose={() => {
           setIsCalculatorOpen(false)
           setSelectedProduct(null)
         }}
-        productName={selectedProduct?.name}
-        productCategory={selectedProduct?.category?.name || category.name}
-        productPrice={selectedProduct?.price}
-        productUnit={normalizeUnit(selectedProduct?.unit)}
-        formatPrice={formatUsd}
       />
 
       <OrderRequestModal
         isOpen={isOrderModalOpen}
-        onClose={() => {
-          setIsOrderModalOpen(false)
-          setSelectedOrderProduct(null)
-        }}
         productName={selectedOrderProduct?.name}
         productSpecs={
           selectedOrderProduct
             ? `${selectedOrderProduct.name} · ${selectedOrderProduct.size} · ${selectedOrderProduct.brand ?? '—'}`
             : ''
         }
+        onClose={() => {
+          setIsOrderModalOpen(false)
+          setSelectedOrderProduct(null)
+        }}
       />
     </>
   )

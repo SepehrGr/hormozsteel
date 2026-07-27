@@ -52,52 +52,52 @@ export default function ProductRow({
   return (
     <TableRow
       key={product.id}
-      className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
+      className='transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
     >
       <TableCell>
         <Checkbox isSelected={isSelected} onValueChange={onSelect} />
       </TableCell>
       <TableCell>
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg dark:bg-blue-900">
-            <Package className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+        <div className='flex items-center gap-3'>
+          <div className='p-2 bg-blue-100 rounded-lg dark:bg-blue-900'>
+            <Package className='w-4 h-4 text-blue-600 dark:text-blue-400' />
           </div>
-          <span className="font-medium text-gray-900 dark:text-white">
+          <span className='font-medium text-gray-900 dark:text-white'>
             {product.name}
           </span>
         </div>
       </TableCell>
       <TableCell>
-        <span className="text-gray-600 dark:text-gray-400">
+        <span className='text-gray-600 dark:text-gray-400'>
           {product.brand}
         </span>
       </TableCell>
       <TableCell>
-        <span className="font-medium text-gray-900 dark:text-white">
+        <span className='font-medium text-gray-900 dark:text-white'>
           {product.size || 'نامشخص'}
         </span>
       </TableCell>
       <TableCell>
         {editingPriceId === product.id ? (
           <Input
-            type="number"
-            value={tempPrice}
-            onChange={(e) => setTempPrice(e.target.value)}
-            onBlur={() => onPriceBlur(product)}
-            onKeyDown={(e) => onPriceKeyDown(e, product)}
             autoFocus
-            size="sm"
-            variant="bordered"
             classNames={{
               input: 'text-green-600 dark:text-green-400 font-bold text-right',
               inputWrapper: 'h-8 min-h-8 border-green-500',
             }}
+            size='sm'
+            type='number'
+            value={tempPrice}
+            variant='bordered'
+            onBlur={() => onPriceBlur(product)}
+            onChange={e => setTempPrice(e.target.value)}
+            onKeyDown={e => onPriceKeyDown(e, product)}
           />
         ) : (
           <span
-            className="font-bold text-green-600 cursor-pointer dark:text-green-400 hover:underline"
+            className='font-bold text-green-600 cursor-pointer dark:text-green-400 hover:underline'
+            title='کلیک کنید برای ویرایش'
             onClick={() => onPriceClick(product)}
-            title="کلیک کنید برای ویرایش"
           >
             {product.price.toLocaleString('fa-IR')}
           </span>
@@ -105,45 +105,45 @@ export default function ProductRow({
       </TableCell>
       <TableCell>
         <Chip
-          size="sm"
-          variant="flat"
+          className='transition-opacity cursor-pointer hover:opacity-80'
           color={product.inStock ? 'success' : 'danger'}
+          size='sm'
+          title='کلیک کنید برای تغییر وضعیت'
+          variant='flat'
           onClick={() => onStockToggle(product)}
-          className="transition-opacity cursor-pointer hover:opacity-80"
-          title="کلیک کنید برای تغییر وضعیت"
         >
           {product.inStock ? 'موجود' : 'ناموجود'}
         </Chip>
       </TableCell>
       <TableCell>
-        <Chip size="sm" variant="bordered">
+        <Chip size='sm' variant='bordered'>
           {product.category.name}
         </Chip>
       </TableCell>
       <TableCell>
-        <span className="text-sm text-gray-500 dark:text-gray-400">
+        <span className='text-sm text-gray-500 dark:text-gray-400'>
           {product.subcategory}
         </span>
       </TableCell>
       <TableCell>
-        <div className="flex gap-1">
+        <div className='flex gap-1'>
           <Button
-            size="sm"
-            variant="light"
-            color="primary"
             isIconOnly
+            color='primary'
+            size='sm'
+            variant='light'
             onPress={() => onEdit(product)}
           >
-            <Edit className="w-4 h-4" />
+            <Edit className='w-4 h-4' />
           </Button>
           <Button
-            size="sm"
-            color="danger"
-            variant="light"
             isIconOnly
+            color='danger'
+            size='sm'
+            variant='light'
             onPress={() => onDelete(product)}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className='w-4 h-4' />
           </Button>
         </div>
       </TableCell>

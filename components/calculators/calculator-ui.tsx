@@ -21,7 +21,7 @@ export function Field({
 }) {
   return (
     <div className={className}>
-      <label htmlFor={id} className={labelClass}>
+      <label className={labelClass} htmlFor={id}>
         {label}
       </label>
       {children}
@@ -41,16 +41,16 @@ export function CalculatorActions({
   return (
     <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
       <button
+        className='inline-flex flex-1 cursor-pointer items-center justify-center bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
         type='button'
         onClick={onCalculate}
-        className='inline-flex flex-1 cursor-pointer items-center justify-center bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
       >
         {calculateLabel}
       </button>
       <button
+        className='inline-flex cursor-pointer items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
         type='button'
         onClick={onReset}
-        className='inline-flex cursor-pointer items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
       >
         Reset
       </button>
@@ -157,10 +157,10 @@ export function DensitySelect({
   return (
     <Field id={id} label='Density (g/cm³)'>
       <select
+        className={selectClass}
         id={id}
         value={value}
         onChange={e => onChange(e.target.value)}
-        className={selectClass}
       >
         {options.map(o => (
           <option key={o.value} value={o.value}>
@@ -192,6 +192,8 @@ export function computeLinePrice(
     productUnit === 'ton'
       ? (weightKg / 1000) * productPrice
       : weightKg * productPrice
+
   if (includeVAT) final *= 1.1
+
   return Math.round(final * 100) / 100
 }

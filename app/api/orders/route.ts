@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+
 import { prisma } from '@/lib/prisma'
 
 // GET /api/orders - Get all orders
@@ -84,6 +85,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching orders:', error)
+
     return NextResponse.json(
       {
         success: false,
@@ -101,6 +103,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     const requiredFields = ['customerId', 'items']
+
     for (const field of requiredFields) {
       if (!body[field]) {
         return NextResponse.json(
@@ -168,6 +171,7 @@ export async function POST(request: NextRequest) {
       }
 
       const itemTotal = item.quantity * item.unitPrice
+
       totalAmount += itemTotal
 
       validatedItems.push({
@@ -230,6 +234,7 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error('Error creating order:', error)
+
     return NextResponse.json(
       {
         success: false,

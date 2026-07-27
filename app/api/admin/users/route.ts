@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import bcrypt from 'bcryptjs'
+
 import { prisma } from '@/lib/prisma'
 import { getAuthSession, logAdminAction } from '@/lib/admin-auth'
-import bcrypt from 'bcryptjs'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
 
 // Get all admin users (Super Admin only)
 export async function GET(request: NextRequest) {
   const rateLimitResponse = checkApiRateLimitAndRespond(request)
+
   if (rateLimitResponse) {
     return rateLimitResponse
   }
@@ -47,6 +49,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, data: { users } })
   } catch (error) {
     console.error('Get users error:', error)
+
     return NextResponse.json(
       { success: false, error: 'Failed to fetch users' },
       { status: 500 },
@@ -61,6 +64,7 @@ export async function POST(request: NextRequest) {
     50,
     15 * 60 * 1000,
   )
+
   if (rateLimitResponse) {
     return rateLimitResponse
   }
@@ -148,6 +152,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Create user error:', error)
+
     return NextResponse.json(
       { success: false, error: 'Failed to create user' },
       { status: 500 },

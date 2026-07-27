@@ -13,12 +13,14 @@ import NextLink from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
+
+import NavbarPhone from './navbar-phone'
+import NavMenu from './nav-menu'
+
 import { siteConfig } from '@/config/site'
 import { PRODUCT_NAV } from '@/types/products'
 import { ThemeSwitch } from '@/components/layout/theme-switch'
 import { Logo } from '@/components/icons'
-import NavbarPhone from './navbar-phone'
-import NavMenu from './nav-menu'
 
 const weightData = [
   { href: '/weight/beam', label: 'Beam weight' },
@@ -51,10 +53,10 @@ function MobileAccordion({
   return (
     <div className=''>
       <button
+        aria-expanded={open}
+        className='flex border-b sticky top-0 bg-background w-full cursor-pointer items-center justify-between px-4 py-3.5 text-left font-medium text-foreground transition-colors duration-150 ease-out hover:bg-muted'
         type='button'
         onClick={() => setOpen(v => !v)}
-        className='flex border-b sticky top-0 bg-background w-full cursor-pointer items-center justify-between px-4 py-3.5 text-left font-medium text-foreground transition-colors duration-150 ease-out hover:bg-muted'
-        aria-expanded={open}
       >
         {title}
         <ChevronDown
@@ -81,25 +83,25 @@ export const Navbar = () => {
 
   return (
     <HeroUINavbar
-      maxWidth='2xl'
-      position='sticky'
-      isBordered={false}
-      height='3.5rem'
-      isMenuOpen={isMenuOpen}
-      onMenuOpenChange={setIsMenuOpen}
       className='z-40 border-b border-border bg-background px-0 py-2'
       classNames={{
         wrapper: 'mx-auto w-full max-w-7xl gap-4 px-4 md:px-6',
         item: 'data-[active=true]:font-medium',
         menu: 'z-50 border-t border-border bg-background px-0 pt-0',
       }}
+      height='3.5rem'
+      isBordered={false}
+      isMenuOpen={isMenuOpen}
+      maxWidth='2xl'
+      position='sticky'
+      onMenuOpenChange={setIsMenuOpen}
     >
       <NavbarContent className='basis-full' justify='start'>
         <NavbarBrand as='li' className='max-w-fit gap-0'>
           <NextLink
+            className='flex items-center gap-2.5 text-foreground transition-opacity duration-200 ease-out hover:opacity-80'
             href='/'
             onClick={closeMenu}
-            className='flex items-center gap-2.5 text-foreground transition-opacity duration-200 ease-out hover:opacity-80'
           >
             <Logo className='h-8 w-8' />
             <span className='flex flex-col leading-none'>
@@ -115,8 +117,8 @@ export const Navbar = () => {
           {siteConfig.navItems.map(item => (
             <NavbarItem key={item.href}>
               <NextLink
-                href={item.href}
                 className='px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                href={item.href}
               >
                 {item.label}
               </NextLink>
@@ -135,8 +137,8 @@ export const Navbar = () => {
       <NavbarContent className='basis-auto lg:hidden' justify='end'>
         <ThemeSwitch />
         <NavbarMenuToggle
-          className='h-8 w-8 min-w-8 cursor-pointer rounded-none border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
           aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+          className='h-8 w-8 min-w-8 cursor-pointer rounded-none border border-border bg-card text-foreground transition-colors duration-200 ease-out hover:bg-muted'
         />
       </NavbarContent>
 
@@ -150,9 +152,9 @@ export const Navbar = () => {
                   className='border-b border-border/60 last:border-b-0'
                 >
                   <NextLink
+                    className='block px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-150 ease-out hover:bg-muted'
                     href={group.href}
                     onClick={closeMenu}
-                    className='block px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-150 ease-out hover:bg-muted'
                   >
                     All {group.label}
                   </NextLink>
@@ -160,9 +162,9 @@ export const Navbar = () => {
                     {group.items.map(item => (
                       <NextLink
                         key={item.href}
+                        className={mobileLinkClass}
                         href={item.href}
                         onClick={closeMenu}
-                        className={mobileLinkClass}
                       >
                         {item.label}
                       </NextLink>
@@ -178,9 +180,9 @@ export const Navbar = () => {
               {weightData.map(item => (
                 <NextLink
                   key={item.href}
+                  className={mobileLinkClass}
                   href={item.href}
                   onClick={closeMenu}
-                  className={mobileLinkClass}
                 >
                   {item.label}
                 </NextLink>
@@ -196,9 +198,9 @@ export const Navbar = () => {
                 className='list-none border-b border-border p-0'
               >
                 <NextLink
+                  className={mobileTopLinkClass}
                   href={item.href}
                   onClick={closeMenu}
-                  className={mobileTopLinkClass}
                 >
                   {item.label}
                 </NextLink>
@@ -207,9 +209,9 @@ export const Navbar = () => {
 
           <div className='px-4 py-4'>
             <NextLink
+              className='inline-flex w-full cursor-pointer items-center justify-center bg-primary px-4 py-2.5 font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
               href='/contact'
               onClick={closeMenu}
-              className='inline-flex w-full cursor-pointer items-center justify-center bg-primary px-4 py-2.5 font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
             >
               Request a quote
             </NextLink>

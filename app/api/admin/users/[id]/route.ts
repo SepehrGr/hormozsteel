@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
+
 import { prisma } from '@/lib/prisma'
 import { getAuthSession, logAdminAction } from '@/lib/admin-auth'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
@@ -15,9 +16,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const rateLimitResponse = checkApiRateLimitAndRespond(request)
+
   if (rateLimitResponse) return rateLimitResponse
 
   const session = await getAuthSession()
+
   if (!session || !session.user) {
     return NextResponse.json(
       { success: false, error: 'Not authenticated' },
@@ -58,6 +61,7 @@ export async function GET(
     return NextResponse.json({ success: true, data: user })
   } catch (error) {
     console.error('Get user error:', error)
+
     return NextResponse.json(
       { success: false, error: 'Failed to fetch user' },
       { status: 500 },
@@ -74,9 +78,11 @@ export async function PATCH(
     80,
     15 * 60 * 1000,
   )
+
   if (rateLimitResponse) return rateLimitResponse
 
   const session = await getAuthSession()
+
   if (!session || !session.user) {
     return NextResponse.json(
       { success: false, error: 'Not authenticated' },
@@ -127,6 +133,7 @@ export async function PATCH(
       where: { id },
       select: { id: true, email: true, role: true, isActive: true, name: true },
     })
+
     if (!existing) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -150,6 +157,7 @@ export async function PATCH(
           where: { email },
           select: { id: true },
         })
+
         if (emailTaken && emailTaken.id !== id) {
           return NextResponse.json(
             { success: false, error: 'Email already in use' },
@@ -184,6 +192,7 @@ export async function PATCH(
         const superAdminsCount = await prisma.user.count({
           where: { role: 'SUPER_ADMIN', isActive: true },
         })
+
         if (superAdminsCount <= 1) {
           return NextResponse.json(
             {
@@ -211,6 +220,7 @@ export async function PATCH(
         const superAdminsCount = await prisma.user.count({
           where: { role: 'SUPER_ADMIN', isActive: true },
         })
+
         if (superAdminsCount <= 1) {
           return NextResponse.json(
             { success: false, error: 'Cannot deactivate the last super admin' },
@@ -271,6 +281,7 @@ export async function PATCH(
     return NextResponse.json({ success: true, data: updated })
   } catch (error) {
     console.error('Update user error:', error)
+
     return NextResponse.json(
       { success: false, error: 'Failed to update user' },
       { status: 500 },
@@ -287,9 +298,11 @@ export async function DELETE(
     40,
     15 * 60 * 1000,
   )
+
   if (rateLimitResponse) return rateLimitResponse
 
   const session = await getAuthSession()
+
   if (!session || !session.user) {
     return NextResponse.json(
       { success: false, error: 'Not authenticated' },
@@ -317,6 +330,7 @@ export async function DELETE(
       where: { id },
       select: { id: true, email: true, role: true, isActive: true, name: true },
     })
+
     if (!existing) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -328,6 +342,7 @@ export async function DELETE(
       const superAdminsCount = await prisma.user.count({
         where: { role: 'SUPER_ADMIN', isActive: true },
       })
+
       if (superAdminsCount <= 1) {
         return NextResponse.json(
           { success: false, error: 'Cannot delete the last super admin' },
@@ -350,10 +365,10 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Delete user error:', error)
+
     return NextResponse.json(
       { success: false, error: 'Failed to delete user' },
       { status: 500 },
     )
   }
 }
-

@@ -1,4 +1,10 @@
-import type { Product, Category, Manufacturer, PriceDirection } from '@prisma/client'
+import type {
+  Product,
+  Category,
+  Manufacturer,
+  PriceDirection,
+} from '@prisma/client'
+
 import { prisma } from '@/lib/prisma'
 
 type ProductWithRels = Product & {
@@ -43,16 +49,19 @@ export async function resolveManufacturerId(opts: {
       where: { id: manufacturerId },
       select: { id: true },
     })
+
     if (byId) return byId.id
   }
 
   const name = typeof brand === 'string' ? brand.trim() : ''
+
   if (!name) return null
 
   const existing = await prisma.manufacturer.findFirst({
     where: { name: { equals: name, mode: 'insensitive' } },
     select: { id: true },
   })
+
   if (existing) return existing.id
 
   let slug = slugifyName(name) || `mill-${Date.now()}`
@@ -60,16 +69,20 @@ export async function resolveManufacturerId(opts: {
     where: { slug },
     select: { id: true },
   })
+
   if (slugTaken) slug = `${slug}-${Date.now().toString(36)}`
 
   const created = await prisma.manufacturer.create({
     data: { name, slug },
     select: { id: true },
   })
+
   return created.id
 }
 
-export function mapDirectionToLegacy(direction: PriceDirection | null | undefined) {
+export function mapDirectionToLegacy(
+  direction: PriceDirection | null | undefined,
+) {
   switch (direction) {
     case 'UP':
       return 'increase'

@@ -1,7 +1,8 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+
+import { prisma } from '@/lib/prisma'
 
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000 // 15 minutes
 const MAX_FAILED_ATTEMPTS = 5
@@ -38,12 +39,14 @@ export const authOptions: NextAuthOptions = {
           if (user.lockedUntil && user.lockedUntil > new Date()) {
             const remainingMs = user.lockedUntil.getTime() - Date.now()
             const remainingMinutes = Math.ceil(remainingMs / (60 * 1000))
+
             // Encode minutes in error message (NextAuth will pass this through)
             throw new Error(`AccountLocked:${remainingMinutes}`)
           }
 
           // If lockout period has passed, reset the lockout and get fresh user data
           let currentFailedAttempts = user.failedLoginAttempts || 0
+
           if (user.lockedUntil && user.lockedUntil <= new Date()) {
             await prisma.user.update({
               where: { id: user.id },
@@ -128,6 +131,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = (user as any).role
       }
+
       return token
     },
     async session({ session, token }) {
@@ -135,11 +139,13 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub!
         session.user.role = token.role as 'ADMIN' | 'SUPER_ADMIN'
       }
+
       return session
     },
     async redirect({ url, baseUrl }) {
       // Only allow redirects to the same origin
       if (url.startsWith(baseUrl)) return url
+
       return baseUrl
     },
   },

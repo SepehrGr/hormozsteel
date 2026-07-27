@@ -11,6 +11,7 @@ import {
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { Fragment } from 'react'
+
 import { PRODUCT_NAV } from '@/types/products'
 
 const weightData = [
@@ -58,13 +59,13 @@ export default function NavMenu() {
               {PRODUCT_NAV.map(group => (
                 <button
                   key={group.name}
-                  type='button'
-                  onMouseEnter={() => setActiveSlug(group.name)}
                   className={`flex w-full items-center justify-between px-3 py-2.5 text-left text-sm transition-colors duration-200 ease-out ${
                     activeSlug === group.name
                       ? 'bg-card font-medium text-foreground'
                       : 'text-muted-foreground hover:bg-card/80 hover:text-foreground'
                   }`}
+                  type='button'
+                  onMouseEnter={() => setActiveSlug(group.name)}
                 >
                   {group.label}
                   <ChevronRight className='h-3.5 w-3.5 opacity-40' />
@@ -75,10 +76,10 @@ export default function NavMenu() {
               <MenuItem>
                 {({ focus }) => (
                   <Link
-                    href={activeGroup.href}
                     className={`mb-1 block px-3 py-2 text-sm font-medium ${
                       focus ? 'bg-muted text-foreground' : 'text-foreground'
                     }`}
+                    href={activeGroup.href}
                   >
                     All {activeGroup.label}
                   </Link>
@@ -88,12 +89,12 @@ export default function NavMenu() {
                 <MenuItem key={item.href}>
                   {({ focus }) => (
                     <Link
-                      href={item.href}
                       className={`block px-3 py-2 text-sm transition-colors duration-150 ease-out ${
                         focus
                           ? 'bg-muted text-foreground'
                           : 'text-muted-foreground hover:text-foreground'
                       }`}
+                      href={item.href}
                     >
                       {item.label}
                     </Link>
@@ -124,12 +125,12 @@ export default function NavMenu() {
               <MenuItem key={item.href}>
                 {({ focus }) => (
                   <Link
-                    href={item.href}
                     className={`block px-3 py-2 text-sm transition-colors duration-150 ease-out ${
                       focus
                         ? 'bg-muted text-foreground'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
+                    href={item.href}
                   >
                     {item.label}
                   </Link>
