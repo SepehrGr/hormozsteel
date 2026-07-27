@@ -8,7 +8,6 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
-
 import { ChevronRight, ChevronLeft, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
