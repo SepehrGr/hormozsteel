@@ -5,7 +5,7 @@ import { getAuthSession } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
 
 // GET /api/admin/profile - Get current admin's profile
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getAuthSession()
 

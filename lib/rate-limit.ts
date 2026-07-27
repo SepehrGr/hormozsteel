@@ -22,7 +22,7 @@ const API_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
 /**
  * Clean up expired entries periodically
  */
-const cleanupInterval = setInterval(
+setInterval(
   () => {
     const now = Date.now()
 
