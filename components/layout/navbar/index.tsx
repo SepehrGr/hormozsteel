@@ -99,14 +99,18 @@ export const Navbar = () => {
       <NavbarContent className='basis-full' justify='start'>
         <NavbarBrand as='li' className='max-w-fit gap-0'>
           <NextLink
-            className='flex items-center gap-2.5 text-foreground transition-opacity duration-200 ease-out hover:opacity-80'
+            className='group flex items-center text-foreground'
             href='/'
             onClick={closeMenu}
           >
-            <Logo className='w-10 md:w-11 h-10 md:h-11' />
-            <span className='flex flex-col leading-none'>
-              <span className='hidden md:block font-semibold tracking-tight sm:text-[1.15rem]'>
-                {siteConfig.name}
+            <Logo className='w-10 md:w-11 h-10 md:h-11 shrink-0' />
+            {/* 0fr -> 1fr animates to the text's intrinsic width, so the reveal
+                eases across the real distance instead of a guessed max-width. */}
+            <span className='hidden md:grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr] group-focus-visible:grid-cols-[1fr] motion-reduce:transition-none'>
+              <span className='overflow-hidden'>
+                <span className='block -translate-x-2 whitespace-nowrap pl-2.5 font-semibold leading-none tracking-tight opacity-0 transition-[transform,opacity] duration-300 ease-out group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100 motion-reduce:transition-none sm:text-[1.15rem]'>
+                  {siteConfig.name}
+                </span>
               </span>
             </span>
           </NextLink>
