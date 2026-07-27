@@ -14,6 +14,8 @@ import {
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 
+import ModalDialog from '@/components/ui/modal-dialog'
+
 type Role = 'ADMIN' | 'SUPER_ADMIN'
 
 interface AdminUser {
@@ -556,370 +558,350 @@ export default function AdminUsersPage() {
 
       {/* Add user */}
       {isAddOpen && (
-        <div
-          aria-labelledby='add-user-title'
-          aria-modal='true'
-          className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
-          dir='ltr'
-          role='dialog'
-          onClick={e => {
-            if (e.target === e.currentTarget && !creating) setIsAddOpen(false)
-          }}
+        <ModalDialog
+          className='w-full max-w-md'
+          dismissable={!creating}
+          labelledBy='add-user-title'
+          onClose={() => setIsAddOpen(false)}
         >
-          <div className='w-full max-w-md border border-border bg-card shadow-sm'>
-            <div className='flex items-start justify-between border-b border-border px-5 py-3'>
-              <div>
-                <h2
-                  className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
-                  id='add-user-title'
-                >
-                  Add user
-                </h2>
-                <p className='mt-1 text-xs text-muted-foreground'>
-                  New admin account
-                </p>
-              </div>
-              <button
-                aria-label='Close'
-                className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-                type='button'
-                onClick={() => !creating && setIsAddOpen(false)}
+          <div className='flex items-start justify-between border-b border-border px-5 py-3'>
+            <div>
+              <h2
+                className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+                id='add-user-title'
               >
-                <X className='h-4 w-4' />
-              </button>
+                Add user
+              </h2>
+              <p className='mt-1 text-xs text-muted-foreground'>
+                New admin account
+              </p>
             </div>
+            <button
+              aria-label='Close'
+              className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+              type='button'
+              onClick={() => !creating && setIsAddOpen(false)}
+            >
+              <X className='h-4 w-4' />
+            </button>
+          </div>
 
-            <div className='space-y-4 px-5 py-5'>
-              <div>
-                <label className={labelClass} htmlFor='add-user-name'>
-                  Name *
-                </label>
-                <input
-                  className={fieldClass}
-                  disabled={creating}
-                  id='add-user-name'
-                  placeholder='Full name'
-                  value={newUser.name}
-                  onChange={e =>
-                    setNewUser(p => ({ ...p, name: e.target.value }))
-                  }
-                />
-              </div>
-              <div>
-                <label className={labelClass} htmlFor='add-user-email'>
-                  Email *
-                </label>
-                <input
-                  className={fieldClass}
-                  disabled={creating}
-                  id='add-user-email'
-                  placeholder='admin@example.com'
-                  type='email'
-                  value={newUser.email}
-                  onChange={e =>
-                    setNewUser(p => ({ ...p, email: e.target.value }))
-                  }
-                />
-              </div>
-              <div>
-                <label className={labelClass} htmlFor='add-user-password'>
-                  Password *
-                </label>
-                <input
-                  className={fieldClass}
-                  disabled={creating}
-                  id='add-user-password'
-                  placeholder='Min. 8 characters'
-                  type='password'
-                  value={newUser.password}
-                  onChange={e =>
-                    setNewUser(p => ({ ...p, password: e.target.value }))
-                  }
-                />
-              </div>
-              <div>
-                <label className={labelClass} htmlFor='add-user-role'>
-                  Role
-                </label>
-                <select
-                  className={`${fieldClass} cursor-pointer`}
-                  disabled={creating}
-                  id='add-user-role'
-                  value={newUser.role}
-                  onChange={e =>
-                    setNewUser(p => ({
-                      ...p,
-                      role: e.target.value as Role,
-                    }))
-                  }
-                >
-                  <option value='ADMIN'>Admin</option>
-                  <option value='SUPER_ADMIN'>Super admin</option>
-                </select>
-              </div>
+          <div className='space-y-4 px-5 py-5'>
+            <div>
+              <label className={labelClass} htmlFor='add-user-name'>
+                Name *
+              </label>
+              <input
+                className={fieldClass}
+                disabled={creating}
+                id='add-user-name'
+                placeholder='Full name'
+                value={newUser.name}
+                onChange={e =>
+                  setNewUser(p => ({ ...p, name: e.target.value }))
+                }
+              />
             </div>
-
-            <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
-              <button
-                className={btnSecondary}
+            <div>
+              <label className={labelClass} htmlFor='add-user-email'>
+                Email *
+              </label>
+              <input
+                className={fieldClass}
                 disabled={creating}
-                type='button'
-                onClick={() => setIsAddOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className={btnPrimary}
+                id='add-user-email'
+                placeholder='admin@example.com'
+                type='email'
+                value={newUser.email}
+                onChange={e =>
+                  setNewUser(p => ({ ...p, email: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor='add-user-password'>
+                Password *
+              </label>
+              <input
+                className={fieldClass}
                 disabled={creating}
-                type='button'
-                onClick={handleCreate}
+                id='add-user-password'
+                placeholder='Min. 8 characters'
+                type='password'
+                value={newUser.password}
+                onChange={e =>
+                  setNewUser(p => ({ ...p, password: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor='add-user-role'>
+                Role
+              </label>
+              <select
+                className={`${fieldClass} cursor-pointer`}
+                disabled={creating}
+                id='add-user-role'
+                value={newUser.role}
+                onChange={e =>
+                  setNewUser(p => ({
+                    ...p,
+                    role: e.target.value as Role,
+                  }))
+                }
               >
-                <Plus className='h-4 w-4' />
-                {creating ? 'Creating…' : 'Create user'}
-              </button>
+                <option value='ADMIN'>Admin</option>
+                <option value='SUPER_ADMIN'>Super admin</option>
+              </select>
             </div>
           </div>
-        </div>
+
+          <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
+            <button
+              className={btnSecondary}
+              disabled={creating}
+              type='button'
+              onClick={() => setIsAddOpen(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className={btnPrimary}
+              disabled={creating}
+              type='button'
+              onClick={handleCreate}
+            >
+              <Plus className='h-4 w-4' />
+              {creating ? 'Creating…' : 'Create user'}
+            </button>
+          </div>
+        </ModalDialog>
       )}
 
       {/* Edit user */}
       {isEditOpen && editingUser && (
-        <div
-          aria-labelledby='edit-user-title'
-          aria-modal='true'
-          className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
-          dir='ltr'
-          role='dialog'
-          onClick={e => {
-            if (e.target === e.currentTarget && !saving) {
-              setEditingUser(null)
-              setIsEditOpen(false)
-            }
+        <ModalDialog
+          className='w-full max-w-md'
+          dismissable={!saving}
+          labelledBy='edit-user-title'
+          onClose={() => {
+            setEditingUser(null)
+            setIsEditOpen(false)
           }}
         >
-          <div className='w-full max-w-md border border-border bg-card shadow-sm'>
-            <div className='flex items-start justify-between border-b border-border px-5 py-3'>
-              <div>
-                <h2
-                  className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
-                  id='edit-user-title'
-                >
-                  Edit user
-                </h2>
-                <p className='mt-1 text-xs text-muted-foreground'>
-                  {editingUser.email}
-                </p>
-              </div>
-              <button
-                aria-label='Close'
-                className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-                type='button'
-                onClick={() => {
-                  if (!saving) {
-                    setEditingUser(null)
-                    setIsEditOpen(false)
-                  }
-                }}
+          <div className='flex items-start justify-between border-b border-border px-5 py-3'>
+            <div>
+              <h2
+                className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+                id='edit-user-title'
               >
-                <X className='h-4 w-4' />
-              </button>
+                Edit user
+              </h2>
+              <p className='mt-1 text-xs text-muted-foreground'>
+                {editingUser.email}
+              </p>
             </div>
-
-            <div className='space-y-4 px-5 py-5'>
-              <div>
-                <label className={labelClass} htmlFor='edit-user-name'>
-                  Name *
-                </label>
-                <input
-                  className={fieldClass}
-                  disabled={saving}
-                  id='edit-user-name'
-                  value={editForm.name}
-                  onChange={e =>
-                    setEditForm(p => ({ ...p, name: e.target.value }))
-                  }
-                />
-              </div>
-              <div>
-                <label className={labelClass} htmlFor='edit-user-email'>
-                  Email *
-                </label>
-                <input
-                  className={fieldClass}
-                  disabled={saving}
-                  id='edit-user-email'
-                  type='email'
-                  value={editForm.email}
-                  onChange={e =>
-                    setEditForm(p => ({ ...p, email: e.target.value }))
-                  }
-                />
-              </div>
-              <div>
-                <label className={labelClass} htmlFor='edit-user-role'>
-                  Role
-                </label>
-                <select
-                  className={`${fieldClass} cursor-pointer`}
-                  disabled={saving}
-                  id='edit-user-role'
-                  value={editForm.role}
-                  onChange={e =>
-                    setEditForm(p => ({
-                      ...p,
-                      role: e.target.value as Role,
-                    }))
-                  }
-                >
-                  <option value='ADMIN'>Admin</option>
-                  <option value='SUPER_ADMIN'>Super admin</option>
-                </select>
-              </div>
-              <div>
-                <p className={labelClass}>Status</p>
-                <div className='mt-1.5 flex gap-2'>
-                  <button
-                    className={stockBtn(editForm.isActive === true)}
-                    disabled={saving}
-                    type='button'
-                    onClick={() => setEditForm(p => ({ ...p, isActive: true }))}
-                  >
-                    Active
-                  </button>
-                  <button
-                    className={stockBtn(editForm.isActive === false)}
-                    disabled={saving}
-                    type='button'
-                    onClick={() =>
-                      setEditForm(p => ({ ...p, isActive: false }))
-                    }
-                  >
-                    Inactive
-                  </button>
-                </div>
-              </div>
-              <div>
-                <label className={labelClass} htmlFor='edit-user-password'>
-                  New password
-                </label>
-                <input
-                  className={fieldClass}
-                  disabled={saving}
-                  id='edit-user-password'
-                  placeholder='Leave blank to keep current'
-                  type='password'
-                  value={editForm.password}
-                  onChange={e =>
-                    setEditForm(p => ({ ...p, password: e.target.value }))
-                  }
-                />
-              </div>
-            </div>
-
-            <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
-              <button
-                className={btnSecondary}
-                disabled={saving}
-                type='button'
-                onClick={() => {
+            <button
+              aria-label='Close'
+              className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+              type='button'
+              onClick={() => {
+                if (!saving) {
                   setEditingUser(null)
                   setIsEditOpen(false)
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className={btnPrimary}
+                }
+              }}
+            >
+              <X className='h-4 w-4' />
+            </button>
+          </div>
+
+          <div className='space-y-4 px-5 py-5'>
+            <div>
+              <label className={labelClass} htmlFor='edit-user-name'>
+                Name *
+              </label>
+              <input
+                className={fieldClass}
                 disabled={saving}
-                type='button'
-                onClick={handleSaveEdit}
+                id='edit-user-name'
+                value={editForm.name}
+                onChange={e =>
+                  setEditForm(p => ({ ...p, name: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor='edit-user-email'>
+                Email *
+              </label>
+              <input
+                className={fieldClass}
+                disabled={saving}
+                id='edit-user-email'
+                type='email'
+                value={editForm.email}
+                onChange={e =>
+                  setEditForm(p => ({ ...p, email: e.target.value }))
+                }
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor='edit-user-role'>
+                Role
+              </label>
+              <select
+                className={`${fieldClass} cursor-pointer`}
+                disabled={saving}
+                id='edit-user-role'
+                value={editForm.role}
+                onChange={e =>
+                  setEditForm(p => ({
+                    ...p,
+                    role: e.target.value as Role,
+                  }))
+                }
               >
-                <CheckCircle2 className='h-4 w-4' />
-                {saving ? 'Saving…' : 'Save changes'}
-              </button>
+                <option value='ADMIN'>Admin</option>
+                <option value='SUPER_ADMIN'>Super admin</option>
+              </select>
+            </div>
+            <div>
+              <p className={labelClass}>Status</p>
+              <div className='mt-1.5 flex gap-2'>
+                <button
+                  className={stockBtn(editForm.isActive === true)}
+                  disabled={saving}
+                  type='button'
+                  onClick={() => setEditForm(p => ({ ...p, isActive: true }))}
+                >
+                  Active
+                </button>
+                <button
+                  className={stockBtn(editForm.isActive === false)}
+                  disabled={saving}
+                  type='button'
+                  onClick={() => setEditForm(p => ({ ...p, isActive: false }))}
+                >
+                  Inactive
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className={labelClass} htmlFor='edit-user-password'>
+                New password
+              </label>
+              <input
+                className={fieldClass}
+                disabled={saving}
+                id='edit-user-password'
+                placeholder='Leave blank to keep current'
+                type='password'
+                value={editForm.password}
+                onChange={e =>
+                  setEditForm(p => ({ ...p, password: e.target.value }))
+                }
+              />
             </div>
           </div>
-        </div>
+
+          <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
+            <button
+              className={btnSecondary}
+              disabled={saving}
+              type='button'
+              onClick={() => {
+                setEditingUser(null)
+                setIsEditOpen(false)
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              className={btnPrimary}
+              disabled={saving}
+              type='button'
+              onClick={handleSaveEdit}
+            >
+              <CheckCircle2 className='h-4 w-4' />
+              {saving ? 'Saving…' : 'Save changes'}
+            </button>
+          </div>
+        </ModalDialog>
       )}
 
       {/* Delete user */}
       {isDeleteOpen && deletingUser && (
-        <div
-          aria-labelledby='delete-user-title'
-          aria-modal='true'
-          className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
-          dir='ltr'
-          role='dialog'
-          onClick={e => {
-            if (e.target === e.currentTarget && !deleting) {
-              setDeletingUser(null)
-              setIsDeleteOpen(false)
-            }
+        <ModalDialog
+          className='w-full max-w-md'
+          dismissable={!deleting}
+          labelledBy='delete-user-title'
+          onClose={() => {
+            setDeletingUser(null)
+            setIsDeleteOpen(false)
           }}
         >
-          <div className='w-full max-w-md border border-border bg-card shadow-sm'>
-            <div className='flex items-center justify-between border-b border-border px-5 py-3'>
-              <h2
-                className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
-                id='delete-user-title'
-              >
-                Delete user
-              </h2>
-              <button
-                aria-label='Close'
-                className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-                type='button'
-                onClick={() => {
-                  if (!deleting) {
-                    setDeletingUser(null)
-                    setIsDeleteOpen(false)
-                  }
-                }}
-              >
-                <X className='h-4 w-4' />
-              </button>
-            </div>
-
-            <div className='space-y-3 px-5 py-5'>
-              <p className='text-sm text-muted-foreground'>
-                Delete{' '}
-                <span className='font-medium text-foreground'>
-                  {deletingUser.name}
-                </span>
-                ?
-              </p>
-              <p className='text-xs text-muted-foreground'>
-                {deletingUser.email} · {roleLabel(deletingUser.role)}
-              </p>
-              <p className='border border-red-600/30 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-100'>
-                This cannot be undone. The account will lose admin access.
-              </p>
-            </div>
-
-            <div className='flex justify-start gap-2 border-t border-border px-5 py-4'>
-              <button
-                className={btnDanger}
-                disabled={deleting}
-                type='button'
-                onClick={handleDelete}
-              >
-                <Trash2 className='h-4 w-4' />
-                {deleting ? 'Deleting…' : 'Yes, delete user'}
-              </button>
-              <button
-                className={btnSecondary}
-                disabled={deleting}
-                type='button'
-                onClick={() => {
+          <div className='flex items-center justify-between border-b border-border px-5 py-3'>
+            <h2
+              className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+              id='delete-user-title'
+            >
+              Delete user
+            </h2>
+            <button
+              aria-label='Close'
+              className='flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+              type='button'
+              onClick={() => {
+                if (!deleting) {
                   setDeletingUser(null)
                   setIsDeleteOpen(false)
-                }}
-              >
-                Cancel
-              </button>
-            </div>
+                }
+              }}
+            >
+              <X className='h-4 w-4' />
+            </button>
           </div>
-        </div>
+
+          <div className='space-y-3 px-5 py-5'>
+            <p className='text-sm text-muted-foreground'>
+              Delete{' '}
+              <span className='font-medium text-foreground'>
+                {deletingUser.name}
+              </span>
+              ?
+            </p>
+            <p className='text-xs text-muted-foreground'>
+              {deletingUser.email} · {roleLabel(deletingUser.role)}
+            </p>
+            <p className='border border-red-600/30 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-100'>
+              This cannot be undone. The account will lose admin access.
+            </p>
+          </div>
+
+          <div className='flex justify-start gap-2 border-t border-border px-5 py-4'>
+            <button
+              className={btnDanger}
+              disabled={deleting}
+              type='button'
+              onClick={handleDelete}
+            >
+              <Trash2 className='h-4 w-4' />
+              {deleting ? 'Deleting…' : 'Yes, delete user'}
+            </button>
+            <button
+              className={btnSecondary}
+              disabled={deleting}
+              type='button'
+              onClick={() => {
+                setDeletingUser(null)
+                setIsDeleteOpen(false)
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </ModalDialog>
       )}
     </div>
   )
