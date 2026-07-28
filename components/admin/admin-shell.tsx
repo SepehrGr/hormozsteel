@@ -57,7 +57,7 @@ export default function AdminShell({ children }: AdminShellProps) {
         }`}
       >
         <AdminHeader />
-        <main className='flex-1 p-4 md:p-6 md:w-[900px] lg:w-[900px] xl:w-[1600px] max-w-[1600px] mx-auto'>
+        <main className='flex-1 p-4 md:p-6 md:w-[900px] xl:w-[1100px] 2xl:w-[1400px] max-w-[1600px] mx-auto'>
           {children}
         </main>
       </div>
