@@ -42,6 +42,7 @@ export interface ProductDTO {
     changedAt?: string | null
   } | null
   lastUpdated?: string
+  createdAt?: string
   grade?: string
   categoryIcon?: string
 }
