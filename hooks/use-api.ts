@@ -1,4 +1,4 @@
-import type { CategoryDTO } from '@/types/products'
+import type { CategoryDTO, ProductDTO } from '@/types/products'
 
 import useSWR from 'swr'
 import { useState } from 'react'
@@ -63,9 +63,7 @@ export function useProducts(filters?: ProductFilters) {
       ).toString()
     : ''
 
-  // ponytail: stays `any` — ProductDTO here conflicts with the local Product
-  // interface in app/admin/products/page.tsx; type both together, not one.
-  const { data, error, mutate } = useSWR<PaginatedResponse<any>>(
+  const { data, error, mutate } = useSWR<PaginatedResponse<ProductDTO>>(
     `/api/products${queryString ? `?${queryString}` : ''}`,
     fetcher,
   )
