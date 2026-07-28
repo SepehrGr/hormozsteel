@@ -47,6 +47,123 @@
   animation: pulse-green 2s infinite;
 }
 
+/* Hero section drawings — see components/home/hero.tsx.
+   Five profiles share one 35s cycle and take a 7s slot each, staggered by a
+   negative animation-delay set on the <svg> and inherited by its strokes.
+
+   Every stroked element carries pathLength="1", which normalises the path to a
+   length of 1 so stroke-dasharray:1 is exactly one full outline whatever the
+   geometry. Do NOT add vector-effect:non-scaling-stroke here — it applies the
+   dash pattern in screen space after the transform, which discards that
+   normalisation and draws every profile in broken fragments. */
+@keyframes hero-draw {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  8%,
+  14% {
+    stroke-dashoffset: 0;
+  }
+  20%,
+  100% {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes hero-draw-dim {
+  0%,
+  2% {
+    stroke-dashoffset: 1;
+  }
+  10%,
+  14% {
+    stroke-dashoffset: 0;
+  }
+  19%,
+  100% {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes hero-label {
+  0%,
+  5% {
+    opacity: 0;
+  }
+  10%,
+  14% {
+    opacity: 0.78;
+  }
+  18%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.hero-ink,
+.hero-dim {
+  fill: none;
+  stroke-width: 1.1;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+/* --hero-slot is set inline on each parent <svg> and inherits down to the
+   strokes. It must be applied AFTER the `animation` shorthand in each rule —
+   the shorthand resets delay to 0, which would run all five profiles at once.
+   (A plain `animation-delay: inherit` does not work here: `inherit` on a
+   non-inherited property resolves against the parent's *computed* value at
+   parse time and the shorthand still wins. A custom property inherits
+   natively and is immune to that.) */
+.hero-ink {
+  stroke: var(--foreground);
+  opacity: 0.3;
+  animation: hero-draw 35s ease-in-out infinite;
+  animation-delay: var(--hero-slot, 0s);
+}
+
+.dark .hero-ink {
+  opacity: 0.34;
+}
+
+.hero-dim {
+  stroke: #92400e; /* amber-800 — matches the light-mode product codes */
+  opacity: 0.72;
+  animation: hero-draw-dim 35s ease-in-out infinite;
+  animation-delay: var(--hero-slot, 0s);
+}
+
+.dark .hero-dim {
+  stroke: #f59e0b; /* amber-500 */
+}
+
+.hero-label {
+  fill: #92400e;
+  opacity: 0;
+  animation: hero-label 35s ease-in-out infinite;
+  animation-delay: var(--hero-slot, 0s);
+}
+
+.dark .hero-label {
+  fill: #f59e0b;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-ink,
+  .hero-dim {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .hero-label {
+    animation: none;
+    opacity: 0.78;
+  }
+  /* pin the first profile; the cycle is what we're opting out of */
+  .hero-stage > svg:not(:first-child) {
+    display: none;
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @config "../tailwind.config.js";
