@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { prisma } from '@/lib/prisma'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
+import { isValidSlug } from '@/lib/slug-generator'
 import { productInclude, toProductDTO } from '@/lib/product-dto'
 
 interface RouteParams {
@@ -68,10 +69,23 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params
     const body = await request.json()
+
+    if (body.slug !== undefined && !isValidSlug(body.slug)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Slug is required and may only contain lowercase letters, numbers, and single hyphens',
+        },
+        { status: 400 },
+      )
+    }
+
     const category = await prisma.category.update({
       where: { id },
       data: {
         name: body.name,
+        slug: body.slug,
         description: body.description,
         icon: body.icon,
         sortOrder: body.sortOrder,
@@ -82,6 +96,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ success: true, data: category })
   } catch (error) {
     console.error('Error updating category:', error)
+
+    // Prisma unique-constraint violation: another category already has this slug
+    if ((error as { code?: string }).code === 'P2002') {
+      return NextResponse.json(
+        { success: false, error: 'Slug is already in use' },
+        { status: 409 },
+      )
+    }
 
     return NextResponse.json(
       { success: false, error: 'Failed to update category' },
