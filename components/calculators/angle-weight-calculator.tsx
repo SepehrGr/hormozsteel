@@ -3,13 +3,13 @@
 import { useState } from 'react'
 
 import {
-  Field,
-  fieldClass,
   CalculatorActions,
   CalculatorResult,
   FormulaNote,
   DensitySelect,
 } from './calculator-ui'
+
+import { FormField, Input } from '@/components/ui/field'
 
 export default function AngleWeightCalculator() {
   const [wing1Length, setWing1Length] = useState('')
@@ -44,9 +44,9 @@ export default function AngleWeightCalculator() {
   return (
     <div className='space-y-6' dir='ltr'>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-        <Field id='wing1' label='Leg A (mm)'>
-          <input
-            className={fieldClass}
+        <FormField id='wing1' label='Leg A (mm)'>
+          <Input
+            className='tabular-nums'
             id='wing1'
             inputMode='decimal'
             placeholder='e.g. 50'
@@ -54,10 +54,10 @@ export default function AngleWeightCalculator() {
             value={wing1Length}
             onChange={e => setWing1Length(e.target.value)}
           />
-        </Field>
-        <Field id='wing2' label='Leg B (mm) — blank if equal'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='wing2' label='Leg B (mm) — blank if equal'>
+          <Input
+            className='tabular-nums'
             id='wing2'
             inputMode='decimal'
             placeholder='e.g. 50'
@@ -65,10 +65,10 @@ export default function AngleWeightCalculator() {
             value={wing2Length}
             onChange={e => setWing2Length(e.target.value)}
           />
-        </Field>
-        <Field id='thickness' label='Thickness (mm)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='thickness' label='Thickness (mm)'>
+          <Input
+            className='tabular-nums'
             id='thickness'
             inputMode='decimal'
             placeholder='e.g. 5'
@@ -76,10 +76,10 @@ export default function AngleWeightCalculator() {
             value={thickness}
             onChange={e => setThickness(e.target.value)}
           />
-        </Field>
-        <Field id='length' label='Length (m)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='length' label='Length (m)'>
+          <Input
+            className='tabular-nums'
             id='length'
             inputMode='decimal'
             placeholder='e.g. 6'
@@ -87,7 +87,7 @@ export default function AngleWeightCalculator() {
             value={length}
             onChange={e => setLength(e.target.value)}
           />
-        </Field>
+        </FormField>
         <div className='sm:col-span-2'>
           <DensitySelect value={density} onChange={setDensity} />
         </div>

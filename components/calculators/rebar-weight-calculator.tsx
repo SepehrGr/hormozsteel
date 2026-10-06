@@ -3,8 +3,6 @@
 import { useState } from 'react'
 
 import {
-  Field,
-  fieldClass,
   CalculatorActions,
   CalculatorResult,
   FormulaNote,
@@ -12,6 +10,7 @@ import {
   computeLinePrice,
 } from './calculator-ui'
 
+import { FormField, Input } from '@/components/ui/field'
 import { formatUsd } from '@/lib/format'
 
 interface Props {
@@ -56,9 +55,9 @@ export default function RebarWeightCalculator({
   return (
     <div className='space-y-6' dir='ltr'>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-        <Field id='diameter' label='Diameter (mm)'>
-          <input
-            className={fieldClass}
+        <FormField id='diameter' label='Diameter (mm)'>
+          <Input
+            className='tabular-nums'
             id='diameter'
             inputMode='decimal'
             placeholder='e.g. 14'
@@ -66,10 +65,10 @@ export default function RebarWeightCalculator({
             value={diameter}
             onChange={e => setDiameter(e.target.value)}
           />
-        </Field>
-        <Field id='length' label='Bar length (m)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='length' label='Bar length (m)'>
+          <Input
+            className='tabular-nums'
             id='length'
             inputMode='decimal'
             placeholder='e.g. 12'
@@ -77,7 +76,7 @@ export default function RebarWeightCalculator({
             value={length}
             onChange={e => setLength(e.target.value)}
           />
-        </Field>
+        </FormField>
         <div className='sm:col-span-2'>
           <DensitySelect value={density} onChange={setDensity} />
         </div>

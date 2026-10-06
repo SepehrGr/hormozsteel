@@ -3,15 +3,14 @@
 import { useState } from 'react'
 
 import {
-  Field,
-  fieldClass,
-  selectClass,
   CalculatorActions,
   CalculatorResult,
   FormulaNote,
   DensitySelect,
   STEEL_DENSITIES,
 } from './calculator-ui'
+
+import { FormField, Input, Select } from '@/components/ui/field'
 
 export default function BeamWeightCalculator() {
   const [beamType, setBeamType] = useState('IPE')
@@ -49,9 +48,8 @@ export default function BeamWeightCalculator() {
   return (
     <div className='space-y-6' dir='ltr'>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-        <Field id='beamType' label='Section family'>
-          <select
-            className={selectClass}
+        <FormField id='beamType' label='Section family'>
+          <Select
             id='beamType'
             value={beamType}
             onChange={e => setBeamType(e.target.value)}
@@ -60,8 +58,8 @@ export default function BeamWeightCalculator() {
             <option value='INP'>INP</option>
             <option value='IPB'>IPB / HEB (wide flange)</option>
             <option value='CPB'>Castellated</option>
-          </select>
-        </Field>
+          </Select>
+        </FormField>
         <DensitySelect
           options={STEEL_DENSITIES.filter(d =>
             ['7.85', '8', '7.84', '2.7', '8.96', '8.5'].includes(d.value),
@@ -69,9 +67,9 @@ export default function BeamWeightCalculator() {
           value={density}
           onChange={setDensity}
         />
-        <Field id='length' label='Length (m)'>
-          <input
-            className={fieldClass}
+        <FormField id='length' label='Length (m)'>
+          <Input
+            className='tabular-nums'
             id='length'
             inputMode='decimal'
             placeholder='e.g. 12'
@@ -79,10 +77,10 @@ export default function BeamWeightCalculator() {
             value={length}
             onChange={e => setLength(e.target.value)}
           />
-        </Field>
-        <Field id='height' label='Overall height (mm)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='height' label='Overall height (mm)'>
+          <Input
+            className='tabular-nums'
             id='height'
             inputMode='decimal'
             placeholder='e.g. 200'
@@ -90,10 +88,10 @@ export default function BeamWeightCalculator() {
             value={height}
             onChange={e => setHeight(e.target.value)}
           />
-        </Field>
-        <Field id='flangeWidth' label='Flange width (mm)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='flangeWidth' label='Flange width (mm)'>
+          <Input
+            className='tabular-nums'
             id='flangeWidth'
             inputMode='decimal'
             placeholder='e.g. 100'
@@ -101,10 +99,10 @@ export default function BeamWeightCalculator() {
             value={flangeWidth}
             onChange={e => setFlangeWidth(e.target.value)}
           />
-        </Field>
-        <Field id='flangeThickness' label='Flange thickness (mm)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='flangeThickness' label='Flange thickness (mm)'>
+          <Input
+            className='tabular-nums'
             id='flangeThickness'
             inputMode='decimal'
             placeholder='e.g. 8.5'
@@ -112,14 +110,14 @@ export default function BeamWeightCalculator() {
             value={flangeThickness}
             onChange={e => setFlangeThickness(e.target.value)}
           />
-        </Field>
-        <Field
+        </FormField>
+        <FormField
           className='sm:col-span-2'
           id='webThickness'
           label='Web thickness (mm)'
         >
-          <input
-            className={fieldClass}
+          <Input
+            className='tabular-nums'
             id='webThickness'
             inputMode='decimal'
             placeholder='e.g. 5.6'
@@ -127,7 +125,7 @@ export default function BeamWeightCalculator() {
             value={webThickness}
             onChange={e => setWebThickness(e.target.value)}
           />
-        </Field>
+        </FormField>
       </div>
 
       <CalculatorActions
