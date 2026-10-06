@@ -26,7 +26,7 @@ Branch: `refactor/codebase`. Work goes phase by phase, with a review pause after
   dependencies (`react-leaflet`, HeroUI, framer-motion).
 - [x] 0.2 Add `zod`, `react-hook-form`, `@hookform/resolvers`. Remove the unused
   `@auth/prisma-adapter`.
-- [ ] 0.3 `lib/format.ts`: `formatUsd`, `formatDate`, `formatDateTime`, `pluralize`.
+- [x] 0.3 `lib/format.ts`: `formatUsd`, `formatDate`, `formatDateTime`, `pluralize`.
   Replace the duplicate copies.
 - [ ] 0.4 UI primitives:
   - Give the cva `components/ui/button.tsx` the admin variants.
@@ -69,7 +69,8 @@ Branch: `refactor/codebase`. Work goes phase by phase, with a review pause after
 - [ ] 7.4 `contact/page.tsx`: RHF + zod.
 - [ ] 7.5 `about/page.tsx` and `manufacturers/[postId]`: move content into `config/` and
   split the sections.
-- [ ] 7.6 Calculators: pure formulas in `lib/weight.ts`, with one `tsx --test` check.
+- [ ] 7.6 Calculators: pure formulas in `lib/weight.ts`, with one `tsx --test` check. Also drop the
+  `formatPrice` prop; every caller passes `formatUsd`.
 - [ ] 7.7 Sweep out the Persian, RTL and `dir='ltr'` leftovers.
 
 ## Phase 8: API and hooks cleanup

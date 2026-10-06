@@ -9,9 +9,10 @@ import {
   CalculatorResult,
   FormulaNote,
   DensitySelect,
-  formatUsd,
   computeLinePrice,
 } from './calculator-ui'
+
+import { formatUsd } from '@/lib/format'
 
 interface Props {
   productPrice?: number

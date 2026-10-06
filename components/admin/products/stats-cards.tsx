@@ -1,5 +1,7 @@
 import { Package, Layers } from 'lucide-react'
 
+import { formatNumber } from '@/lib/format'
+
 interface Props {
   total: number
   selected: number
@@ -16,7 +18,7 @@ export default function StatsCards({ total, selected }: Props) {
           <Package className='h-4 w-4 text-muted-foreground' />
         </div>
         <p className='mt-1 font-mono text-2xl font-semibold tabular-nums text-foreground'>
-          {total.toLocaleString('en-US')}
+          {formatNumber(total)}
         </p>
       </div>
       <div className='bg-card px-4 py-3'>
@@ -27,7 +29,7 @@ export default function StatsCards({ total, selected }: Props) {
           <Layers className='h-4 w-4 text-muted-foreground' />
         </div>
         <p className='mt-1 font-mono text-2xl font-semibold tabular-nums text-foreground'>
-          {selected.toLocaleString('en-US')}
+          {formatNumber(selected)}
         </p>
       </div>
     </div>
