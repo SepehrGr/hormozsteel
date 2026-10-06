@@ -138,19 +138,18 @@ function checkRateLimitWithConfig(
 }
 
 /**
- * Get the client IP address from a request
- * @param request - The request object
- * @returns The IP address string
+ * Client IP from proxy headers. Takes a Request (route handlers) or the
+ * Headers from `headers()` (Server Actions).
  */
-export function getClientIP(request: Request): string {
-  // Try to get IP from various headers (for proxies/load balancers)
-  const forwarded = request.headers.get('x-forwarded-for')
+export function getClientIP(source: Request | Headers): string {
+  const headers = source instanceof Headers ? source : source.headers
+  const forwarded = headers.get('x-forwarded-for')
 
   if (forwarded) {
     return forwarded.split(',')[0].trim()
   }
 
-  const realIP = request.headers.get('x-real-ip')
+  const realIP = headers.get('x-real-ip')
 
   if (realIP) {
     return realIP
