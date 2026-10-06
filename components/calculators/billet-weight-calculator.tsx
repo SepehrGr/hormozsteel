@@ -11,6 +11,8 @@ import {
   DensitySelect,
 } from './calculator-ui'
 
+import { formatNumber } from '@/lib/format'
+
 export default function BilletWeightCalculator() {
   const [length, setLength] = useState('')
   const [width, setWidth] = useState('')
@@ -90,13 +92,7 @@ export default function BilletWeightCalculator() {
               <p>
                 {width} × {height} mm · L {length} m · ρ {density}
               </p>
-              <p>
-                ≈{' '}
-                {(result / 1000).toLocaleString('en-US', {
-                  maximumFractionDigits: 3,
-                })}{' '}
-                t
-              </p>
+              <p>≈ {formatNumber(result / 1000)} t</p>
             </>
           }
           weightKg={result}

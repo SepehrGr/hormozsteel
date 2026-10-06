@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 
 import { prisma } from '@/lib/prisma'
+import { formatUsd, formatDate, formatNumber } from '@/lib/format'
 
 async function getDashboardStats() {
   const [
@@ -56,65 +57,49 @@ async function getDashboardStats() {
   }
 }
 
-function formatUsd(n: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(n)
-}
-
-function formatDate(d: Date) {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(d)
-}
-
 export default async function AdminDashboard() {
   const stats = await getDashboardStats()
 
   const statCards = [
     {
       title: 'Products',
-      value: stats.totalProducts.toLocaleString('en-US'),
+      value: formatNumber(stats.totalProducts),
       icon: Package,
       href: '/admin/products',
     },
     {
       title: 'Categories',
-      value: stats.totalCategories.toLocaleString('en-US'),
+      value: formatNumber(stats.totalCategories),
       icon: FolderTree,
       href: '/admin/categories',
     },
     {
       title: 'Manufacturers',
-      value: stats.totalManufacturers.toLocaleString('en-US'),
+      value: formatNumber(stats.totalManufacturers),
       icon: Building2,
       href: '/admin/manufacturers',
     },
     {
       title: 'Orders',
-      value: stats.totalOrders.toLocaleString('en-US'),
+      value: formatNumber(stats.totalOrders),
       icon: ShoppingCart,
       href: '/admin/orders',
     },
     {
       title: 'Customers',
-      value: stats.totalCustomers.toLocaleString('en-US'),
+      value: formatNumber(stats.totalCustomers),
       icon: Users,
       href: '/admin/orders',
     },
     {
       title: 'Pending',
-      value: stats.pendingOrders.toLocaleString('en-US'),
+      value: formatNumber(stats.pendingOrders),
       icon: Clock,
       href: '/admin/orders',
     },
     {
       title: 'Revenue',
-      value: formatUsd(Number(stats.totalRevenue)),
+      value: formatUsd(Number(stats.totalRevenue), { whole: true }),
       icon: DollarSign,
       href: '/admin/orders',
     },
@@ -212,10 +197,10 @@ export default async function AdminDashboard() {
                       {order.items.length}
                     </td>
                     <td className='px-4 py-3 text-right font-medium tabular-nums text-foreground'>
-                      {formatUsd(Number(order.totalAmount))}
+                      {formatUsd(Number(order.totalAmount), { whole: true })}
                     </td>
                     <td className='px-4 py-3 text-right text-muted-foreground'>
-                      {formatDate(new Date(order.createdAt))}
+                      {formatDate(order.createdAt)}
                     </td>
                   </tr>
                 ))}

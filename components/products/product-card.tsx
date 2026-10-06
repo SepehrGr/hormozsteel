@@ -4,34 +4,12 @@ import Link from 'next/link'
 
 import { Product } from '@/types/products'
 import { productCategoryHref, subcategorySlug } from '@/types/products'
+import { formatUsd, formatShortDateTime } from '@/lib/format'
 
 interface ProductCardProps {
   product: Product
   onOrder?: (product: Product) => void
   onCalculate?: (product: Product) => void
-}
-
-function formatUsd(price: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(price)
-}
-
-function formatTime(value?: string | null) {
-  if (!value) return null
-  const date = new Date(value)
-
-  if (Number.isNaN(date.getTime())) return null
-
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date)
 }
 
 type Move = 'up' | 'down' | 'flat'
@@ -54,12 +32,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const delta = product.priceHistory?.changeAmount ?? product.priceDelta
   const hasDelta = delta != null && Number(delta) !== 0
   const updated =
-    formatTime(product.priceHistory?.changedAt) ||
-    formatTime(
-      typeof product.priceUpdatedAt === 'string'
-        ? product.priceUpdatedAt
-        : (product.priceUpdatedAt?.toISOString?.() ?? product.lastUpdated),
-    )
+    formatShortDateTime(product.priceHistory?.changedAt) ||
+    formatShortDateTime(product.priceUpdatedAt ?? product.lastUpdated)
 
   const categorySlug = product.categorySlug || product.category?.slug || ''
   const sub = product.subcategory

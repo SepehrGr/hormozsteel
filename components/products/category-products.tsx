@@ -8,18 +8,10 @@ import ProductTable from '@/components/products/product-table'
 import WeightCalculatorModal from '@/components/products/weight-calculator-modal'
 import OrderRequestModal from '@/components/products/order-request-modal'
 import { Product, ProductCategory } from '@/types/products'
+import { formatUsd } from '@/lib/format'
 
 interface CategoryProductsProps {
   category: ProductCategory
-}
-
-function formatUsd(price: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(price)
 }
 
 function normalizeUnit(

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import { formatNumber } from '@/lib/format'
+
 export const fieldClass =
   'mt-1.5 w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground tabular-nums placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
 
@@ -77,10 +79,7 @@ export function CalculatorResult({
       <div className='mt-2 flex flex-wrap items-end justify-between gap-4'>
         <div>
           <p className='font-mono text-2xl font-semibold tabular-nums tracking-tight text-foreground'>
-            {weightKg.toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}{' '}
+            {formatNumber(weightKg, 2)}{' '}
             <span className='text-base font-medium text-muted-foreground'>
               kg
             </span>
@@ -170,15 +169,6 @@ export function DensitySelect({
       </select>
     </Field>
   )
-}
-
-export function formatUsd(price: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(price)
 }
 
 export function computeLinePrice(

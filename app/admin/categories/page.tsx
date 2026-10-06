@@ -19,6 +19,7 @@ import { addToast } from '@heroui/toast'
 
 import ModalDialog from '@/components/ui/modal-dialog'
 import { CATEGORY_ICONS, resolveCategoryIcon } from '@/config/category-icons'
+import { formatNumber } from '@/lib/format'
 
 interface Category {
   id: string
@@ -378,7 +379,7 @@ export default function CategoriesPage() {
                 <Icon className='h-4 w-4 text-muted-foreground' />
               </div>
               <p className='mt-2 font-mono text-2xl font-semibold tabular-nums tracking-tight text-foreground'>
-                {stat.value.toLocaleString('en-US')}
+                {formatNumber(stat.value)}
               </p>
             </div>
           )

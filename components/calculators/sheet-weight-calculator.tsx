@@ -10,10 +10,11 @@ import {
   CalculatorResult,
   FormulaNote,
   DensitySelect,
-  formatUsd,
   computeLinePrice,
   STEEL_DENSITIES,
 } from './calculator-ui'
+
+import { formatUsd } from '@/lib/format'
 
 const SHEET_TYPES = [
   { value: 'black', label: 'Hot-rolled / black' },

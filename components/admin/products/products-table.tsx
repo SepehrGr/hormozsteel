@@ -14,6 +14,8 @@ import {
 } from '@heroui/table'
 import { Edit, Trash2 } from 'lucide-react'
 
+import { formatUsd } from '@/lib/format'
+
 interface Props {
   isLoading: boolean
   products: ProductDTO[]
@@ -190,11 +192,7 @@ export default function ProductsTable({
                     type='button'
                     onClick={() => startPriceEdit(product)}
                   >
-                    $
-                    {Number(product.price).toLocaleString('en-US', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                    {formatUsd(Number(product.price))}
                   </button>
                 )}
               </TableCell>
