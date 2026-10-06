@@ -144,7 +144,7 @@ export default function CategoriesPage() {
     try {
       setSaveLoading(true)
       const response = await fetch(`/api/categories/${selectedCategory.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: editForm.name.trim(),
@@ -494,7 +494,18 @@ export default function CategoriesPage() {
 
                   return (
                     <Fragment key={category.id}>
-                      <tr className='transition-colors duration-200 ease-out hover:bg-muted/40'>
+                      {/* Row click is a pointer shortcut; the chevron button stays the keyboard path */}
+                      <tr
+                        className={`transition-colors duration-200 ease-out hover:bg-muted/40 ${
+                          category.subcategories.length > 0
+                            ? 'cursor-pointer'
+                            : ''
+                        }`}
+                        onClick={() =>
+                          category.subcategories.length > 0 &&
+                          toggleCategory(category.id)
+                        }
+                      >
                         <td className='px-2 py-3 text-center'>
                           <button
                             aria-label={
@@ -503,7 +514,10 @@ export default function CategoriesPage() {
                             className='inline-flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground disabled:opacity-30'
                             disabled={category.subcategories.length === 0}
                             type='button'
-                            onClick={() => toggleCategory(category.id)}
+                            onClick={e => {
+                              e.stopPropagation()
+                              toggleCategory(category.id)
+                            }}
                           >
                             {isExpanded ? (
                               <ChevronDown className='h-4 w-4' />
@@ -542,17 +556,23 @@ export default function CategoriesPage() {
                           <div className='flex items-center justify-end gap-1'>
                             <button
                               aria-label='Edit'
-                              className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                              className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
                               type='button'
-                              onClick={() => handleEditClick(category)}
+                              onClick={e => {
+                                e.stopPropagation()
+                                handleEditClick(category)
+                              }}
                             >
                               <Edit className='h-3.5 w-3.5' />
                             </button>
                             <button
                               aria-label='Delete'
-                              className='inline-flex h-8 w-8 items-center justify-center border border-border bg-background text-red-700 transition-colors duration-200 ease-out hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
+                              className='inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-background text-red-700 transition-colors duration-200 ease-out hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40'
                               type='button'
-                              onClick={() => handleDeleteClick(category)}
+                              onClick={e => {
+                                e.stopPropagation()
+                                handleDeleteClick(category)
+                              }}
                             >
                               <Trash2 className='h-3.5 w-3.5' />
                             </button>
@@ -705,13 +725,29 @@ function ModalShell({
   onClose: () => void
   children: React.ReactNode
 }) {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [onClose])
+
   return (
     <div
       aria-modal='true'
       className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
       role='dialog'
     >
-      <div className='max-h-[90vh] w-full max-w-lg overflow-y-auto border border-border bg-card shadow-sm'>
+      {/* mousedown, not click: selecting text in a field and releasing over the backdrop must not close */}
+      <div
+        aria-hidden
+        className='absolute inset-0 cursor-default'
+        onMouseDown={onClose}
+      />
+      <div className='relative max-h-[90vh] w-full max-w-lg overflow-y-auto border border-border bg-card shadow-sm'>
         <div className='flex items-center justify-between border-b border-border px-5 py-3'>
           <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
             {title}
