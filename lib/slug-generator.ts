@@ -7,6 +7,16 @@ export function isValidSlug(value: unknown): value is string {
   return typeof value === 'string' && SLUG_PATTERN.test(value)
 }
 
+/** `'Hot Rolled  Coil!'` → `'hot-rolled-coil'`; empty if nothing usable is left. */
+export function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/[\s-]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
 /**
  * Generate a unique slug for a product
  * If the slug already exists, appends a number suffix (-1, -2, etc.)

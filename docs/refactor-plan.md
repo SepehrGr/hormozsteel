@@ -44,11 +44,20 @@ Branch: `refactor/codebase`. Work goes phase by phase, with a review pause after
 
 ## Phase 1: Pilot, `app/admin/categories` (the template)
 
-- [ ] 1.1 `lib/schemas/category.ts`
-- [ ] 1.2 `app/admin/categories/actions.ts`: create, update, delete
-- [ ] 1.3 Server `page.tsx`, plus `components/admin/categories/{categories-table,category-form,category-dialogs}.tsx`
-- [ ] 1.4 Remove admin-only handlers in `app/api/categories/**` once nothing calls them
-- [ ] 1.5 Write-up: the server/client boundary, client islands, `revalidatePath`
+Small steps, one commit each, with an explanation after every step.
+
+- [x] 1.1 `lib/schemas/category.ts`: one zod schema for the form and the actions;
+  `slugify()` in `lib/slug-generator.ts`
+- [ ] 1.2 Lock the open door: `POST`/`PATCH`/`DELETE` in `app/api/categories/**` have no
+  auth check today; add `requireApiAuth()` (the `[id]` page still calls them until Phase 6)
+- [ ] 1.3 `app/admin/categories/actions.ts`: create, update, delete
+- [ ] 1.4 Server `page.tsx` (read-only): Prisma read + `?q=` search, header, stats, table.
+  The table is a client island for expand/collapse only. Search was broken before
+  (`GET /api/categories` ignores `search`).
+- [ ] 1.5 `category-form.tsx`: RHF + `zodResolver` + `useFieldArray` for sub-lines
+- [ ] 1.6 Add and Edit dialogs wired to the actions
+- [ ] 1.7 Delete dialog wired to the action
+- [ ] 1.8 Write-up: the server/client boundary, client islands, `revalidatePath`
 
 ## Phases 2–6: Apply the template
 
