@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { prisma } from '@/lib/prisma'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
+import { isValidSlug } from '@/lib/slug-generator'
 
 export async function GET(request: NextRequest) {
   const rateLimitResponse = checkApiRateLimitAndRespond(request)
@@ -62,12 +63,25 @@ export async function POST(request: NextRequest) {
     }
 
     const slug =
-      body.slug ||
-      body.name
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .trim()
+      body.slug !== undefined
+        ? body.slug
+        : String(body.name)
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/[\s-]+/g, '-')
+            .replace(/^-|-$/g, '')
+
+    if (!isValidSlug(slug)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Slug is required and may only contain lowercase letters, numbers, and single hyphens',
+        },
+        { status: 400 },
+      )
+    }
 
     const category = await prisma.category.create({
       data: {
