@@ -197,7 +197,7 @@ export default function AboutPage() {
             </div>
 
             {/* Sill: below the plate on phones, floated on it once there is room */}
-            <figcaption className='bg-black/85 sm:absolute sm:inset-x-0 sm:bottom-0 sm:bg-gradient-to-t sm:from-black/90 sm:via-black/60 sm:to-transparent sm:pt-14'>
+            <figcaption className='bg-black/85 sm:absolute sm:inset-x-0 sm:bottom-0 sm:bg-transparent'>
               <dl className='grid grid-cols-2 gap-px border-t border-white/25 bg-white/25 sm:grid-cols-4'>
                 {facts.map(fact => (
                   <div key={fact.label} className='bg-black/70 px-4 py-3'>
