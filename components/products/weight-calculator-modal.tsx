@@ -11,7 +11,7 @@ import AngleWeightCalculator from '@/components/calculators/angle-weight-calcula
 import StudWeightCalculator from '@/components/calculators/stud-weight-calculator'
 import BilletWeightCalculator from '@/components/calculators/billet-weight-calculator'
 import SquareTubeWeightCalculator from '@/components/calculators/square-tube-weight-calculator'
-import { formatUsd } from '@/components/calculators/calculator-ui'
+import { formatUsd } from '@/lib/format'
 
 interface WeightCalculatorModalProps {
   isOpen: boolean

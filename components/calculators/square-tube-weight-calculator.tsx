@@ -3,13 +3,13 @@
 import { useState } from 'react'
 
 import {
-  Field,
-  fieldClass,
   CalculatorActions,
   CalculatorResult,
   FormulaNote,
   DensitySelect,
 } from './calculator-ui'
+
+import { FormField, Input } from '@/components/ui/field'
 
 export default function SquareTubeWeightCalculator() {
   const [width, setWidth] = useState('')
@@ -43,9 +43,9 @@ export default function SquareTubeWeightCalculator() {
   return (
     <div className='space-y-6' dir='ltr'>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-        <Field id='width' label='Section width (mm)'>
-          <input
-            className={fieldClass}
+        <FormField id='width' label='Section width (mm)'>
+          <Input
+            className='tabular-nums'
             id='width'
             inputMode='decimal'
             placeholder='e.g. 40'
@@ -53,10 +53,10 @@ export default function SquareTubeWeightCalculator() {
             value={width}
             onChange={e => setWidth(e.target.value)}
           />
-        </Field>
-        <Field id='sectLength' label='Section depth (mm)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='sectLength' label='Section depth (mm)'>
+          <Input
+            className='tabular-nums'
             id='sectLength'
             inputMode='decimal'
             placeholder='e.g. 40'
@@ -64,10 +64,10 @@ export default function SquareTubeWeightCalculator() {
             value={length}
             onChange={e => setLength(e.target.value)}
           />
-        </Field>
-        <Field id='thickness' label='Wall thickness (mm)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='thickness' label='Wall thickness (mm)'>
+          <Input
+            className='tabular-nums'
             id='thickness'
             inputMode='decimal'
             placeholder='e.g. 2'
@@ -75,10 +75,10 @@ export default function SquareTubeWeightCalculator() {
             value={thickness}
             onChange={e => setThickness(e.target.value)}
           />
-        </Field>
-        <Field id='branchLength' label='Piece length (m)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='branchLength' label='Piece length (m)'>
+          <Input
+            className='tabular-nums'
             id='branchLength'
             inputMode='decimal'
             placeholder='e.g. 6'
@@ -86,7 +86,7 @@ export default function SquareTubeWeightCalculator() {
             value={branchLength}
             onChange={e => setBranchLength(e.target.value)}
           />
-        </Field>
+        </FormField>
         <div className='sm:col-span-2'>
           <DensitySelect value={density} onChange={setDensity} />
         </div>

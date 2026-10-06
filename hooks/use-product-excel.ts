@@ -24,7 +24,7 @@ interface Category {
 }
 
 interface UseProductExcelReturn {
-  fileInputRef: React.RefObject<HTMLInputElement>
+  fileInputRef: React.RefObject<HTMLInputElement | null>
   exportProducts: (products: Product[]) => void
   downloadTemplate: () => void
   handleFileImport: (

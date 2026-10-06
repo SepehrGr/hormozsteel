@@ -21,6 +21,7 @@ import ProductTable from '@/components/products/product-table'
 import AdvancedFilters from '@/components/products/advanced-filters'
 import WeightCalculatorModal from '@/components/products/weight-calculator-modal'
 import OrderRequestModal from '@/components/products/order-request-modal'
+import { formatUsd } from '@/lib/format'
 
 interface ProductPageProps {
   categorySlug: string
@@ -30,15 +31,6 @@ interface ProductPageProps {
   features?: string[]
   applications?: string[]
   specifications?: { [key: string]: string }
-}
-
-function formatUsd(price: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(price)
 }
 
 function normalizeUnit(

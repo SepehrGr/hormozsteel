@@ -15,6 +15,7 @@ import {
 import { useSession } from 'next-auth/react'
 
 import ModalDialog from '@/components/ui/modal-dialog'
+import { formatDateTime } from '@/lib/format'
 
 type Role = 'ADMIN' | 'SUPER_ADMIN'
 
@@ -45,21 +46,6 @@ const btnPrimary =
 
 const btnDanger =
   'inline-flex cursor-pointer items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 dark:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50'
-
-function formatDateTime(dateString: string | null) {
-  if (!dateString) return '—'
-  const d = new Date(dateString)
-
-  if (Number.isNaN(d.getTime())) return '—'
-
-  return d.toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
 
 function roleLabel(role: Role) {
   return role === 'SUPER_ADMIN' ? 'Super admin' : 'Admin'

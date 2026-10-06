@@ -7,6 +7,9 @@ export const siteConfig = {
   description:
     'Steel and metal unit pricing — rebar, beams, sheets, profiles, pipe, and billets. Catalog rates in USD for industrial procurement.',
   tagline: 'Mill products. Clear unit prices. Ready to quote.',
+  /** Drives every number, price, and date formatter in lib/format.ts. */
+  locale: 'en-US',
+  currency: 'USD',
   navItems: [
     {
       label: 'About',

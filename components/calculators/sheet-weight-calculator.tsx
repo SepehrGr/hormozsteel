@@ -3,17 +3,16 @@
 import { useState } from 'react'
 
 import {
-  Field,
-  fieldClass,
-  selectClass,
   CalculatorActions,
   CalculatorResult,
   FormulaNote,
   DensitySelect,
-  formatUsd,
   computeLinePrice,
   STEEL_DENSITIES,
 } from './calculator-ui'
+
+import { FormField, Input, Select } from '@/components/ui/field'
+import { formatUsd } from '@/lib/format'
 
 const SHEET_TYPES = [
   { value: 'black', label: 'Hot-rolled / black' },
@@ -89,9 +88,8 @@ export default function SheetWeightCalculator({
   return (
     <div className='space-y-6' dir='ltr'>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-        <Field id='sheetType' label='Sheet type'>
-          <select
-            className={selectClass}
+        <FormField id='sheetType' label='Sheet type'>
+          <Select
             id='sheetType'
             value={sheetType}
             onChange={e => setSheetType(e.target.value)}
@@ -101,8 +99,8 @@ export default function SheetWeightCalculator({
                 {t.label}
               </option>
             ))}
-          </select>
-        </Field>
+          </Select>
+        </FormField>
         <DensitySelect
           options={STEEL_DENSITIES.filter(d =>
             ['7.85', '8', '7.86', '7.84', '2.73'].includes(d.value),
@@ -110,9 +108,9 @@ export default function SheetWeightCalculator({
           value={density}
           onChange={setDensity}
         />
-        <Field id='length' label='Length (m)'>
-          <input
-            className={fieldClass}
+        <FormField id='length' label='Length (m)'>
+          <Input
+            className='tabular-nums'
             id='length'
             inputMode='decimal'
             placeholder='e.g. 6'
@@ -120,10 +118,10 @@ export default function SheetWeightCalculator({
             value={length}
             onChange={e => setLength(e.target.value)}
           />
-        </Field>
-        <Field id='width' label='Width (m)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='width' label='Width (m)'>
+          <Input
+            className='tabular-nums'
             id='width'
             inputMode='decimal'
             placeholder='e.g. 1.5'
@@ -131,10 +129,14 @@ export default function SheetWeightCalculator({
             value={width}
             onChange={e => setWidth(e.target.value)}
           />
-        </Field>
-        <Field className='sm:col-span-2' id='thickness' label='Thickness (mm)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField
+          className='sm:col-span-2'
+          id='thickness'
+          label='Thickness (mm)'
+        >
+          <Input
+            className='tabular-nums'
             id='thickness'
             inputMode='decimal'
             placeholder='e.g. 3'
@@ -142,7 +144,7 @@ export default function SheetWeightCalculator({
             value={thickness}
             onChange={e => setThickness(e.target.value)}
           />
-        </Field>
+        </FormField>
       </div>
 
       <CalculatorActions
