@@ -16,7 +16,7 @@ interface Props {
 }
 
 const fieldClass =
-  'w-full border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
+  'h-10 w-full border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
 
 const labelClass =
   'mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
