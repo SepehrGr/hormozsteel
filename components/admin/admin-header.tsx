@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 
 import { ThemeSwitch } from '@/components/layout/theme-switch'
+import ModalDialog from '@/components/ui/modal-dialog'
 
 interface Notification {
   id: string
@@ -300,39 +301,44 @@ export default function AdminHeader() {
       </header>
 
       {showLogoutModal && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
-          <div className='w-full max-w-md border border-border bg-card shadow-lg'>
-            <div className='border-b border-border px-5 py-3'>
-              <p className='font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
-                Session
-              </p>
-              <h3 className='text-base font-semibold text-foreground'>
-                Sign out?
-              </h3>
-            </div>
-            <div className='px-5 py-5'>
-              <p className='text-sm text-muted-foreground'>
-                You will need to sign in again to access the control panel.
-              </p>
-              <div className='mt-5 flex gap-2'>
-                <button
-                  className='inline-flex flex-1 items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-                  type='button'
-                  onClick={() => setShowLogoutModal(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className='inline-flex flex-1 items-center justify-center bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
-                  type='button'
-                  onClick={handleSignOut}
-                >
-                  Sign out
-                </button>
-              </div>
+        <ModalDialog
+          className='w-full max-w-md shadow-lg backdrop:backdrop-blur-sm'
+          labelledBy='logout-title'
+          onClose={() => setShowLogoutModal(false)}
+        >
+          <div className='border-b border-border px-5 py-3'>
+            <p className='font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+              Session
+            </p>
+            <h3
+              className='text-base font-semibold text-foreground'
+              id='logout-title'
+            >
+              Sign out?
+            </h3>
+          </div>
+          <div className='px-5 py-5'>
+            <p className='text-sm text-muted-foreground'>
+              You will need to sign in again to access the control panel.
+            </p>
+            <div className='mt-5 flex gap-2'>
+              <button
+                className='inline-flex flex-1 items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+                type='button'
+                onClick={() => setShowLogoutModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className='inline-flex flex-1 items-center justify-center bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
+                type='button'
+                onClick={handleSignOut}
+              >
+                Sign out
+              </button>
             </div>
           </div>
-        </div>
+        </ModalDialog>
       )}
     </>
   )

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useId } from 'react'
 import {
   Search,
   Plus,
@@ -16,6 +16,8 @@ import {
   MapPin,
 } from 'lucide-react'
 import { addToast } from '@heroui/toast'
+
+import ModalDialog from '@/components/ui/modal-dialog'
 
 interface Manufacturer {
   id: string
@@ -534,6 +536,7 @@ export default function ManufacturersPage() {
 
       {editModalOpen && (
         <ModalShell
+          dismissable={!saveLoading}
           title='Edit manufacturer'
           onClose={() => setEditModalOpen(false)}
         >
@@ -561,6 +564,7 @@ export default function ManufacturersPage() {
 
       {addModalOpen && (
         <ModalShell
+          dismissable={!addLoading}
           title='Add manufacturer'
           onClose={() => setAddModalOpen(false)}
         >
@@ -588,6 +592,7 @@ export default function ManufacturersPage() {
 
       {deleteModalOpen && selected && (
         <ModalShell
+          dismissable={!deleteLoading}
           title='Delete manufacturer'
           onClose={() => setDeleteModalOpen(false)}
         >
@@ -636,35 +641,41 @@ export default function ManufacturersPage() {
 function ModalShell({
   title,
   onClose,
+  dismissable,
   children,
 }: {
   title: string
   onClose: () => void
+  dismissable?: boolean
   children: React.ReactNode
 }) {
+  const titleId = useId()
+
   return (
-    <div
-      aria-modal='true'
-      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
-      role='dialog'
+    <ModalDialog
+      className='max-h-[90vh] w-full max-w-lg overflow-y-auto'
+      dismissable={dismissable}
+      labelledBy={titleId}
+      onClose={onClose}
     >
-      <div className='max-h-[90vh] w-full max-w-lg overflow-y-auto border border-border bg-card shadow-sm'>
-        <div className='flex items-center justify-between border-b border-border px-5 py-3'>
-          <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
-            {title}
-          </h2>
-          <button
-            aria-label='Close'
-            className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-            type='button'
-            onClick={onClose}
-          >
-            <X className='h-4 w-4' />
-          </button>
-        </div>
-        <div className='px-5 py-5'>{children}</div>
+      <div className='flex items-center justify-between border-b border-border px-5 py-3'>
+        <h2
+          className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+          id={titleId}
+        >
+          {title}
+        </h2>
+        <button
+          aria-label='Close'
+          className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+          type='button'
+          onClick={onClose}
+        >
+          <X className='h-4 w-4' />
+        </button>
       </div>
-    </div>
+      <div className='px-5 py-5'>{children}</div>
+    </ModalDialog>
   )
 }
 

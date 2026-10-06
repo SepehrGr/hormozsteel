@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useId, useMemo } from 'react'
 import {
   Package,
   Mail,
@@ -13,6 +13,8 @@ import {
   ShoppingCart,
 } from 'lucide-react'
 import { addToast } from '@heroui/toast'
+
+import ModalDialog from '@/components/ui/modal-dialog'
 
 interface ContactFormSubmission {
   id: string
@@ -889,27 +891,30 @@ function DetailModal({
   onClose: () => void
   children: React.ReactNode
 }) {
+  const titleId = useId()
+
   return (
-    <div
-      aria-modal='true'
-      className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
-      role='dialog'
+    <ModalDialog
+      className='max-h-[90vh] w-full max-w-lg overflow-y-auto'
+      labelledBy={titleId}
+      onClose={onClose}
     >
-      <div className='max-h-[90vh] w-full max-w-lg overflow-y-auto border border-border bg-card shadow-sm'>
-        <div className='flex items-center justify-between border-b border-border px-5 py-3'>
-          <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
-            {title}
-          </h2>
-          <button
-            className='border border-border bg-background px-2 py-1 text-xs font-medium text-foreground hover:bg-muted'
-            type='button'
-            onClick={onClose}
-          >
-            Close
-          </button>
-        </div>
-        <div className='px-5 py-5'>{children}</div>
+      <div className='flex items-center justify-between border-b border-border px-5 py-3'>
+        <h2
+          className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
+          id={titleId}
+        >
+          {title}
+        </h2>
+        <button
+          className='border border-border bg-background px-2 py-1 text-xs font-medium text-foreground hover:bg-muted'
+          type='button'
+          onClick={onClose}
+        >
+          Close
+        </button>
       </div>
-    </div>
+      <div className='px-5 py-5'>{children}</div>
+    </ModalDialog>
   )
 }
