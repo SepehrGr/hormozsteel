@@ -1,5 +1,12 @@
 import { prisma } from '@/lib/prisma'
 
+/** Lowercase letters and digits, joined by single hyphens: `hot-rolled-coil`. */
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+export function isValidSlug(value: unknown): value is string {
+  return typeof value === 'string' && SLUG_PATTERN.test(value)
+}
+
 /**
  * Generate a unique slug for a product
  * If the slug already exists, appends a number suffix (-1, -2, etc.)
