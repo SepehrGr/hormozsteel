@@ -31,8 +31,9 @@ Branch: `refactor/codebase`. Work goes phase by phase, with a review pause after
 - [x] 0.4 UI primitives:
   - Give the cva `components/ui/button.tsx` the admin variants.
   - Move the shared field and label classes and a `FormField` into `components/ui/`.
-- [ ] 0.5 Shared admin components: `PageHeader`, `StatsBoard`, `SearchToolbar` (URL `?q=`),
-  `EmptyState`, `DataCard`, `FormModal`, `ConfirmDialog`.
+- [x] 0.5 Shared admin components in `components/admin/`: `PageHeader`, `StatsBoard`,
+  `SearchToolbar` (URL `?q=` via `next/form`), `EmptyState`, `DataCard`. Dialogs in
+  `components/ui/dialogs.tsx`: `FormDialog`, `ConfirmDialog`.
 - [ ] 0.6 Server Action plumbing:
   - `lib/actions.ts`: `ActionResult` and `adminAction()` (auth, rate limit, zod, audit log).
   - `hooks/use-action-toast.ts`.
