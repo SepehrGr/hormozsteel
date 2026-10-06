@@ -26,25 +26,6 @@ interface Notification {
   link: string
 }
 
-const PAGE_TITLES: Record<string, string> = {
-  '/admin/dashboard': 'Dashboard',
-  '/admin/products': 'Products',
-  '/admin/categories': 'Categories',
-  '/admin/manufacturers': 'Manufacturers',
-  '/admin/orders': 'Orders',
-  '/admin/settings': 'Settings',
-  '/admin/users': 'Admin users',
-}
-
-function getPageTitle(pathname: string) {
-  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname]
-  const match = Object.keys(PAGE_TITLES).find(
-    key => key !== '/admin/dashboard' && pathname.startsWith(key),
-  )
-
-  return match ? PAGE_TITLES[match] : 'Admin'
-}
-
 function getTimeAgo(date: Date): string {
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
@@ -139,21 +120,13 @@ export default function AdminHeader() {
   }
 
   const notificationCount = notifications.length
-  const pageTitle = getPageTitle(pathname)
 
   return (
     <>
       <header className='sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:px-6'>
-        <div>
-          <p className='font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground'>
-            Control panel
-          </p>
-          <h1 className='text-sm font-semibold tracking-tight text-foreground md:text-base'>
-            {pageTitle}
-          </h1>
-        </div>
+        <div />
 
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center justify-end gap-2'>
           {/* Notifications */}
           <div className='relative'>
             <button
