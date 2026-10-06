@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { prisma } from '@/lib/prisma'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
-import { isValidSlug } from '@/lib/slug-generator'
+import { isValidSlug, slugify } from '@/lib/slug-generator'
 
 export async function GET(request: NextRequest) {
   const rateLimitResponse = checkApiRateLimitAndRespond(request)
@@ -63,14 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     const slug =
-      body.slug !== undefined
-        ? body.slug
-        : String(body.name)
-            .toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, '')
-            .trim()
-            .replace(/[\s-]+/g, '-')
-            .replace(/^-|-$/g, '')
+      body.slug !== undefined ? body.slug : slugify(String(body.name))
 
     if (!isValidSlug(slug)) {
       return NextResponse.json(
