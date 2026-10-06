@@ -2,7 +2,7 @@ import React from 'react'
 import { Upload, Download, Plus } from 'lucide-react'
 
 interface Props {
-  fileInputRef: React.RefObject<HTMLInputElement>
+  fileInputRef: React.RefObject<HTMLInputElement | null>
   onImportClick: () => void
   onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void
   onExport: () => void

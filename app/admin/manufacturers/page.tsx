@@ -18,6 +18,7 @@ import {
 import { addToast } from '@heroui/toast'
 
 import ModalDialog from '@/components/ui/modal-dialog'
+import { formatNumber } from '@/lib/format'
 
 interface Manufacturer {
   id: string
@@ -318,7 +319,7 @@ export default function ManufacturersPage() {
             Total
           </p>
           <p className='mt-2 font-mono text-2xl font-semibold tabular-nums text-foreground'>
-            {manufacturers.length.toLocaleString('en-US')}
+            {formatNumber(manufacturers.length)}
           </p>
         </div>
         <div className='bg-card px-4 py-4'>
@@ -326,7 +327,7 @@ export default function ManufacturersPage() {
             With contact
           </p>
           <p className='mt-2 font-mono text-2xl font-semibold tabular-nums text-foreground'>
-            {withContact.toLocaleString('en-US')}
+            {formatNumber(withContact)}
           </p>
         </div>
         <div className='col-span-2 bg-card px-4 py-4 sm:col-span-1'>
@@ -334,7 +335,7 @@ export default function ManufacturersPage() {
             Listed
           </p>
           <p className='mt-2 font-mono text-2xl font-semibold tabular-nums text-foreground'>
-            {loading ? '—' : manufacturers.length.toLocaleString('en-US')}
+            {loading ? '—' : formatNumber(manufacturers.length)}
           </p>
         </div>
       </div>

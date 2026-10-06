@@ -302,7 +302,7 @@ export async function DELETE(request: NextRequest) {
       'DELETE',
       'QuickOrder',
       id,
-      null,
+      undefined,
       request,
     )
 

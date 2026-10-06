@@ -3,13 +3,13 @@
 import { useState } from 'react'
 
 import {
-  Field,
-  fieldClass,
   CalculatorActions,
   CalculatorResult,
   FormulaNote,
   DensitySelect,
 } from './calculator-ui'
+
+import { FormField, Input } from '@/components/ui/field'
 
 export default function StudWeightCalculator() {
   const [flangeWidth, setFlangeWidth] = useState('')
@@ -46,9 +46,9 @@ export default function StudWeightCalculator() {
   return (
     <div className='space-y-6' dir='ltr'>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-        <Field id='flangeWidth' label='Flange width (mm)'>
-          <input
-            className={fieldClass}
+        <FormField id='flangeWidth' label='Flange width (mm)'>
+          <Input
+            className='tabular-nums'
             id='flangeWidth'
             inputMode='decimal'
             placeholder='e.g. 50'
@@ -56,10 +56,10 @@ export default function StudWeightCalculator() {
             value={flangeWidth}
             onChange={e => setFlangeWidth(e.target.value)}
           />
-        </Field>
-        <Field id='flangeThickness' label='Flange thickness (mm)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='flangeThickness' label='Flange thickness (mm)'>
+          <Input
+            className='tabular-nums'
             id='flangeThickness'
             inputMode='decimal'
             placeholder='e.g. 4'
@@ -67,10 +67,10 @@ export default function StudWeightCalculator() {
             value={flangeThickness}
             onChange={e => setFlangeThickness(e.target.value)}
           />
-        </Field>
-        <Field id='webHeight' label='Web height (mm)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='webHeight' label='Web height (mm)'>
+          <Input
+            className='tabular-nums'
             id='webHeight'
             inputMode='decimal'
             placeholder='e.g. 100'
@@ -78,10 +78,10 @@ export default function StudWeightCalculator() {
             value={webHeight}
             onChange={e => setWebHeight(e.target.value)}
           />
-        </Field>
-        <Field id='webThickness' label='Web thickness (mm)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='webThickness' label='Web thickness (mm)'>
+          <Input
+            className='tabular-nums'
             id='webThickness'
             inputMode='decimal'
             placeholder='e.g. 3'
@@ -89,10 +89,10 @@ export default function StudWeightCalculator() {
             value={webThickness}
             onChange={e => setWebThickness(e.target.value)}
           />
-        </Field>
-        <Field id='length' label='Length (m)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='length' label='Length (m)'>
+          <Input
+            className='tabular-nums'
             id='length'
             inputMode='decimal'
             placeholder='e.g. 6'
@@ -100,7 +100,7 @@ export default function StudWeightCalculator() {
             value={length}
             onChange={e => setLength(e.target.value)}
           />
-        </Field>
+        </FormField>
         <DensitySelect value={density} onChange={setDensity} />
       </div>
 

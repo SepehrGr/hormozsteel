@@ -15,6 +15,7 @@ import {
 import { addToast } from '@heroui/toast'
 
 import ModalDialog from '@/components/ui/modal-dialog'
+import { formatDateTime, formatNumber } from '@/lib/format'
 
 interface ContactFormSubmission {
   id: string
@@ -43,20 +44,6 @@ interface QuickOrderSubmission {
 
 const fieldClass =
   'w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
-
-function formatDate(dateString: string) {
-  const date = new Date(dateString)
-
-  if (Number.isNaN(date.getTime())) return '—'
-
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date)
-}
 
 function StatusPill({ status }: { status: string }) {
   const labels: Record<string, string> = {
@@ -410,7 +397,7 @@ export default function OrdersManagementPage() {
                 <Icon className='h-4 w-4 text-muted-foreground' />
               </div>
               <p className='mt-2 font-mono text-2xl font-semibold tabular-nums text-foreground'>
-                {loading ? '—' : stat.value.toLocaleString('en-US')}
+                {loading ? '—' : formatNumber(stat.value)}
               </p>
             </div>
           )
@@ -591,7 +578,7 @@ export default function OrdersManagementPage() {
                         </p>
                         {order.deliveryDate ? (
                           <p className='mt-0.5 font-mono tabular-nums'>
-                            {formatDate(order.deliveryDate)}
+                            {formatDateTime(order.deliveryDate)}
                           </p>
                         ) : null}
                       </td>
@@ -599,7 +586,7 @@ export default function OrdersManagementPage() {
                         <StatusPill status={order.status} />
                       </td>
                       <td className='px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground'>
-                        {formatDate(order.createdAt)}
+                        {formatDateTime(order.createdAt)}
                       </td>
                       <td className='px-4 py-3'>
                         <div className='flex items-center justify-end gap-1'>
@@ -699,7 +686,7 @@ export default function OrdersManagementPage() {
                       <StatusPill status={form.status} />
                     </td>
                     <td className='px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground'>
-                      {formatDate(form.createdAt)}
+                      {formatDateTime(form.createdAt)}
                     </td>
                     <td className='px-4 py-3'>
                       <div className='flex items-center justify-end gap-1'>
@@ -761,7 +748,7 @@ export default function OrdersManagementPage() {
             <DetailRow label='Quantity' value={detailOrder.quantity} />
             <DetailRow
               label='Received'
-              value={formatDate(detailOrder.createdAt)}
+              value={formatDateTime(detailOrder.createdAt)}
             />
             {detailOrder.additionalNotes ? (
               <div className='sm:col-span-2'>
@@ -830,7 +817,7 @@ export default function OrdersManagementPage() {
             />
             <DetailRow
               label='Received'
-              value={formatDate(detailContact.createdAt)}
+              value={formatDateTime(detailContact.createdAt)}
             />
             <div className='sm:col-span-2'>
               <p className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>

@@ -2,6 +2,8 @@ import type { BulkUpdateData } from '@/components/admin/products/types'
 
 import { addToast } from '@heroui/toast'
 
+import { pluralize } from '@/lib/format'
+
 type Json = Record<string, unknown>
 
 interface Feedback {
@@ -54,8 +56,6 @@ export function useProductMutations(refresh: () => Promise<unknown> | void) {
     return ok
   }
 
-  const count = (n: number) => `${n} product${n === 1 ? '' : 's'}`
-
   return {
     bulkUpdate: (productIds: string[], updateData: BulkUpdateData) =>
       run(
@@ -64,7 +64,7 @@ export function useProductMutations(refresh: () => Promise<unknown> | void) {
         { productIds, updateData },
         {
           title: 'Updated',
-          success: `${count(productIds.length)} updated`,
+          success: `${pluralize(productIds.length, 'product')} updated`,
           error: 'Could not update products',
         },
       ),
@@ -76,7 +76,7 @@ export function useProductMutations(refresh: () => Promise<unknown> | void) {
         { productIds },
         {
           title: 'Deleted',
-          success: `${count(productIds.length)} removed`,
+          success: `${pluralize(productIds.length, 'product')} removed`,
           error: 'Could not delete products',
         },
       ),

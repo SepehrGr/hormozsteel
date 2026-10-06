@@ -11,20 +11,13 @@ import {
   Minus,
 } from 'lucide-react'
 
+import { formatUsd } from '@/lib/format'
+
 interface ProductTableProps {
   products: Product[]
   onOrder: (product: Product) => void
   onCalculate: (product: Product) => void
   formatPrice?: (price: number) => string
-}
-
-function formatUsd(price: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(price)
 }
 
 function directionMeta(product: Product) {
