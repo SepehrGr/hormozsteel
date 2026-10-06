@@ -1,35 +1,8 @@
 import type { ReactNode } from 'react'
 
+import { Button } from '@/components/ui/button'
+import { FormField, Select } from '@/components/ui/field'
 import { formatNumber } from '@/lib/format'
-
-export const fieldClass =
-  'mt-1.5 w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground tabular-nums placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
-
-export const selectClass = `${fieldClass} cursor-pointer`
-
-export const labelClass =
-  'block text-xs font-medium uppercase tracking-wide text-muted-foreground'
-
-export function Field({
-  id,
-  label,
-  children,
-  className = '',
-}: {
-  id?: string
-  label: string
-  children: ReactNode
-  className?: string
-}) {
-  return (
-    <div className={className}>
-      <label className={labelClass} htmlFor={id}>
-        {label}
-      </label>
-      {children}
-    </div>
-  )
-}
 
 export function CalculatorActions({
   onCalculate,
@@ -42,20 +15,12 @@ export function CalculatorActions({
 }) {
   return (
     <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-      <button
-        className='inline-flex flex-1 cursor-pointer items-center justify-center bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
-        type='button'
-        onClick={onCalculate}
-      >
+      <Button className='flex-1' size='lg' onClick={onCalculate}>
         {calculateLabel}
-      </button>
-      <button
-        className='inline-flex cursor-pointer items-center justify-center border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-        type='button'
-        onClick={onReset}
-      >
+      </Button>
+      <Button size='lg' variant='outline' onClick={onReset}>
         Reset
-      </button>
+      </Button>
     </div>
   )
 }
@@ -154,20 +119,15 @@ export function DensitySelect({
   options?: readonly { value: string; label: string }[]
 }) {
   return (
-    <Field id={id} label='Density (g/cm³)'>
-      <select
-        className={selectClass}
-        id={id}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-      >
+    <FormField id={id} label='Density (g/cm³)'>
+      <Select id={id} value={value} onChange={e => onChange(e.target.value)}>
         {options.map(o => (
           <option key={o.value} value={o.value}>
             {o.label}
           </option>
         ))}
-      </select>
-    </Field>
+      </Select>
+    </FormField>
   )
 }
 

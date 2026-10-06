@@ -3,14 +3,13 @@
 import { useState } from 'react'
 
 import {
-  Field,
-  fieldClass,
   CalculatorActions,
   CalculatorResult,
   FormulaNote,
   DensitySelect,
 } from './calculator-ui'
 
+import { FormField, Input } from '@/components/ui/field'
 import { formatNumber } from '@/lib/format'
 
 export default function BilletWeightCalculator() {
@@ -43,9 +42,9 @@ export default function BilletWeightCalculator() {
   return (
     <div className='space-y-6' dir='ltr'>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-        <Field id='length' label='Length (m)'>
-          <input
-            className={fieldClass}
+        <FormField id='length' label='Length (m)'>
+          <Input
+            className='tabular-nums'
             id='length'
             inputMode='decimal'
             placeholder='e.g. 6 or 12'
@@ -53,10 +52,10 @@ export default function BilletWeightCalculator() {
             value={length}
             onChange={e => setLength(e.target.value)}
           />
-        </Field>
-        <Field id='width' label='Section width (mm)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='width' label='Section width (mm)'>
+          <Input
+            className='tabular-nums'
             id='width'
             inputMode='decimal'
             placeholder='e.g. 150'
@@ -64,10 +63,10 @@ export default function BilletWeightCalculator() {
             value={width}
             onChange={e => setWidth(e.target.value)}
           />
-        </Field>
-        <Field id='height' label='Section height (mm)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='height' label='Section height (mm)'>
+          <Input
+            className='tabular-nums'
             id='height'
             inputMode='decimal'
             placeholder='e.g. 150'
@@ -75,7 +74,7 @@ export default function BilletWeightCalculator() {
             value={height}
             onChange={e => setHeight(e.target.value)}
           />
-        </Field>
+        </FormField>
         <DensitySelect value={density} onChange={setDensity} />
       </div>
 

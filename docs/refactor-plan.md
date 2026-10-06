@@ -28,7 +28,7 @@ Branch: `refactor/codebase`. Work goes phase by phase, with a review pause after
   `@auth/prisma-adapter`.
 - [x] 0.3 `lib/format.ts`: `formatUsd`, `formatDate`, `formatDateTime`, `pluralize`.
   Replace the duplicate copies.
-- [ ] 0.4 UI primitives:
+- [x] 0.4 UI primitives:
   - Give the cva `components/ui/button.tsx` the admin variants.
   - Move the shared field and label classes and a `FormField` into `components/ui/`.
 - [ ] 0.5 Shared admin components: `PageHeader`, `StatsBoard`, `SearchToolbar` (URL `?q=`),

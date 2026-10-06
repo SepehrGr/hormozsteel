@@ -3,13 +3,13 @@
 import { useState } from 'react'
 
 import {
-  Field,
-  fieldClass,
   CalculatorActions,
   CalculatorResult,
   FormulaNote,
   DensitySelect,
 } from './calculator-ui'
+
+import { FormField, Input } from '@/components/ui/field'
 
 export default function PipeWeightCalculator() {
   const [outerDiameter, setOuterDiameter] = useState('')
@@ -41,9 +41,9 @@ export default function PipeWeightCalculator() {
   return (
     <div className='space-y-6' dir='ltr'>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-        <Field id='outerDiameter' label='Outside diameter (mm)'>
-          <input
-            className={fieldClass}
+        <FormField id='outerDiameter' label='Outside diameter (mm)'>
+          <Input
+            className='tabular-nums'
             id='outerDiameter'
             inputMode='decimal'
             placeholder='e.g. 60.3'
@@ -51,10 +51,10 @@ export default function PipeWeightCalculator() {
             value={outerDiameter}
             onChange={e => setOuterDiameter(e.target.value)}
           />
-        </Field>
-        <Field id='thickness' label='Wall thickness (mm)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='thickness' label='Wall thickness (mm)'>
+          <Input
+            className='tabular-nums'
             id='thickness'
             inputMode='decimal'
             placeholder='e.g. 3'
@@ -62,10 +62,10 @@ export default function PipeWeightCalculator() {
             value={thickness}
             onChange={e => setThickness(e.target.value)}
           />
-        </Field>
-        <Field id='length' label='Length (m)'>
-          <input
-            className={fieldClass}
+        </FormField>
+        <FormField id='length' label='Length (m)'>
+          <Input
+            className='tabular-nums'
             id='length'
             inputMode='decimal'
             placeholder='e.g. 6'
@@ -73,7 +73,7 @@ export default function PipeWeightCalculator() {
             value={length}
             onChange={e => setLength(e.target.value)}
           />
-        </Field>
+        </FormField>
         <DensitySelect value={density} onChange={setDensity} />
       </div>
 
