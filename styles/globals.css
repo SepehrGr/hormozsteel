@@ -386,6 +386,10 @@
       'rlig' 1,
       'calt' 1;
   }
+  /* Tailwind v4 preflight resets buttons to the default cursor; modal actions should read as clickable */
+  dialog button:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 /* بهبود hover behavior برای navbar */
