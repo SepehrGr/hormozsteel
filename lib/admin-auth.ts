@@ -1,9 +1,12 @@
+import type { Prisma } from '@prisma/client'
+
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { NextResponse } from 'next/server'
 
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getClientIP } from '@/lib/rate-limit'
 
 export async function getAuthSession() {
   return await getServerSession(authOptions)
@@ -50,20 +53,18 @@ export async function requireSuperAdmin() {
   return session
 }
 
+/** `source` is the route's Request, or `await headers()` inside a Server Action. */
 export async function logAdminAction(
   userId: string,
   action: string,
   resourceType: string,
   resourceId?: string,
-  details?: any,
-  request?: Request,
+  details?: Prisma.InputJsonValue,
+  source?: Request | Headers,
 ) {
-  const ipAddress =
-    request?.headers.get('x-forwarded-for') ||
-    request?.headers.get('x-real-ip') ||
-    'unknown'
-
-  const userAgent = request?.headers.get('user-agent') || 'unknown'
+  const headers = source instanceof Headers ? source : source?.headers
+  const ipAddress = headers ? getClientIP(headers) : 'unknown'
+  const userAgent = headers?.get('user-agent') || 'unknown'
 
   await prisma.adminLog.create({
     data: {

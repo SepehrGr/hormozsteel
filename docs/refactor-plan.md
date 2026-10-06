@@ -34,9 +34,13 @@ Branch: `refactor/codebase`. Work goes phase by phase, with a review pause after
 - [x] 0.5 Shared admin components in `components/admin/`: `PageHeader`, `StatsBoard`,
   `SearchToolbar` (URL `?q=` via `next/form`), `EmptyState`, `DataCard`. Dialogs in
   `components/ui/dialogs.tsx`: `FormDialog`, `ConfirmDialog`.
-- [ ] 0.6 Server Action plumbing:
-  - `lib/actions.ts`: `ActionResult` and `adminAction()` (auth, rate limit, zod, audit log).
-  - `hooks/use-action-toast.ts`.
+- [x] 0.6 Server Action plumbing:
+  - `lib/actions.ts`: `ActionResult`, `ActionError`, and `adminAction()`, which runs
+    auth → API rate limit (`checkApiRateLimit`, not the 5-try login limiter) → zod →
+    handler. The handler gets `ctx.audit()` for AdminLog. Prisma P2002/P2003/P2025 errors
+    become readable messages.
+  - `lib/action-toast.ts`: `toastResult()`, a plain function rather than a hook. Pending
+    state comes from RHF `isSubmitting` or `useTransition`.
 
 ## Phase 1: Pilot, `app/admin/categories` (the template)
 
