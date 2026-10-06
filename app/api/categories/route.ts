@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { logAdminAction, requireApiAuth } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
 import { isValidSlug, slugify } from '@/lib/slug-generator'
@@ -52,6 +53,10 @@ export async function POST(request: NextRequest) {
 
   if (rateLimitResponse) return rateLimitResponse
 
+  const { session, error: authError } = await requireApiAuth()
+
+  if (authError) return authError
+
   try {
     const body = await request.json()
 
@@ -86,6 +91,15 @@ export async function POST(request: NextRequest) {
         subcategories: body.subcategories || [],
       },
     })
+
+    await logAdminAction(
+      session.user.id,
+      'CREATE',
+      'Category',
+      category.id,
+      { name: category.name },
+      request,
+    )
 
     return NextResponse.json({ success: true, data: category }, { status: 201 })
   } catch (error) {

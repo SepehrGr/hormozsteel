@@ -48,7 +48,7 @@ Small steps, one commit each, with an explanation after every step.
 
 - [x] 1.1 `lib/schemas/category.ts`: one zod schema for the form and the actions;
   `slugify()` in `lib/slug-generator.ts`
-- [ ] 1.2 Lock the open door: `POST`/`PATCH`/`DELETE` in `app/api/categories/**` have no
+- [x] 1.2 Lock the open door: `POST`/`PATCH`/`DELETE` in `app/api/categories/**` have no
   auth check today; add `requireApiAuth()` (the `[id]` page still calls them until Phase 6)
 - [ ] 1.3 `app/admin/categories/actions.ts`: create, update, delete
 - [ ] 1.4 Server `page.tsx` (read-only): Prisma read + `?q=` search, header, stats, table.
@@ -89,6 +89,14 @@ Small steps, one commit each, with an explanation after every step.
 
 ## Phase 8: API and hooks cleanup
 
+- [ ] 8.0 **Security, do early.** These admin handlers have no auth check (found in 1.2;
+  `middleware.ts` only guards `/admin` pages, not `/api`):
+  - `products` POST, `products/[id]` PATCH/PUT/DELETE
+  - `manufacturers` POST, `manufacturers/[id]` PUT/DELETE
+  - `contact` GET (lists customer messages), PATCH, DELETE
+  - `orders` GET (lists orders)
+
+  Public on purpose: `contact` POST, `orders` POST, `auth/[...nextauth]`.
 - [ ] 8.1 Validate in the routes with zod, using the shared `lib/schemas/*`.
 - [ ] 8.2 Add the missing rate-limit guard to `contact`, `orders`, `admin/profile`,
   `manufacturers/[id]`, `products/bulk`, `products/import`, `latest-prices`, `moment-news`.

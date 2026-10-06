@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { logAdminAction, requireApiAuth } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
 import { isValidSlug } from '@/lib/slug-generator'
@@ -66,6 +67,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
   if (rateLimitResponse) return rateLimitResponse
 
+  const { session, error: authError } = await requireApiAuth()
+
+  if (authError) return authError
+
   try {
     const { id } = await params
     const body = await request.json()
@@ -92,6 +97,15 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         subcategories: body.subcategories,
       },
     })
+
+    await logAdminAction(
+      session.user.id,
+      'UPDATE',
+      'Category',
+      id,
+      body,
+      request,
+    )
 
     return NextResponse.json({ success: true, data: category })
   } catch (error) {
@@ -121,10 +135,22 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
   if (rateLimitResponse) return rateLimitResponse
 
+  const { session, error: authError } = await requireApiAuth()
+
+  if (authError) return authError
+
   try {
     const { id } = await params
 
     await prisma.category.delete({ where: { id } })
+    await logAdminAction(
+      session.user.id,
+      'DELETE',
+      'Category',
+      id,
+      undefined,
+      request,
+    )
 
     return NextResponse.json({ success: true })
   } catch (error) {
