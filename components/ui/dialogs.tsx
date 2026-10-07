@@ -120,12 +120,15 @@ export function ConfirmDialog({
   confirmLabel = 'Delete',
   pendingLabel = 'Deleting…',
   confirmIcon,
+  confirmDisabled,
   children,
 }: FrameProps & {
   onConfirm: () => void
   confirmLabel?: string
   pendingLabel?: string
   confirmIcon?: ReactNode
+  /** Blocks only the confirm button (e.g. the action can't succeed); Cancel stays usable. */
+  confirmDisabled?: boolean
 }) {
   return (
     <DialogFrame pending={pending} title={title} onClose={onClose}>
@@ -133,7 +136,11 @@ export function ConfirmDialog({
         {children}
       </div>
       <DialogFooter pending={pending} onCancel={onClose}>
-        <Button disabled={pending} variant='danger' onClick={onConfirm}>
+        <Button
+          disabled={pending || confirmDisabled}
+          variant='danger'
+          onClick={onConfirm}
+        >
           {confirmIcon}
           {pending ? pendingLabel : confirmLabel}
         </Button>

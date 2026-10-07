@@ -3,10 +3,11 @@
 import type { CategoryFormValues } from '@/lib/schemas/category'
 
 import { Fragment, useState } from 'react'
-import { ChevronDown, ChevronRight, Pencil } from 'lucide-react'
+import { ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react'
 
 import { updateCategory } from '@/app/admin/categories/actions'
 import { CategoryFormDialog } from '@/components/admin/categories/category-form-dialog'
+import { DeleteCategoryDialog } from '@/components/admin/categories/delete-category-dialog'
 import { Button } from '@/components/ui/button'
 import { CATEGORY_ICONS, resolveCategoryIcon } from '@/config/category-icons'
 
@@ -35,10 +36,11 @@ function toFormValues(category: CategoryRow): CategoryFormValues {
   }
 }
 
-/** Categories table; the browser owns which rows are expanded and which is being edited. */
+/** Categories table; the browser owns which rows are expanded, edited, or being deleted. */
 export function CategoriesTable({ categories }: { categories: CategoryRow[] }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [editing, setEditing] = useState<CategoryRow | null>(null)
+  const [deleting, setDeleting] = useState<CategoryRow | null>(null)
 
   const toggle = (id: string) =>
     setExpanded(prev => {
@@ -70,6 +72,7 @@ export function CategoriesTable({ categories }: { categories: CategoryRow[] }) {
               key={category.id}
               category={category}
               isExpanded={expanded.has(category.id)}
+              onDelete={() => setDeleting(category)}
               onEdit={() => setEditing(category)}
               onToggle={() => toggle(category.id)}
             />
@@ -85,6 +88,12 @@ export function CategoriesTable({ categories }: { categories: CategoryRow[] }) {
           onSubmit={values => updateCategory({ id: editing.id, values })}
         />
       ) : null}
+      {deleting ? (
+        <DeleteCategoryDialog
+          category={deleting}
+          onClose={() => setDeleting(null)}
+        />
+      ) : null}
     </div>
   )
 }
@@ -94,11 +103,13 @@ function CategoryTableRow({
   isExpanded,
   onToggle,
   onEdit,
+  onDelete,
 }: {
   category: CategoryRow
   isExpanded: boolean
   onToggle: () => void
   onEdit: () => void
+  onDelete: () => void
 }) {
   const hasSubs = category.subcategories.length > 0
 
@@ -149,15 +160,25 @@ function CategoryTableRow({
         <td className='px-4 py-3 text-center tabular-nums text-foreground'>
           {category._count.products}
         </td>
-        <td className='px-4 py-3 text-right'>
-          <Button
-            aria-label={`Edit ${category.name}`}
-            size='icon'
-            variant='outline'
-            onClick={onEdit}
-          >
-            <Pencil aria-hidden className='h-3.5 w-3.5' />
-          </Button>
+        <td className='px-4 py-3'>
+          <div className='flex justify-end gap-1'>
+            <Button
+              aria-label={`Edit ${category.name}`}
+              size='icon'
+              variant='outline'
+              onClick={onEdit}
+            >
+              <Pencil aria-hidden className='h-3.5 w-3.5' />
+            </Button>
+            <Button
+              aria-label={`Delete ${category.name}`}
+              size='icon'
+              variant='danger-outline'
+              onClick={onDelete}
+            >
+              <Trash2 aria-hidden className='h-3.5 w-3.5' />
+            </Button>
+          </div>
         </td>
       </tr>
 
