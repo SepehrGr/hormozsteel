@@ -1,5 +1,5 @@
-'use client'
-
+// Browser code, but deliberately not a 'use client' entry: only client
+// components render it, and its function props couldn't cross from a server one.
 import type { FormEventHandler, ReactNode } from 'react'
 
 import { useId } from 'react'
