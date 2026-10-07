@@ -106,7 +106,8 @@ Steps marked *(from 8.0)* lock down API routes that are open today. That's the p
   - `description`, `address`, `phone`.
   - `email` (validated as an email); `website` and `logo` (validated as URLs).
   - Blank fields become `null`. Import nothing server-only.
-- [ ] 2.2 `app/admin/manufacturers/actions.ts`: create, update, delete.
+- [x] 2.2 `app/admin/manufacturers/actions.ts`: create, update, delete. Also fixes
+  `/manufacturers` never refreshing: it's built once (`○`, no `revalidate`).
   - Revalidate `/admin/manufacturers`, `/admin/products`, and the public `/manufacturers`
     and `/products` layouts.
   - Delete is allowed. Its dialog states how many products will lose their mill.
