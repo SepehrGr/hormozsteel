@@ -47,16 +47,19 @@ Branch: `refactor/codebase`. Work goes phase by phase, with a review pause after
 Small steps, one commit each, with an explanation after every step.
 
 - [x] 1.1 `lib/schemas/category.ts`: one zod schema for the form and the actions;
-  `slugify()` in `lib/slug-generator.ts`
+  `slugify()` (moved to `lib/slug.ts` in 1.5)
 - [x] 1.2 Lock the open door: `POST`/`PATCH`/`DELETE` in `app/api/categories/**` have no
   auth check today; add `requireApiAuth()` (the `[id]` page still calls them until Phase 6)
 - [x] 1.3 `app/admin/categories/actions.ts`: create, update, delete (delete refuses while products are linked)
 - [x] 1.4 Server `page.tsx` (read-only): Prisma read + `?q=` search, header, stats, table.
   The table is a client island for expand/collapse only. Search was broken before
   (`GET /api/categories` ignores `search`).
-- [ ] 1.5 `category-form.tsx`: RHF + `zodResolver` + `useFieldArray` for sub-lines
-- [ ] 1.6 Add and Edit dialogs wired to the actions
-- [ ] 1.7 Delete dialog wired to the action
+- [x] 1.5 `category-form-dialog.tsx` (RHF + `zodResolver` raw mode + `useFieldArray`)
+  and the "Add category" button. `isValidSlug`/`slugify` moved to Prisma-free `lib/slug.ts`
+  so client code can import the schema.
+- [ ] 1.6 Edit: per-row Edit button opening the same dialog with the row's values
+- [ ] 1.7 Delete: per-row Delete button + `ConfirmDialog`; then delete the "Test Family"
+  row created while testing 1.5
 - [ ] 1.8 Write-up: the server/client boundary, client islands, `revalidatePath`
 
 ## Phases 2–6: Apply the template
@@ -85,7 +88,8 @@ Small steps, one commit each, with an explanation after every step.
   split the sections.
 - [ ] 7.6 Calculators: pure formulas in `lib/weight.ts`, with one `tsx --test` check. Also drop the
   `formatPrice` prop; every caller passes `formatUsd`.
-- [ ] 7.7 Sweep out the Persian, RTL and `dir='ltr'` leftovers.
+- [ ] 7.7 Sweep out the Persian, RTL and `dir='ltr'` leftovers (including the `shamsh` and
+  `qooti` keys in `config/category-icons.ts`, shown as icon names in the category form).
 
 ## Phase 8: API and hooks cleanup
 

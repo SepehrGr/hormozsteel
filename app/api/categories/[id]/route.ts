@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logAdminAction, requireApiAuth } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
-import { isValidSlug } from '@/lib/slug-generator'
+import { isValidSlug } from '@/lib/slug'
 import { productInclude, toProductDTO } from '@/lib/product-dto'
 
 interface RouteParams {
