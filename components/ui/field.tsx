@@ -11,6 +11,12 @@ export const labelClass =
 /** Id of a field's error message; point the control's `aria-describedby` at it. */
 export const fieldErrorId = (id: string) => `${id}-error`
 
+/** Spread onto a control: marks it invalid and links it to its error message. */
+export const invalidProps = (id: string, message?: string) => ({
+  'aria-invalid': !!message,
+  'aria-describedby': message ? fieldErrorId(id) : undefined,
+})
+
 /**
  * Label + control + validation message.
  *
