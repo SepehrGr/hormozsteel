@@ -3,7 +3,7 @@
 import type { ActionResult } from '@/lib/actions'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, X } from 'lucide-react'
+import { Plus, Save, X } from 'lucide-react'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
@@ -29,25 +29,37 @@ export const emptyCategory: CategoryFormValues = {
   subcategories: [],
 }
 
+const MODES = {
+  create: {
+    title: 'Add category',
+    submitLabel: 'Create',
+    pendingLabel: 'Creating…',
+    successMessage: 'Category created',
+    Icon: Plus,
+  },
+  edit: {
+    title: 'Edit category',
+    submitLabel: 'Save',
+    pendingLabel: 'Saving…',
+    successMessage: 'Category updated',
+    Icon: Save,
+  },
+}
+
 /** Add/edit dialog for one category. Mount only while open. */
 export function CategoryFormDialog({
-  title,
-  submitLabel,
-  pendingLabel,
-  successMessage,
+  mode,
   defaultValues = emptyCategory,
   onSubmit,
   onClose,
 }: {
-  title: string
-  submitLabel: string
-  pendingLabel: string
-  successMessage: string
+  mode: keyof typeof MODES
   defaultValues?: CategoryFormValues
   /** A Server Action; it validates again on the server. */
   onSubmit: (values: CategoryFormValues) => Promise<ActionResult>
   onClose: () => void
 }) {
+  const { title, submitLabel, pendingLabel, successMessage, Icon } = MODES[mode]
   const {
     register,
     control,
@@ -81,7 +93,7 @@ export function CategoryFormDialog({
     <FormDialog
       pending={isSubmitting}
       pendingLabel={pendingLabel}
-      submitIcon={<Plus aria-hidden className='h-4 w-4' />}
+      submitIcon={<Icon aria-hidden className='h-4 w-4' />}
       submitLabel={submitLabel}
       title={title}
       onClose={onClose}

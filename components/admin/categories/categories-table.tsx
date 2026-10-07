@@ -1,10 +1,14 @@
 'use client'
 
-import { Fragment, useState } from 'react'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import type { CategoryFormValues } from '@/lib/schemas/category'
 
+import { Fragment, useState } from 'react'
+import { ChevronDown, ChevronRight, Pencil } from 'lucide-react'
+
+import { updateCategory } from '@/app/admin/categories/actions'
+import { CategoryFormDialog } from '@/components/admin/categories/category-form-dialog'
 import { Button } from '@/components/ui/button'
-import { resolveCategoryIcon } from '@/config/category-icons'
+import { CATEGORY_ICONS, resolveCategoryIcon } from '@/config/category-icons'
 
 export interface CategoryRow {
   id: string
@@ -16,9 +20,25 @@ export interface CategoryRow {
   _count: { products: number }
 }
 
-/** Categories table; the browser only owns which rows are expanded. */
+/** A database row in the shape the category form holds. */
+function toFormValues(category: CategoryRow): CategoryFormValues {
+  // Legacy classes (e.g. icon-Wire-products) become their current option;
+  // anything else not in the list falls back to "Default from slug".
+  const icon = category.icon ? resolveCategoryIcon(category.icon) : ''
+
+  return {
+    name: category.name,
+    slug: category.slug,
+    icon: Object.values(CATEGORY_ICONS).find(cls => cls === icon) ?? '',
+    description: category.description ?? '',
+    subcategories: category.subcategories.map(value => ({ value })),
+  }
+}
+
+/** Categories table; the browser owns which rows are expanded and which is being edited. */
 export function CategoriesTable({ categories }: { categories: CategoryRow[] }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  const [editing, setEditing] = useState<CategoryRow | null>(null)
 
   const toggle = (id: string) =>
     setExpanded(prev => {
@@ -31,7 +51,7 @@ export function CategoriesTable({ categories }: { categories: CategoryRow[] }) {
 
   return (
     <div className='overflow-x-auto'>
-      <table className='w-full min-w-[640px] text-sm'>
+      <table className='w-full min-w-[720px] text-sm'>
         <thead>
           <tr className='border-b border-border bg-muted/50 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground'>
             <th className='w-12 px-4 py-2.5'>
@@ -41,6 +61,7 @@ export function CategoriesTable({ categories }: { categories: CategoryRow[] }) {
             <th className='px-4 py-2.5'>Slug</th>
             <th className='px-4 py-2.5 text-center'>Sub-lines</th>
             <th className='px-4 py-2.5 text-center'>Products</th>
+            <th className='px-4 py-2.5 text-right'>Actions</th>
           </tr>
         </thead>
         <tbody className='divide-y divide-border'>
@@ -49,11 +70,21 @@ export function CategoriesTable({ categories }: { categories: CategoryRow[] }) {
               key={category.id}
               category={category}
               isExpanded={expanded.has(category.id)}
+              onEdit={() => setEditing(category)}
               onToggle={() => toggle(category.id)}
             />
           ))}
         </tbody>
       </table>
+
+      {editing ? (
+        <CategoryFormDialog
+          defaultValues={toFormValues(editing)}
+          mode='edit'
+          onClose={() => setEditing(null)}
+          onSubmit={values => updateCategory({ id: editing.id, values })}
+        />
+      ) : null}
     </div>
   )
 }
@@ -62,10 +93,12 @@ function CategoryTableRow({
   category,
   isExpanded,
   onToggle,
+  onEdit,
 }: {
   category: CategoryRow
   isExpanded: boolean
   onToggle: () => void
+  onEdit: () => void
 }) {
   const hasSubs = category.subcategories.length > 0
 
@@ -116,11 +149,21 @@ function CategoryTableRow({
         <td className='px-4 py-3 text-center tabular-nums text-foreground'>
           {category._count.products}
         </td>
+        <td className='px-4 py-3 text-right'>
+          <Button
+            aria-label={`Edit ${category.name}`}
+            size='icon'
+            variant='outline'
+            onClick={onEdit}
+          >
+            <Pencil aria-hidden className='h-3.5 w-3.5' />
+          </Button>
+        </td>
       </tr>
 
       {isExpanded && hasSubs ? (
         <tr className='bg-muted/30'>
-          <td className='px-4 py-3 pl-16' colSpan={5}>
+          <td className='px-4 py-3 pl-16' colSpan={6}>
             <p className='mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground'>
               Sub-lines
             </p>
