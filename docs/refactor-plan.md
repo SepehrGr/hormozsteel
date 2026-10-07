@@ -47,17 +47,21 @@ Branch: `refactor/codebase`. Work goes phase by phase, with a review pause after
 Small steps, one commit each, with an explanation after every step.
 
 - [x] 1.1 `lib/schemas/category.ts`: one zod schema for the form and the actions;
-  `slugify()` in `lib/slug-generator.ts`
-- [ ] 1.2 Lock the open door: `POST`/`PATCH`/`DELETE` in `app/api/categories/**` have no
+  `slugify()` (moved to `lib/slug.ts` in 1.5)
+- [x] 1.2 Lock the open door: `POST`/`PATCH`/`DELETE` in `app/api/categories/**` have no
   auth check today; add `requireApiAuth()` (the `[id]` page still calls them until Phase 6)
-- [ ] 1.3 `app/admin/categories/actions.ts`: create, update, delete
-- [ ] 1.4 Server `page.tsx` (read-only): Prisma read + `?q=` search, header, stats, table.
+- [x] 1.3 `app/admin/categories/actions.ts`: create, update, delete (delete refuses while products are linked)
+- [x] 1.4 Server `page.tsx` (read-only): Prisma read + `?q=` search, header, stats, table.
   The table is a client island for expand/collapse only. Search was broken before
   (`GET /api/categories` ignores `search`).
-- [ ] 1.5 `category-form.tsx`: RHF + `zodResolver` + `useFieldArray` for sub-lines
-- [ ] 1.6 Add and Edit dialogs wired to the actions
-- [ ] 1.7 Delete dialog wired to the action
-- [ ] 1.8 Write-up: the server/client boundary, client islands, `revalidatePath`
+- [x] 1.5 `category-form-dialog.tsx` (RHF + `zodResolver` raw mode + `useFieldArray`)
+  and the "Add category" button. `isValidSlug`/`slugify` moved to Prisma-free `lib/slug.ts`
+  so client code can import the schema.
+- [x] 1.6 Edit: per-row Edit button opening the same dialog with the row's values; the dialog takes `mode` (create | edit) instead of four label props
+- [x] 1.7 Delete: per-row Delete button + `ConfirmDialog` (Delete greyed out while the
+  category has products; the action refuses too). "Test Family" test row deleted.
+- [x] 1.8 Write-up in `docs/admin-pages.md`: the server/client boundary, client islands,
+  Server Actions, `revalidatePath`, and the checklist for Phases 2–6
 
 ## Phases 2–6: Apply the template
 
@@ -85,10 +89,19 @@ Small steps, one commit each, with an explanation after every step.
   split the sections.
 - [ ] 7.6 Calculators: pure formulas in `lib/weight.ts`, with one `tsx --test` check. Also drop the
   `formatPrice` prop; every caller passes `formatUsd`.
-- [ ] 7.7 Sweep out the Persian, RTL and `dir='ltr'` leftovers.
+- [ ] 7.7 Sweep out the Persian, RTL and `dir='ltr'` leftovers (including the `shamsh` and
+  `qooti` keys in `config/category-icons.ts`, shown as icon names in the category form).
 
 ## Phase 8: API and hooks cleanup
 
+- [ ] 8.0 **Security, do early.** These admin handlers have no auth check (found in 1.2;
+  `middleware.ts` only guards `/admin` pages, not `/api`):
+  - `products` POST, `products/[id]` PATCH/PUT/DELETE
+  - `manufacturers` POST, `manufacturers/[id]` PUT/DELETE
+  - `contact` GET (lists customer messages), PATCH, DELETE
+  - `orders` GET (lists orders)
+
+  Public on purpose: `contact` POST, `orders` POST, `auth/[...nextauth]`.
 - [ ] 8.1 Validate in the routes with zod, using the shared `lib/schemas/*`.
 - [ ] 8.2 Add the missing rate-limit guard to `contact`, `orders`, `admin/profile`,
   `manufacturers/[id]`, `products/bulk`, `products/import`, `latest-prices`, `moment-news`.
