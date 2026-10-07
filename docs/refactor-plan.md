@@ -111,10 +111,11 @@ Steps marked *(from 8.0)* lock down API routes that are open today. That's the p
   - Revalidate `/admin/manufacturers`, `/admin/products`, and the public `/manufacturers`
     and `/products` layouts.
   - Delete is allowed. Its dialog states how many products will lose their mill.
-- [ ] 2.3 Server `page.tsx`: Prisma `select` plus `_count.products`; `?q=` search over
+- [x] 2.3 Server `page.tsx`: Prisma `select` plus `_count.products`; `?q=` search over
   name, slug and email.
-  - Stats: mills, mills with a website, products linked. This fixes the duplicated
-    "Total"/"Listed" tile.
+  - Stats: mills, with contact (website, email or phone), products linked. This fixes the
+    duplicated "Total"/"Listed" tile.
+  - `sum` and `matchesSearch` moved to `lib/utils.ts`, shared with the categories page.
 - [ ] 2.4 Form dialog (`mode` create/edit) and the Add button.
 - [ ] 2.5 Edit, from a row button.
 - [ ] 2.6 Delete, through `ConfirmDialog` with the "N products will lose their mill"

@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/admin/page-header'
 import { SearchToolbar } from '@/components/admin/search-toolbar'
 import { StatsBoard } from '@/components/admin/stats-board'
 import { prisma } from '@/lib/prisma'
+import { matchesSearch, sum } from '@/lib/utils'
 
 export default async function CategoriesPage({
   searchParams,
@@ -32,11 +33,8 @@ export default async function CategoriesPage({
 
   // Filtered here rather than in SQL so the stats above still count everything.
   // ponytail: fine for a few dozen categories; move into `where` if that grows.
-  const needle = query.toLowerCase()
   const visible = categories.filter(c =>
-    [c.name, c.slug, ...c.subcategories].some(text =>
-      text.toLowerCase().includes(needle),
-    ),
+    matchesSearch(query, [c.name, c.slug, ...c.subcategories]),
   )
 
   return (
@@ -91,8 +89,4 @@ export default async function CategoriesPage({
       </DataCard>
     </div>
   )
-}
-
-function sum<T>(items: T[], pick: (item: T) => number) {
-  return items.reduce((total, item) => total + pick(item), 0)
 }
