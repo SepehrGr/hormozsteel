@@ -126,8 +126,8 @@ Steps marked *(from 8.0)* lock down API routes that are open today. That's the p
   dialogs take `action` instead of `onSubmit`.
 - [x] 2.5 Edit, from a row button. The table became `'use client'` for its `editing`
   state; `toFormValues` turns the row's `null`s into the form's empty strings.
-- [ ] 2.6 Delete, through `ConfirmDialog` with the "N products will lose their mill"
-  warning.
+- [x] 2.6 Delete, through `ConfirmDialog` with the "N products will lose their mill"
+  warning. Unlike categories it's never blocked: `onDelete: SetNull` keeps the products.
 - [ ] 2.7 Cleanup:
   - Delete the orphaned `[id]/page.tsx`.
   - Then delete `POST`/`PUT`/`DELETE` in `app/api/manufacturers/**` once a grep finds no

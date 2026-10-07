@@ -3,9 +3,10 @@
 import type { ManufacturerFormValues } from '@/lib/schemas/manufacturer'
 
 import { useState } from 'react'
-import { Factory, Globe, Mail, Pencil, Phone } from 'lucide-react'
+import { Factory, Globe, Mail, Pencil, Phone, Trash2 } from 'lucide-react'
 
 import { updateManufacturer } from '@/app/admin/manufacturers/actions'
+import { DeleteManufacturerDialog } from '@/components/admin/manufacturers/delete-manufacturer-dialog'
 import { ManufacturerFormDialog } from '@/components/admin/manufacturers/manufacturer-form-dialog'
 import { Button } from '@/components/ui/button'
 import { DialogScope } from '@/components/ui/dialog-scope'
@@ -36,13 +37,14 @@ function toFormValues(manufacturer: ManufacturerRow): ManufacturerFormValues {
   }
 }
 
-/** Manufacturers table; the browser owns which row is being edited. */
+/** Manufacturers table; the browser owns which row is being edited or deleted. */
 export function ManufacturersTable({
   manufacturers,
 }: {
   manufacturers: ManufacturerRow[]
 }) {
   const [editing, setEditing] = useState<ManufacturerRow | null>(null)
+  const [deleting, setDeleting] = useState<ManufacturerRow | null>(null)
 
   return (
     <div className='overflow-x-auto'>
@@ -61,6 +63,7 @@ export function ManufacturersTable({
             <ManufacturerTableRow
               key={manufacturer.id}
               manufacturer={manufacturer}
+              onDelete={() => setDeleting(manufacturer)}
               onEdit={() => setEditing(manufacturer)}
             />
           ))}
@@ -76,6 +79,11 @@ export function ManufacturersTable({
           />
         </DialogScope>
       ) : null}
+      {deleting ? (
+        <DialogScope onClose={() => setDeleting(null)}>
+          <DeleteManufacturerDialog manufacturer={deleting} />
+        </DialogScope>
+      ) : null}
     </div>
   )
 }
@@ -83,9 +91,11 @@ export function ManufacturersTable({
 function ManufacturerTableRow({
   manufacturer,
   onEdit,
+  onDelete,
 }: {
   manufacturer: ManufacturerRow
   onEdit: () => void
+  onDelete: () => void
 }) {
   const { name, slug, description, logo, website, email, phone } = manufacturer
   const contacts = [
@@ -155,6 +165,14 @@ function ManufacturerTableRow({
             onClick={onEdit}
           >
             <Pencil aria-hidden className='h-3.5 w-3.5' />
+          </Button>
+          <Button
+            aria-label={`Delete ${name}`}
+            size='icon'
+            variant='danger-outline'
+            onClick={onDelete}
+          >
+            <Trash2 aria-hidden className='h-3.5 w-3.5' />
           </Button>
         </div>
       </td>
