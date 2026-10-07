@@ -19,7 +19,7 @@ export function toastResult<T, F extends FieldValues = FieldValues>(
   setError?: UseFormSetError<F>,
 ): result is Extract<ActionResult<T>, { success: true }> {
   if (result.success) {
-    addToast({ title: 'Saved', description: successMessage, color: 'success' })
+    addToast({ title: 'Done', description: successMessage, color: 'success' })
 
     return true
   }
