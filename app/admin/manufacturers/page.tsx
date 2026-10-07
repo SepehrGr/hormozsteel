@@ -2,6 +2,9 @@ import { Contact, Factory, Package } from 'lucide-react'
 
 import { DataCard } from '@/components/admin/data-card'
 import { EmptyState } from '@/components/admin/empty-state'
+import { createManufacturer } from '@/app/admin/manufacturers/actions'
+import { ManufacturerFormDialog } from '@/components/admin/manufacturers/manufacturer-form-dialog'
+import { DialogButton } from '@/components/ui/dialog-button'
 import { ManufacturersTable } from '@/components/admin/manufacturers/manufacturers-table'
 import { PageHeader } from '@/components/admin/page-header'
 import { SearchToolbar } from '@/components/admin/search-toolbar'
@@ -39,9 +42,16 @@ export default async function ManufacturersPage({
     matchesSearch(query, [m.name, m.slug, m.email]),
   )
 
+  const addButton = (
+    <DialogButton label='Add manufacturer'>
+      <ManufacturerFormDialog action={createManufacturer} mode='create' />
+    </DialogButton>
+  )
+
   return (
     <div className='space-y-6'>
       <PageHeader
+        actions={addButton}
         description='Mills and suppliers linked to catalog products.'
         eyebrow='Catalog'
         icon={Factory}
@@ -76,6 +86,7 @@ export default async function ManufacturersPage({
           <ManufacturersTable manufacturers={visible} />
         ) : (
           <EmptyState
+            action={query ? undefined : addButton}
             description={
               query ? 'Try a different search.' : 'Add a mill to link products.'
             }

@@ -116,7 +116,14 @@ Steps marked *(from 8.0)* lock down API routes that are open today. That's the p
   - Stats: mills, with contact (website, email or phone), products linked. This fixes the
     duplicated "Total"/"Listed" tile.
   - `sum` and `matchesSearch` moved to `lib/utils.ts`, shared with the categories page.
-- [ ] 2.4 Form dialog (`mode` create/edit) and the Add button.
+- [x] 2.4 Form dialog (`mode` create/edit) and the Add button. Shared now in
+  `components/ui/`:
+  - `formModeCopy` (dialog wording) and `invalidProps` (error wiring);
+  - `DialogButton`, one Add button for every page, with the dialog as its child;
+  - `DialogScope`/`useCloseDialog()`, so every dialog closes the same way.
+
+  The per-entity `AddCategoryButton`/`AddManufacturerButton` are gone, and form
+  dialogs take `action` instead of `onSubmit`.
 - [ ] 2.5 Edit, from a row button.
 - [ ] 2.6 Delete, through `ConfirmDialog` with the "N products will lose their mill"
   warning.

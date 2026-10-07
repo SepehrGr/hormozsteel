@@ -19,10 +19,10 @@ them to the next page.
 These are built from shared pieces:
 
 - `components/admin/*`: `PageHeader`, `StatsBoard`, `SearchToolbar`, `DataCard`, `EmptyState`
-- `components/ui/dialogs.tsx`: `FormDialog`, `ConfirmDialog`
+- `components/ui/dialogs.tsx`: `FormDialog`, `ConfirmDialog`, `formModeCopy` (add/edit wording)
 - `components/ui/dialog-button.tsx`: `DialogButton`, which opens a dialog from a server page
 - `components/ui/dialog-scope.tsx`: `DialogScope` and `useCloseDialog()`, how every dialog closes
-- `components/ui/field.tsx`: `FormField`, `Input`, `Select`, `Textarea`
+- `components/ui/field.tsx`: `FormField`, `Input`, `Select`, `Textarea`, `invalidProps`
 - `lib/actions.ts`: `adminAction`
 - `lib/action-toast.ts`: `toastResult`
 
@@ -247,10 +247,11 @@ new props instead of remounting it, so expanded rows stay expanded.
    uses, read `?q=` (and other filters) from `searchParams`, and compose the shared
    admin components.
 4. **Islands:**
-   - a `'use client'` table holding only UI state;
+   - a table holding only UI state. It gets `'use client'` only once it has some
+     (manufacturers' table stayed server-rendered until it needed Edit and Delete);
    - a `'use client'` form dialog that takes `mode` and `action`, using
-     react-hook-form, `zodResolver` in raw mode, `useFieldArray` for lists and
-     `useCloseDialog()` to close;
+     react-hook-form, `zodResolver` in raw mode, `useFieldArray` for lists,
+     `formModeCopy` for its wording and `useCloseDialog()` to close;
    - a delete dialog using `ConfirmDialog`, `useTransition` and `useCloseDialog()`;
    - the page's Add button is `<DialogButton>` with the form dialog as its child.
 5. **API routes:** before deleting an admin-only handler in `app/api/**`, grep for

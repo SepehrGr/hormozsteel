@@ -3,11 +3,15 @@
 import type { ActionResult } from '@/lib/actions'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, Save, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
-import { FormDialog } from '@/components/ui/dialogs'
+import {
+  type FormMode,
+  FormDialog,
+  formModeCopy,
+} from '@/components/ui/dialogs'
 import { useCloseDialog } from '@/components/ui/dialog-scope'
 import {
   FormField,
@@ -15,6 +19,7 @@ import {
   Select,
   Textarea,
   fieldErrorId,
+  invalidProps,
   labelClass,
 } from '@/components/ui/field'
 import { CATEGORY_ICONS, resolveCategoryIcon } from '@/config/category-icons'
@@ -30,35 +35,19 @@ export const emptyCategory: CategoryFormValues = {
   subcategories: [],
 }
 
-const MODES = {
-  create: {
-    title: 'Add category',
-    submitLabel: 'Create',
-    pendingLabel: 'Creating…',
-    successMessage: 'Category created',
-    Icon: Plus,
-  },
-  edit: {
-    title: 'Edit category',
-    submitLabel: 'Save',
-    pendingLabel: 'Saving…',
-    successMessage: 'Category updated',
-    Icon: Save,
-  },
-}
-
 /** Add/edit dialog for one category. Mount only while open. */
 export function CategoryFormDialog({
   mode,
   defaultValues = emptyCategory,
   action,
 }: {
-  mode: keyof typeof MODES
+  mode: FormMode
   defaultValues?: CategoryFormValues
   /** A Server Action (or a call to one); it validates again on the server. */
   action: (values: CategoryFormValues) => Promise<ActionResult>
 }) {
-  const { title, submitLabel, pendingLabel, successMessage, Icon } = MODES[mode]
+  const { title, submitLabel, pendingLabel, successMessage, Icon } =
+    formModeCopy(mode, 'category')
   const close = useCloseDialog()
   const {
     register,
@@ -83,12 +72,6 @@ export function CategoryFormDialog({
     if (toastResult(result, successMessage, setError)) close()
   })
 
-  // Spread onto a control so it's marked invalid and announces its message.
-  const invalid = (id: string, message?: string) => ({
-    'aria-invalid': !!message,
-    'aria-describedby': message ? fieldErrorId(id) : undefined,
-  })
-
   return (
     <FormDialog
       pending={isSubmitting}
@@ -103,7 +86,7 @@ export function CategoryFormDialog({
         <Input
           id='category-name'
           placeholder='e.g. Rebar'
-          {...invalid('category-name', errors.name?.message)}
+          {...invalidProps('category-name', errors.name?.message)}
           {...register('name')}
         />
       </FormField>
@@ -113,7 +96,7 @@ export function CategoryFormDialog({
           className='font-mono'
           id='category-slug'
           placeholder={slugify(name) || 'auto from name'}
-          {...invalid('category-slug', errors.slug?.message)}
+          {...invalidProps('category-slug', errors.slug?.message)}
           {...register('slug')}
         />
       </FormField>
@@ -128,7 +111,7 @@ export function CategoryFormDialog({
           </span>
           <Select
             id='category-icon'
-            {...invalid('category-icon', errors.icon?.message)}
+            {...invalidProps('category-icon', errors.icon?.message)}
             {...register('icon')}
           >
             <option value=''>Default from slug</option>
@@ -150,7 +133,7 @@ export function CategoryFormDialog({
           id='category-description'
           placeholder='Short catalog blurb'
           rows={3}
-          {...invalid('category-description', errors.description?.message)}
+          {...invalidProps('category-description', errors.description?.message)}
           {...register('description')}
         />
       </FormField>
@@ -186,7 +169,7 @@ export function CategoryFormDialog({
                       aria-label={`Sub-line ${index + 1}`}
                       id={id}
                       placeholder='e.g. Ribbed'
-                      {...invalid(id, message)}
+                      {...invalidProps(id, message)}
                       {...register(`subcategories.${index}.value`)}
                     />
                     <Button
