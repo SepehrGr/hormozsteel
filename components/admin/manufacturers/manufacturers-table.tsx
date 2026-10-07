@@ -3,14 +3,20 @@
 import type { ManufacturerFormValues } from '@/lib/schemas/manufacturer'
 
 import { useState } from 'react'
-import { Factory, Globe, Mail, Pencil, Phone, Trash2 } from 'lucide-react'
+import { Factory, Globe, Mail, Phone } from 'lucide-react'
 
 import {
   deleteManufacturer,
   updateManufacturer,
 } from '@/app/admin/manufacturers/actions'
+import {
+  type Column,
+  AdminTable,
+  NameCell,
+  RowActions,
+  rowClass,
+} from '@/components/admin/admin-table'
 import { ManufacturerFormDialog } from '@/components/admin/manufacturers/manufacturer-form-dialog'
-import { Button } from '@/components/ui/button'
 import { DeleteDialog } from '@/components/ui/delete-dialog'
 import { DialogScope } from '@/components/ui/dialog-scope'
 import { pluralize } from '@/lib/format'
@@ -41,6 +47,14 @@ function toFormValues(manufacturer: ManufacturerRow): ManufacturerFormValues {
   }
 }
 
+const columns: Column[] = [
+  { label: 'Manufacturer' },
+  { label: 'Slug' },
+  { label: 'Contact' },
+  { label: 'Products', className: 'text-center' },
+  { label: 'Actions', className: 'text-right' },
+]
+
 /** Manufacturers table; the browser owns which row is being edited or deleted. */
 export function ManufacturersTable({
   manufacturers,
@@ -51,28 +65,17 @@ export function ManufacturersTable({
   const [deleting, setDeleting] = useState<ManufacturerRow | null>(null)
 
   return (
-    <div className='overflow-x-auto'>
-      <table className='w-full min-w-[720px] text-sm'>
-        <thead>
-          <tr className='border-b border-border bg-muted/50 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground'>
-            <th className='px-4 py-2.5'>Manufacturer</th>
-            <th className='px-4 py-2.5'>Slug</th>
-            <th className='px-4 py-2.5'>Contact</th>
-            <th className='px-4 py-2.5 text-center'>Products</th>
-            <th className='px-4 py-2.5 text-right'>Actions</th>
-          </tr>
-        </thead>
-        <tbody className='divide-y divide-border'>
-          {manufacturers.map(manufacturer => (
-            <ManufacturerTableRow
-              key={manufacturer.id}
-              manufacturer={manufacturer}
-              onDelete={() => setDeleting(manufacturer)}
-              onEdit={() => setEditing(manufacturer)}
-            />
-          ))}
-        </tbody>
-      </table>
+    <>
+      <AdminTable columns={columns}>
+        {manufacturers.map(manufacturer => (
+          <ManufacturerTableRow
+            key={manufacturer.id}
+            manufacturer={manufacturer}
+            onDelete={() => setDeleting(manufacturer)}
+            onEdit={() => setEditing(manufacturer)}
+          />
+        ))}
+      </AdminTable>
 
       {editing ? (
         <DialogScope onClose={() => setEditing(null)}>
@@ -97,7 +100,7 @@ export function ManufacturersTable({
           </DeleteDialog>
         </DialogScope>
       ) : null}
-    </div>
+    </>
   )
 }
 
@@ -122,31 +125,21 @@ function ManufacturerTableRow({
   ].filter(contact => !!contact)
 
   return (
-    <tr className='transition-colors duration-200 ease-out hover:bg-muted/40'>
+    <tr className={rowClass}>
       <td className='px-4 py-3'>
-        <div className='flex items-center gap-3'>
-          {logo ? (
-            // Logos are arbitrary external URLs, which next/image would need allow-listed
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              alt=''
-              className='h-9 w-9 border border-border object-cover'
-              src={logo}
-            />
-          ) : (
-            <span className='flex h-9 w-9 shrink-0 items-center justify-center border border-border bg-muted/50 text-muted-foreground'>
+        <NameCell
+          description={description}
+          media={
+            logo ? (
+              // Logos are arbitrary external URLs, which next/image would need allow-listed
+              // eslint-disable-next-line @next/next/no-img-element
+              <img alt='' className='h-full w-full object-cover' src={logo} />
+            ) : (
               <Factory aria-hidden className='h-4 w-4' />
-            </span>
-          )}
-          <div className='min-w-0'>
-            <p className='font-medium text-foreground'>{name}</p>
-            {description ? (
-              <p className='mt-0.5 line-clamp-1 text-xs text-muted-foreground'>
-                {description}
-              </p>
-            ) : null}
-          </div>
-        </div>
+            )
+          }
+          name={name}
+        />
       </td>
       <td className='px-4 py-3 font-mono text-xs text-muted-foreground'>
         {slug}
@@ -170,24 +163,7 @@ function ManufacturerTableRow({
         {manufacturer._count.products}
       </td>
       <td className='px-4 py-3'>
-        <div className='flex justify-end gap-1'>
-          <Button
-            aria-label={`Edit ${name}`}
-            size='icon'
-            variant='outline'
-            onClick={onEdit}
-          >
-            <Pencil aria-hidden className='h-3.5 w-3.5' />
-          </Button>
-          <Button
-            aria-label={`Delete ${name}`}
-            size='icon'
-            variant='danger-outline'
-            onClick={onDelete}
-          >
-            <Trash2 aria-hidden className='h-3.5 w-3.5' />
-          </Button>
-        </div>
+        <RowActions name={name} onDelete={onDelete} onEdit={onEdit} />
       </td>
     </tr>
   )

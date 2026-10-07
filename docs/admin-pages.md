@@ -18,6 +18,8 @@ them to the next page.
 These are built from shared pieces:
 
 - `components/admin/*`: `PageHeader`, `StatsBoard`, `SearchToolbar`, `DataCard`, `EmptyState`
+- `components/admin/admin-table.tsx`: `AdminTable` (frame and header row), `rowClass`,
+  `NameCell` (media box, name, description), `RowActions` (Edit and Delete buttons)
 - `components/ui/dialogs.tsx`: `FormDialog`, `ConfirmDialog`, `formModeCopy` (add/edit wording)
 - `components/ui/delete-dialog.tsx`: `DeleteDialog`, confirm-then-delete for any row
 - `components/ui/dialog-button.tsx`: `DialogButton`, which opens a dialog from a server page
