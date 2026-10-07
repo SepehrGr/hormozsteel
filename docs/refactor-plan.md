@@ -100,7 +100,7 @@ Steps marked *(from 8.0)* lock down API routes that are open today. That's the p
 - Public pages that read manufacturers: `/manufacturers`, `/manufacturers/[postId]`, and
   the product pages (the mill name comes through `toProductDTO`).
 
-- [ ] 2.1 `lib/schemas/manufacturer.ts`:
+- [x] 2.1 `lib/schemas/manufacturer.ts` (`logo` left out: no form ever edited it):
   - `name` required.
   - `slug` derived with `slugify` when empty.
   - `description`, `address`, `phone`.
