@@ -27,6 +27,7 @@ These are built from shared pieces:
 - `components/ui/field.tsx`: `FormField`, `Input`, `Select`, `Textarea`, `invalidProps`
 - `lib/actions.ts`: `adminAction`
 - `lib/action-toast.ts`: `toastResult`
+- `hooks/use-action-form.ts`: `useActionForm`, a form dialog's whole setup in one call
 
 ## 1. Server components and client components
 
@@ -203,8 +204,9 @@ browser shows can be out of date. For example, the delete dialog greys out Delet
 
 `toastResult(result, message, setError)` shows a green or red toast and copies any
 `fieldErrors` into react-hook-form. It returns `true` on success, so callers write
-`if (toastResult(...)) onClose()`. On failure the dialog stays open with the user's
-input intact.
+`if (toastResult(...)) close()`. On failure the dialog stays open with the user's
+input intact. Form dialogs get this from `useActionForm` (`hooks/use-action-form.ts`);
+`DeleteDialog` calls it directly.
 
 The busy flag depends on where the action is called from:
 
@@ -251,9 +253,11 @@ new props instead of remounting it, so expanded rows stay expanded.
 4. **Islands:**
    - a table holding only UI state. It gets `'use client'` only once it has some
      (manufacturers' table stayed server-rendered until it needed Edit and Delete);
-   - a `'use client'` form dialog that takes `mode` and `action`, using
-     react-hook-form, `zodResolver` in raw mode, `useFieldArray` for lists,
-     `formModeCopy` for its wording and `useCloseDialog()` to close;
+   - a `'use client'` form dialog that takes `mode` and `action`. It calls
+     `useActionForm({ schema, defaultValues, action, mode, noun })` and renders
+     `<FormDialog {...dialog}>`, with `field('name')` spread on each control and
+     `useFieldArray` for lists;
+   - the table, built from `AdminTable`, `NameCell` and `RowActions`;
    - the table's delete dialog is `<DeleteDialog>`: pass `noun`, `name`, `action`,
      `blocked` when the action would refuse, and the warning as children;
    - the page's Add button is `<DialogButton>` with the form dialog as its child.
