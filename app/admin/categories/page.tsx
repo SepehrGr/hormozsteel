@@ -1,5 +1,6 @@
 import { FolderTree, Layers, Package } from 'lucide-react'
 
+import { AddCategoryButton } from '@/components/admin/categories/add-category-button'
 import { CategoriesTable } from '@/components/admin/categories/categories-table'
 import { DataCard } from '@/components/admin/data-card'
 import { EmptyState } from '@/components/admin/empty-state'
@@ -41,6 +42,7 @@ export default async function CategoriesPage({
   return (
     <div className='space-y-6'>
       <PageHeader
+        actions={<AddCategoryButton />}
         description='Product families, slugs, icons, and sub-lines.'
         eyebrow='Catalog'
         icon={FolderTree}
@@ -74,6 +76,7 @@ export default async function CategoriesPage({
           <CategoriesTable categories={visible} />
         ) : (
           <EmptyState
+            action={query ? undefined : <AddCategoryButton />}
             description={
               query
                 ? 'Try a different search.'

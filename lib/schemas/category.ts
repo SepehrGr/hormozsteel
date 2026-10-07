@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import { CATEGORY_ICONS } from '@/config/category-icons'
-import { isValidSlug, slugify } from '@/lib/slug-generator'
+import { isValidSlug, slugify } from '@/lib/slug'
 
 /**
  * The rules for a category, shared by the admin form and its Server Actions.
