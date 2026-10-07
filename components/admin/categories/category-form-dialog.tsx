@@ -1,5 +1,5 @@
-'use client'
-
+// Browser code, but deliberately not a 'use client' entry: only client
+// components render it, and its function props couldn't cross from a server one.
 import type { ActionResult } from '@/lib/actions'
 
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -144,11 +144,24 @@ export function CategoryFormDialog({
       </FormField>
 
       <fieldset>
-        <legend className={labelClass}>Sub-lines</legend>
+        {/* <legend> must stay the first child; floating it lays it out like
+            normal content, so the button can sit beside it */}
+        <legend className={`${labelClass} float-left`}>Sub-lines</legend>
+        <Button
+          aria-label='Add sub-line'
+          className='float-right -mt-2'
+          size='sm'
+          variant='link'
+          onClick={() => subs.append({ value: '' })}
+        >
+          + Add
+        </Button>
         {subs.fields.length === 0 ? (
-          <p className='text-xs text-muted-foreground'>No sub-lines yet.</p>
+          <p className='clear-both text-xs text-muted-foreground'>
+            No sub-lines yet.
+          </p>
         ) : (
-          <ul className='space-y-2'>
+          <ul className='clear-both space-y-2'>
             {subs.fields.map((field, index) => {
               const id = `category-sub-${index}`
               const message = errors.subcategories?.[index]?.value?.message
@@ -188,15 +201,6 @@ export function CategoryFormDialog({
             })}
           </ul>
         )}
-        <Button
-          className='mt-2'
-          size='sm'
-          variant='outline'
-          onClick={() => subs.append({ value: '' })}
-        >
-          <Plus aria-hidden className='h-4 w-4' />
-          Add sub-line
-        </Button>
       </fieldset>
     </FormDialog>
   )
