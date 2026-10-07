@@ -136,12 +136,16 @@ Steps marked *(from 8.0)* lock down API routes that are open today. That's the p
     callers *(from 8.0)*. The `[id]` page was their only caller.
   - Keep `GET`, which the admin products page uses. `GET /api/manufacturers/[id]` has no
     callers left except the unused `useManufacturer` hook; 7.8 deletes it.
-- [ ] 2.8 Review against categories. Move anything now written twice and identical into
+- [x] 2.8 Review against categories. Move anything now written twice and identical into
   `components/admin/`. Likely candidate: the edit and delete row buttons.
   - [x] Tables: `components/admin/admin-table.tsx` has `AdminTable`, `rowClass`, `NameCell`
     and `RowActions`. The dashboard's recent-orders table uses it too; the orders inbox
     picks it up in Phase 4.
-  - [ ] Form dialogs: one hook for the useForm → action → toast → close wiring.
+  - [x] Form dialogs: `hooks/use-action-form.ts` does the useForm → action → toast →
+    close wiring and gives each control its id and error props (`field('name')`).
+    `FormDialog` takes `mode` and `noun` and works out its own wording.
+  - Left separate on purpose: the two `actions.ts` files (each refreshes different
+    pages and has different delete rules) and the page layouts (the stats differ).
 
 ### Phase 3: Admin users (`refactor/admin-users`)
 
