@@ -50,7 +50,7 @@ Small steps, one commit each, with an explanation after every step.
   `slugify()` in `lib/slug-generator.ts`
 - [x] 1.2 Lock the open door: `POST`/`PATCH`/`DELETE` in `app/api/categories/**` have no
   auth check today; add `requireApiAuth()` (the `[id]` page still calls them until Phase 6)
-- [ ] 1.3 `app/admin/categories/actions.ts`: create, update, delete
+- [x] 1.3 `app/admin/categories/actions.ts`: create, update, delete (delete refuses while products are linked)
 - [ ] 1.4 Server `page.tsx` (read-only): Prisma read + `?q=` search, header, stats, table.
   The table is a client island for expand/collapse only. Search was broken before
   (`GET /api/categories` ignores `search`).
