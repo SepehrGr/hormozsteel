@@ -128,6 +128,8 @@ Steps marked *(from 8.0)* lock down API routes that are open today. That's the p
   state; `toFormValues` turns the row's `null`s into the form's empty strings.
 - [x] 2.6 Delete, through `ConfirmDialog` with the "N products will lose their mill"
   warning. Unlike categories it's never blocked: `onDelete: SetNull` keeps the products.
+  Both tables now share one `DeleteDialog` in `components/ui/`; `capitalize` moved
+  to `lib/format.ts`.
 - [ ] 2.7 Cleanup:
   - Delete the orphaned `[id]/page.tsx`.
   - Then delete `POST`/`PUT`/`DELETE` in `app/api/manufacturers/**` once a grep finds no

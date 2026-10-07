@@ -79,6 +79,11 @@ export function formatShortDateTime(value: DateInput) {
   return date ? shortDateTimeFmt.format(date) : null
 }
 
+/** `category` → `Category` */
+export function capitalize(word: string) {
+  return word.charAt(0).toUpperCase() + word.slice(1)
+}
+
 /** `1 product`, `3 products` */
 export function pluralize(count: number, word: string, plural = `${word}s`) {
   return `${count} ${count === 1 ? word : plural}`

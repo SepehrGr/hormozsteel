@@ -5,11 +5,15 @@ import type { ManufacturerFormValues } from '@/lib/schemas/manufacturer'
 import { useState } from 'react'
 import { Factory, Globe, Mail, Pencil, Phone, Trash2 } from 'lucide-react'
 
-import { updateManufacturer } from '@/app/admin/manufacturers/actions'
-import { DeleteManufacturerDialog } from '@/components/admin/manufacturers/delete-manufacturer-dialog'
+import {
+  deleteManufacturer,
+  updateManufacturer,
+} from '@/app/admin/manufacturers/actions'
 import { ManufacturerFormDialog } from '@/components/admin/manufacturers/manufacturer-form-dialog'
 import { Button } from '@/components/ui/button'
+import { DeleteDialog } from '@/components/ui/delete-dialog'
 import { DialogScope } from '@/components/ui/dialog-scope'
+import { pluralize } from '@/lib/format'
 
 export interface ManufacturerRow {
   id: string
@@ -81,7 +85,16 @@ export function ManufacturersTable({
       ) : null}
       {deleting ? (
         <DialogScope onClose={() => setDeleting(null)}>
-          <DeleteManufacturerDialog manufacturer={deleting} />
+          {/* Never blocked: Product.manufacturer is `onDelete: SetNull`. */}
+          <DeleteDialog
+            action={() => deleteManufacturer({ id: deleting.id })}
+            name={deleting.name}
+            noun='manufacturer'
+          >
+            {deleting._count.products > 0
+              ? `${pluralize(deleting._count.products, 'product')} will lose their mill. They stay in the catalog with no manufacturer.`
+              : null}
+          </DeleteDialog>
         </DialogScope>
       ) : null}
     </div>
