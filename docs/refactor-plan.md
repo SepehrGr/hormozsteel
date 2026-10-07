@@ -130,11 +130,12 @@ Steps marked *(from 8.0)* lock down API routes that are open today. That's the p
   warning. Unlike categories it's never blocked: `onDelete: SetNull` keeps the products.
   Both tables now share one `DeleteDialog` in `components/ui/`; `capitalize` moved
   to `lib/format.ts`.
-- [ ] 2.7 Cleanup:
+- [x] 2.7 Cleanup:
   - Delete the orphaned `[id]/page.tsx`.
   - Then delete `POST`/`PUT`/`DELETE` in `app/api/manufacturers/**` once a grep finds no
-    callers *(from 8.0)*.
-  - Keep `GET`, which the admin products page uses.
+    callers *(from 8.0)*. The `[id]` page was their only caller.
+  - Keep `GET`, which the admin products page uses. `GET /api/manufacturers/[id]` has no
+    callers left except the unused `useManufacturer` hook; 7.8 deletes it.
 - [ ] 2.8 Review against categories. Move anything now written twice and identical into
   `components/admin/`. Likely candidate: the edit and delete row buttons.
 
@@ -346,7 +347,7 @@ So most of this phase is checking that the remaining routes are complete.
 - [ ] 8.0 **Security, do early.** These admin handlers have no auth check (found in 1.2;
   `middleware.ts` only guards `/admin` pages, not `/api`):
   - `products` POST, `products/[id]` PATCH/PUT/DELETE
-  - `manufacturers` POST, `manufacturers/[id]` PUT/DELETE
+  - ~~`manufacturers` POST, `manufacturers/[id]` PUT/DELETE~~ deleted in 2.7
   - `contact` GET (lists customer messages), PATCH, DELETE
   - `orders` GET (lists orders) and POST
 
