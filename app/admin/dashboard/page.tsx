@@ -10,6 +10,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 
+import { AdminTable, rowClass } from '@/components/admin/admin-table'
 import { prisma } from '@/lib/prisma'
 import { formatUsd, formatDate, formatNumber } from '@/lib/format'
 
@@ -170,43 +171,36 @@ export default async function AdminDashboard() {
             No orders yet. Quote requests from the public site will appear here.
           </div>
         ) : (
-          <div className='overflow-x-auto'>
-            <table className='w-full min-w-[560px] text-sm'>
-              <thead>
-                <tr className='border-b border-border bg-muted/50 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground'>
-                  <th className='px-4 py-2.5'>Order</th>
-                  <th className='px-4 py-2.5'>Customer</th>
-                  <th className='px-4 py-2.5 text-center'>Lines</th>
-                  <th className='px-4 py-2.5 text-right'>Total</th>
-                  <th className='px-4 py-2.5 text-right'>Date</th>
-                </tr>
-              </thead>
-              <tbody className='divide-y divide-border'>
-                {stats.recentOrders.map(order => (
-                  <tr
-                    key={order.id}
-                    className='transition-colors duration-200 ease-out hover:bg-muted/40'
-                  >
-                    <td className='px-4 py-3 font-mono text-xs font-medium text-foreground'>
-                      #{order.orderNumber}
-                    </td>
-                    <td className='px-4 py-3 text-foreground'>
-                      {order.customer.name}
-                    </td>
-                    <td className='px-4 py-3 text-center tabular-nums text-muted-foreground'>
-                      {order.items.length}
-                    </td>
-                    <td className='px-4 py-3 text-right font-medium tabular-nums text-foreground'>
-                      {formatUsd(Number(order.totalAmount), { whole: true })}
-                    </td>
-                    <td className='px-4 py-3 text-right text-muted-foreground'>
-                      {formatDate(order.createdAt)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <AdminTable
+            className='min-w-[560px]'
+            columns={[
+              { label: 'Order' },
+              { label: 'Customer' },
+              { label: 'Lines', className: 'text-center' },
+              { label: 'Total', className: 'text-right' },
+              { label: 'Date', className: 'text-right' },
+            ]}
+          >
+            {stats.recentOrders.map(order => (
+              <tr key={order.id} className={rowClass}>
+                <td className='px-4 py-3 font-mono text-xs font-medium text-foreground'>
+                  #{order.orderNumber}
+                </td>
+                <td className='px-4 py-3 text-foreground'>
+                  {order.customer.name}
+                </td>
+                <td className='px-4 py-3 text-center tabular-nums text-muted-foreground'>
+                  {order.items.length}
+                </td>
+                <td className='px-4 py-3 text-right font-medium tabular-nums text-foreground'>
+                  {formatUsd(Number(order.totalAmount), { whole: true })}
+                </td>
+                <td className='px-4 py-3 text-right text-muted-foreground'>
+                  {formatDate(order.createdAt)}
+                </td>
+              </tr>
+            ))}
+          </AdminTable>
         )}
       </section>
     </div>
