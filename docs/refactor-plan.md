@@ -124,7 +124,8 @@ Steps marked *(from 8.0)* lock down API routes that are open today. That's the p
 
   The per-entity `AddCategoryButton`/`AddManufacturerButton` are gone, and form
   dialogs take `action` instead of `onSubmit`.
-- [ ] 2.5 Edit, from a row button.
+- [x] 2.5 Edit, from a row button. The table became `'use client'` for its `editing`
+  state; `toFormValues` turns the row's `null`s into the form's empty strings.
 - [ ] 2.6 Delete, through `ConfirmDialog` with the "N products will lose their mill"
   warning.
 - [ ] 2.7 Cleanup:

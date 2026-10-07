@@ -1,4 +1,14 @@
-import { Factory, Globe, Mail, Phone } from 'lucide-react'
+'use client'
+
+import type { ManufacturerFormValues } from '@/lib/schemas/manufacturer'
+
+import { useState } from 'react'
+import { Factory, Globe, Mail, Pencil, Phone } from 'lucide-react'
+
+import { updateManufacturer } from '@/app/admin/manufacturers/actions'
+import { ManufacturerFormDialog } from '@/components/admin/manufacturers/manufacturer-form-dialog'
+import { Button } from '@/components/ui/button'
+import { DialogScope } from '@/components/ui/dialog-scope'
 
 export interface ManufacturerRow {
   id: string
@@ -13,12 +23,27 @@ export interface ManufacturerRow {
   _count: { products: number }
 }
 
-/** Manufacturers table. No browser state yet, so it renders on the server. */
+/** A database row in the shape the manufacturer form holds (null → ''). */
+function toFormValues(manufacturer: ManufacturerRow): ManufacturerFormValues {
+  return {
+    name: manufacturer.name,
+    slug: manufacturer.slug,
+    description: manufacturer.description ?? '',
+    website: manufacturer.website ?? '',
+    email: manufacturer.email ?? '',
+    phone: manufacturer.phone ?? '',
+    address: manufacturer.address ?? '',
+  }
+}
+
+/** Manufacturers table; the browser owns which row is being edited. */
 export function ManufacturersTable({
   manufacturers,
 }: {
   manufacturers: ManufacturerRow[]
 }) {
+  const [editing, setEditing] = useState<ManufacturerRow | null>(null)
+
   return (
     <div className='overflow-x-auto'>
       <table className='w-full min-w-[720px] text-sm'>
@@ -28,6 +53,7 @@ export function ManufacturersTable({
             <th className='px-4 py-2.5'>Slug</th>
             <th className='px-4 py-2.5'>Contact</th>
             <th className='px-4 py-2.5 text-center'>Products</th>
+            <th className='px-4 py-2.5 text-right'>Actions</th>
           </tr>
         </thead>
         <tbody className='divide-y divide-border'>
@@ -35,18 +61,31 @@ export function ManufacturersTable({
             <ManufacturerTableRow
               key={manufacturer.id}
               manufacturer={manufacturer}
+              onEdit={() => setEditing(manufacturer)}
             />
           ))}
         </tbody>
       </table>
+
+      {editing ? (
+        <DialogScope onClose={() => setEditing(null)}>
+          <ManufacturerFormDialog
+            action={values => updateManufacturer({ id: editing.id, values })}
+            defaultValues={toFormValues(editing)}
+            mode='edit'
+          />
+        </DialogScope>
+      ) : null}
     </div>
   )
 }
 
 function ManufacturerTableRow({
   manufacturer,
+  onEdit,
 }: {
   manufacturer: ManufacturerRow
+  onEdit: () => void
 }) {
   const { name, slug, description, logo, website, email, phone } = manufacturer
   const contacts = [
@@ -106,6 +145,18 @@ function ManufacturerTableRow({
       </td>
       <td className='px-4 py-3 text-center tabular-nums text-foreground'>
         {manufacturer._count.products}
+      </td>
+      <td className='px-4 py-3'>
+        <div className='flex justify-end gap-1'>
+          <Button
+            aria-label={`Edit ${name}`}
+            size='icon'
+            variant='outline'
+            onClick={onEdit}
+          >
+            <Pencil aria-hidden className='h-3.5 w-3.5' />
+          </Button>
+        </div>
       </td>
     </tr>
   )
