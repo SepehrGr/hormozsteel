@@ -1,5 +1,5 @@
-// Browser code, but deliberately not a 'use client' entry: only client
-// components render it, and its function props couldn't cross from a server one.
+'use client'
+
 import type { ActionResult } from '@/lib/actions'
 
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -8,6 +8,7 @@ import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { FormDialog } from '@/components/ui/dialogs'
+import { useCloseDialog } from '@/components/ui/dialog-scope'
 import {
   FormField,
   Input,
@@ -50,16 +51,15 @@ const MODES = {
 export function CategoryFormDialog({
   mode,
   defaultValues = emptyCategory,
-  onSubmit,
-  onClose,
+  action,
 }: {
   mode: keyof typeof MODES
   defaultValues?: CategoryFormValues
-  /** A Server Action; it validates again on the server. */
-  onSubmit: (values: CategoryFormValues) => Promise<ActionResult>
-  onClose: () => void
+  /** A Server Action (or a call to one); it validates again on the server. */
+  action: (values: CategoryFormValues) => Promise<ActionResult>
 }) {
   const { title, submitLabel, pendingLabel, successMessage, Icon } = MODES[mode]
+  const close = useCloseDialog()
   const {
     register,
     control,
@@ -78,9 +78,9 @@ export function CategoryFormDialog({
   })
 
   const submit = handleSubmit(async values => {
-    const result = await onSubmit(values)
+    const result = await action(values)
 
-    if (toastResult(result, successMessage, setError)) onClose()
+    if (toastResult(result, successMessage, setError)) close()
   })
 
   // Spread onto a control so it's marked invalid and announces its message.
@@ -96,7 +96,7 @@ export function CategoryFormDialog({
       submitIcon={<Icon aria-hidden className='h-4 w-4' />}
       submitLabel={submitLabel}
       title={title}
-      onClose={onClose}
+      onClose={close}
       onSubmit={submit}
     >
       <FormField error={errors.name?.message} id='category-name' label='Name *'>

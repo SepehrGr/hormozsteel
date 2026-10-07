@@ -9,6 +9,7 @@ import { updateCategory } from '@/app/admin/categories/actions'
 import { CategoryFormDialog } from '@/components/admin/categories/category-form-dialog'
 import { DeleteCategoryDialog } from '@/components/admin/categories/delete-category-dialog'
 import { Button } from '@/components/ui/button'
+import { DialogScope } from '@/components/ui/dialog-scope'
 import { CATEGORY_ICONS, resolveCategoryIcon } from '@/config/category-icons'
 
 export interface CategoryRow {
@@ -81,18 +82,18 @@ export function CategoriesTable({ categories }: { categories: CategoryRow[] }) {
       </table>
 
       {editing ? (
-        <CategoryFormDialog
-          defaultValues={toFormValues(editing)}
-          mode='edit'
-          onClose={() => setEditing(null)}
-          onSubmit={values => updateCategory({ id: editing.id, values })}
-        />
+        <DialogScope onClose={() => setEditing(null)}>
+          <CategoryFormDialog
+            action={values => updateCategory({ id: editing.id, values })}
+            defaultValues={toFormValues(editing)}
+            mode='edit'
+          />
+        </DialogScope>
       ) : null}
       {deleting ? (
-        <DeleteCategoryDialog
-          category={deleting}
-          onClose={() => setDeleting(null)}
-        />
+        <DialogScope onClose={() => setDeleting(null)}>
+          <DeleteCategoryDialog category={deleting} />
+        </DialogScope>
       ) : null}
     </div>
   )
