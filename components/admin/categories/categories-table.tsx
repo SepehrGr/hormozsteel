@@ -5,12 +5,13 @@ import type { CategoryFormValues } from '@/lib/schemas/category'
 import { Fragment, useState } from 'react'
 import { ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react'
 
-import { updateCategory } from '@/app/admin/categories/actions'
+import { deleteCategory, updateCategory } from '@/app/admin/categories/actions'
 import { CategoryFormDialog } from '@/components/admin/categories/category-form-dialog'
-import { DeleteCategoryDialog } from '@/components/admin/categories/delete-category-dialog'
 import { Button } from '@/components/ui/button'
+import { DeleteDialog } from '@/components/ui/delete-dialog'
 import { DialogScope } from '@/components/ui/dialog-scope'
 import { CATEGORY_ICONS, resolveCategoryIcon } from '@/config/category-icons'
+import { pluralize } from '@/lib/format'
 
 export interface CategoryRow {
   id: string
@@ -92,7 +93,21 @@ export function CategoriesTable({ categories }: { categories: CategoryRow[] }) {
       ) : null}
       {deleting ? (
         <DialogScope onClose={() => setDeleting(null)}>
-          <DeleteCategoryDialog category={deleting} />
+          <DeleteDialog
+            action={() => deleteCategory({ id: deleting.id })}
+            // The action refuses too; this count is only as fresh as the page.
+            blocked={deleting._count.products > 0}
+            name={deleting.name}
+            noun='category'
+          >
+            {deleting._count.products > 0 ? (
+              <>
+                <span className='font-medium'>{deleting.name}</span> still has{' '}
+                {pluralize(deleting._count.products, 'product')}. Move or delete
+                them first: deleting a category deletes every product in it.
+              </>
+            ) : null}
+          </DeleteDialog>
         </DialogScope>
       ) : null}
     </div>

@@ -14,12 +14,12 @@ them to the next page.
 | `lib/schemas/category.ts` | The rules for a valid category | both |
 | `components/admin/categories/categories-table.tsx` | Rows, plus which are expanded, edited or being deleted | browser |
 | `components/admin/categories/category-form-dialog.tsx` | The add/edit form | browser |
-| `components/admin/categories/delete-category-dialog.tsx` | Confirm, then delete | browser |
 
 These are built from shared pieces:
 
 - `components/admin/*`: `PageHeader`, `StatsBoard`, `SearchToolbar`, `DataCard`, `EmptyState`
 - `components/ui/dialogs.tsx`: `FormDialog`, `ConfirmDialog`, `formModeCopy` (add/edit wording)
+- `components/ui/delete-dialog.tsx`: `DeleteDialog`, confirm-then-delete for any row
 - `components/ui/dialog-button.tsx`: `DialogButton`, which opens a dialog from a server page
 - `components/ui/dialog-scope.tsx`: `DialogScope` and `useCloseDialog()`, how every dialog closes
 - `components/ui/field.tsx`: `FormField`, `Input`, `Select`, `Textarea`, `invalidProps`
@@ -65,7 +65,7 @@ shouldn't carry the directive.
 | `categories-table.tsx` | `page.tsx` (server) | yes |
 | `components/ui/dialog-button.tsx` | `page.tsx` (server) | yes |
 | `category-form-dialog.tsx` | `page.tsx` (server), inside `DialogButton` | yes |
-| `delete-category-dialog.tsx` | client components only | no |
+| `components/ui/delete-dialog.tsx` | client components only | no |
 | `components/ui/dialogs.tsx` | client components only | no |
 | `components/ui/dialog-scope.tsx` | client components only | no |
 
@@ -252,7 +252,8 @@ new props instead of remounting it, so expanded rows stay expanded.
    - a `'use client'` form dialog that takes `mode` and `action`, using
      react-hook-form, `zodResolver` in raw mode, `useFieldArray` for lists,
      `formModeCopy` for its wording and `useCloseDialog()` to close;
-   - a delete dialog using `ConfirmDialog`, `useTransition` and `useCloseDialog()`;
+   - the table's delete dialog is `<DeleteDialog>`: pass `noun`, `name`, `action`,
+     `blocked` when the action would refuse, and the warning as children;
    - the page's Add button is `<DialogButton>` with the form dialog as its child.
 5. **API routes:** before deleting an admin-only handler in `app/api/**`, grep for
    other callers. Any handler that stays must check `requireApiAuth()` (see plan item

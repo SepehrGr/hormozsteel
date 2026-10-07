@@ -7,26 +7,25 @@ import { Plus, Save, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import ModalDialog from '@/components/ui/modal-dialog'
+import { capitalize } from '@/lib/format'
 
 export type FormMode = 'create' | 'edit'
 
 /** Title, button labels, success toast and icon for an add/edit dialog. */
 export function formModeCopy(mode: FormMode, noun: string) {
-  const Noun = noun.charAt(0).toUpperCase() + noun.slice(1)
-
   return mode === 'create'
     ? {
         title: `Add ${noun}`,
         submitLabel: 'Create',
         pendingLabel: 'Creating…',
-        successMessage: `${Noun} created`,
+        successMessage: `${capitalize(noun)} created`,
         Icon: Plus,
       }
     : {
         title: `Edit ${noun}`,
         submitLabel: 'Save',
         pendingLabel: 'Saving…',
-        successMessage: `${Noun} updated`,
+        successMessage: `${capitalize(noun)} updated`,
         Icon: Save,
       }
 }
