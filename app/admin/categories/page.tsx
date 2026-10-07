@@ -1,6 +1,8 @@
 import { FolderTree, Layers, Package } from 'lucide-react'
 
-import { AddCategoryButton } from '@/components/admin/categories/add-category-button'
+import { createCategory } from '@/app/admin/categories/actions'
+import { CategoryFormDialog } from '@/components/admin/categories/category-form-dialog'
+import { DialogButton } from '@/components/ui/dialog-button'
 import { CategoriesTable } from '@/components/admin/categories/categories-table'
 import { DataCard } from '@/components/admin/data-card'
 import { EmptyState } from '@/components/admin/empty-state'
@@ -37,10 +39,16 @@ export default async function CategoriesPage({
     matchesSearch(query, [c.name, c.slug, ...c.subcategories]),
   )
 
+  const addButton = (
+    <DialogButton label='Add category'>
+      <CategoryFormDialog action={createCategory} mode='create' />
+    </DialogButton>
+  )
+
   return (
     <div className='space-y-6'>
       <PageHeader
-        actions={<AddCategoryButton />}
+        actions={addButton}
         description='Product families, slugs, icons, and sub-lines.'
         eyebrow='Catalog'
         icon={FolderTree}
@@ -74,7 +82,7 @@ export default async function CategoriesPage({
           <CategoriesTable categories={visible} />
         ) : (
           <EmptyState
-            action={query ? undefined : <AddCategoryButton />}
+            action={query ? undefined : addButton}
             description={
               query
                 ? 'Try a different search.'

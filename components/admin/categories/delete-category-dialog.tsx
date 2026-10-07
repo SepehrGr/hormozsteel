@@ -1,23 +1,18 @@
-// Browser code, but deliberately not a 'use client' entry: only client
-// components render it, and its function props couldn't cross from a server one.
+// Browser code without 'use client': only client components render it.
 import type { CategoryRow } from '@/components/admin/categories/categories-table'
 
 import { useTransition } from 'react'
 import { Trash2 } from 'lucide-react'
 
 import { deleteCategory } from '@/app/admin/categories/actions'
+import { useCloseDialog } from '@/components/ui/dialog-scope'
 import { ConfirmDialog } from '@/components/ui/dialogs'
 import { toastResult } from '@/lib/action-toast'
 import { pluralize } from '@/lib/format'
 
 /** Confirm, then delete one category. Mount only while open. */
-export function DeleteCategoryDialog({
-  category,
-  onClose,
-}: {
-  category: CategoryRow
-  onClose: () => void
-}) {
+export function DeleteCategoryDialog({ category }: { category: CategoryRow }) {
+  const close = useCloseDialog()
   const [pending, startTransition] = useTransition()
   const products = category._count.products
 
@@ -25,7 +20,7 @@ export function DeleteCategoryDialog({
     startTransition(async () => {
       const result = await deleteCategory({ id: category.id })
 
-      if (toastResult(result, 'Category deleted')) onClose()
+      if (toastResult(result, 'Category deleted')) close()
     })
 
   return (
@@ -35,7 +30,7 @@ export function DeleteCategoryDialog({
       confirmIcon={<Trash2 aria-hidden className='h-4 w-4' />}
       pending={pending}
       title='Delete category'
-      onClose={onClose}
+      onClose={close}
       onConfirm={confirm}
     >
       {products > 0 ? (
