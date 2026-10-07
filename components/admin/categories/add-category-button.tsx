@@ -18,10 +18,7 @@ export function AddCategoryButton() {
       </Button>
       {open ? (
         <CategoryFormDialog
-          pendingLabel='Creating…'
-          submitLabel='Create'
-          successMessage='Category created'
-          title='Add category'
+          mode='create'
           onClose={() => setOpen(false)}
           onSubmit={createCategory}
         />

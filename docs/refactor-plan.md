@@ -57,7 +57,7 @@ Small steps, one commit each, with an explanation after every step.
 - [x] 1.5 `category-form-dialog.tsx` (RHF + `zodResolver` raw mode + `useFieldArray`)
   and the "Add category" button. `isValidSlug`/`slugify` moved to Prisma-free `lib/slug.ts`
   so client code can import the schema.
-- [ ] 1.6 Edit: per-row Edit button opening the same dialog with the row's values
+- [x] 1.6 Edit: per-row Edit button opening the same dialog with the row's values; the dialog takes `mode` (create | edit) instead of four label props
 - [ ] 1.7 Delete: per-row Delete button + `ConfirmDialog`; then delete the "Test Family"
   row created while testing 1.5
 - [ ] 1.8 Write-up: the server/client boundary, client islands, `revalidatePath`
