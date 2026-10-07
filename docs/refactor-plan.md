@@ -58,8 +58,8 @@ Small steps, one commit each, with an explanation after every step.
   and the "Add category" button. `isValidSlug`/`slugify` moved to Prisma-free `lib/slug.ts`
   so client code can import the schema.
 - [x] 1.6 Edit: per-row Edit button opening the same dialog with the row's values; the dialog takes `mode` (create | edit) instead of four label props
-- [ ] 1.7 Delete: per-row Delete button + `ConfirmDialog`; then delete the "Test Family"
-  row created while testing 1.5
+- [x] 1.7 Delete: per-row Delete button + `ConfirmDialog` (Delete greyed out while the
+  category has products; the action refuses too). "Test Family" test row deleted.
 - [ ] 1.8 Write-up: the server/client boundary, client islands, `revalidatePath`
 
 ## Phases 2–6: Apply the template
