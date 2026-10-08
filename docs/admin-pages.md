@@ -14,16 +14,20 @@ them to the next page.
 | `lib/schemas/category.ts` | The rules for a valid category | both |
 | `components/admin/categories/categories-table.tsx` | Rows, plus which are expanded, edited or being deleted | browser |
 | `components/admin/categories/category-form-dialog.tsx` | The add/edit form | browser |
-| `components/admin/categories/delete-category-dialog.tsx` | Confirm, then delete | browser |
-| `components/admin/categories/add-category-button.tsx` | Opens the add form | browser |
 
 These are built from shared pieces:
 
 - `components/admin/*`: `PageHeader`, `StatsBoard`, `SearchToolbar`, `DataCard`, `EmptyState`
-- `components/ui/dialogs.tsx`: `FormDialog`, `ConfirmDialog`
-- `components/ui/field.tsx`: `FormField`, `Input`, `Select`, `Textarea`
+- `components/admin/admin-table.tsx`: `AdminTable` (frame and header row), `rowClass`,
+  `NameCell` (media box, name, description), `RowActions` (Edit and Delete buttons)
+- `components/ui/dialogs.tsx`: `FormDialog`, `ConfirmDialog`, `formModeCopy` (add/edit wording)
+- `components/ui/delete-dialog.tsx`: `DeleteDialog`, confirm-then-delete for any row
+- `components/ui/dialog-button.tsx`: `DialogButton`, which opens a dialog from a server page
+- `components/ui/dialog-scope.tsx`: `DialogScope` and `useCloseDialog()`, how every dialog closes
+- `components/ui/field.tsx`: `FormField`, `Input`, `Select`, `Textarea`, `invalidProps`
 - `lib/actions.ts`: `adminAction`
 - `lib/action-toast.ts`: `toastResult`
+- `hooks/use-action-form.ts`: `useActionForm`, a form dialog's whole setup in one call
 
 ## 1. Server components and client components
 
@@ -62,15 +66,35 @@ shouldn't carry the directive.
 | File | Imported by | `'use client'`? |
 |---|---|---|
 | `categories-table.tsx` | `page.tsx` (server) | yes |
-| `add-category-button.tsx` | `page.tsx` (server) | yes |
-| `category-form-dialog.tsx` | client components only | no |
-| `delete-category-dialog.tsx` | client components only | no |
+| `components/ui/dialog-button.tsx` | `page.tsx` (server) | yes |
+| `category-form-dialog.tsx` | `page.tsx` (server), inside `DialogButton` | yes |
+| `components/ui/delete-dialog.tsx` | client components only | no |
 | `components/ui/dialogs.tsx` | client components only | no |
+| `components/ui/dialog-scope.tsx` | client components only | no |
 
 The reason this matters: props that cross from server to client are serialized, and
 functions can't be. Server Actions are the one exception, because they cross as
-references. If you mark a file whose components take `onClose`/`onSubmit` callbacks
-with `'use client'`, Next's TypeScript plugin warns with code 71007.
+references, and Next's TypeScript plugin only accepts them in a prop named `action`
+or `…Action`. If you mark a file whose components take other callbacks (`onClose`,
+`onSubmit`) with `'use client'`, the plugin warns with code 71007.
+
+### Opening a dialog from a server page
+
+A server page can't hand a client button a component or an `onClose` function, but it
+can hand it an **element** whose props are plain data or Server Actions:
+
+```tsx
+// page.tsx (server)
+<DialogButton label='Add category'>
+  <CategoryFormDialog mode='create' action={createCategory} />
+</DialogButton>
+```
+
+`DialogButton` mounts its `children` only while open. The dialog closes itself with
+`useCloseDialog()`, which reads a close function from context. Dialogs opened from
+state, like the table's Edit and Delete, get the same context from
+`<DialogScope onClose={…}>`. Every dialog closes the same way, and no entity needs
+its own "Add" button component.
 
 ### Keep server-only code out of client imports
 
@@ -92,14 +116,15 @@ browser state:
 | Form values, errors, busy flag | react-hook-form inside the dialog | Disappears with the dialog |
 
 That leaves the page as server HTML with a few small islands of JavaScript: the table
-and the add button.
+and the add button (`DialogButton`).
 
 Some rules that keep the islands simple:
 
 - **Store "which item is open", not "is it open".** `editing: CategoryRow | null`
   replaces the old trio of `selectedCategory`, `editModalOpen` and `editForm`, which
   could drift apart.
-- **Mount dialogs only while open:** `{editing ? <Dialog /> : null}`. Each opening
+- **Mount dialogs only while open:**
+  `{editing ? <DialogScope onClose={…}><Dialog /></DialogScope> : null}`. Each opening
   starts from fresh `defaultValues`, with nothing to reset by hand.
 - **Rows report clicks; the table decides.** Rows get `onEdit`/`onDelete`/`onToggle`
   callbacks and own no state.
@@ -125,9 +150,9 @@ dozen rows. For tables that grow, such as products and orders, filter in Prisma'
 A file starting with `'use server'` exports functions the browser can call like normal
 functions:
 
-```ts
-// add-category-button.tsx (browser)
-<CategoryFormDialog mode='create' onSubmit={createCategory} />
+```tsx
+// page.tsx (server) passes the action to the browser form
+<CategoryFormDialog mode='create' action={createCategory} />
 ```
 
 When building the browser bundle, Next replaces `createCategory` with a stub. Calling
@@ -179,8 +204,9 @@ browser shows can be out of date. For example, the delete dialog greys out Delet
 
 `toastResult(result, message, setError)` shows a green or red toast and copies any
 `fieldErrors` into react-hook-form. It returns `true` on success, so callers write
-`if (toastResult(...)) onClose()`. On failure the dialog stays open with the user's
-input intact.
+`if (toastResult(...)) close()`. On failure the dialog stays open with the user's
+input intact. Form dialogs get this from `useActionForm` (`hooks/use-action-form.ts`);
+`DeleteDialog` calls it directly.
 
 The busy flag depends on where the action is called from:
 
@@ -225,10 +251,16 @@ new props instead of remounting it, so expanded rows stay expanded.
    uses, read `?q=` (and other filters) from `searchParams`, and compose the shared
    admin components.
 4. **Islands:**
-   - a `'use client'` table holding only UI state;
-   - a form dialog using react-hook-form, `zodResolver` in raw mode and
+   - a table holding only UI state. It gets `'use client'` only once it has some
+     (manufacturers' table stayed server-rendered until it needed Edit and Delete);
+   - a `'use client'` form dialog that takes `mode` and `action`. It calls
+     `useActionForm({ schema, defaultValues, action, mode, noun })` and renders
+     `<FormDialog {...dialog}>`, with `field('name')` spread on each control and
      `useFieldArray` for lists;
-   - a delete dialog using `ConfirmDialog` and `useTransition`.
+   - the table, built from `AdminTable`, `NameCell` and `RowActions`;
+   - the table's delete dialog is `<DeleteDialog>`: pass `noun`, `name`, `action`,
+     `blocked` when the action would refuse, and the warning as children;
+   - the page's Add button is `<DialogButton>` with the form dialog as its child.
 5. **API routes:** before deleting an admin-only handler in `app/api/**`, grep for
    other callers. Any handler that stays must check `requireApiAuth()` (see plan item
    8.0).

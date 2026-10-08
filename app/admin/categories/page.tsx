@@ -1,6 +1,8 @@
 import { FolderTree, Layers, Package } from 'lucide-react'
 
-import { AddCategoryButton } from '@/components/admin/categories/add-category-button'
+import { createCategory } from '@/app/admin/categories/actions'
+import { CategoryFormDialog } from '@/components/admin/categories/category-form-dialog'
+import { DialogButton } from '@/components/ui/dialog-button'
 import { CategoriesTable } from '@/components/admin/categories/categories-table'
 import { DataCard } from '@/components/admin/data-card'
 import { EmptyState } from '@/components/admin/empty-state'
@@ -8,6 +10,7 @@ import { PageHeader } from '@/components/admin/page-header'
 import { SearchToolbar } from '@/components/admin/search-toolbar'
 import { StatsBoard } from '@/components/admin/stats-board'
 import { prisma } from '@/lib/prisma'
+import { matchesSearch, sum } from '@/lib/utils'
 
 export default async function CategoriesPage({
   searchParams,
@@ -32,17 +35,20 @@ export default async function CategoriesPage({
 
   // Filtered here rather than in SQL so the stats above still count everything.
   // ponytail: fine for a few dozen categories; move into `where` if that grows.
-  const needle = query.toLowerCase()
   const visible = categories.filter(c =>
-    [c.name, c.slug, ...c.subcategories].some(text =>
-      text.toLowerCase().includes(needle),
-    ),
+    matchesSearch(query, [c.name, c.slug, ...c.subcategories]),
+  )
+
+  const addButton = (
+    <DialogButton label='Add category'>
+      <CategoryFormDialog action={createCategory} mode='create' />
+    </DialogButton>
   )
 
   return (
     <div className='space-y-6'>
       <PageHeader
-        actions={<AddCategoryButton />}
+        actions={addButton}
         description='Product families, slugs, icons, and sub-lines.'
         eyebrow='Catalog'
         icon={FolderTree}
@@ -76,7 +82,7 @@ export default async function CategoriesPage({
           <CategoriesTable categories={visible} />
         ) : (
           <EmptyState
-            action={query ? undefined : <AddCategoryButton />}
+            action={query ? undefined : addButton}
             description={
               query
                 ? 'Try a different search.'
@@ -91,8 +97,4 @@ export default async function CategoriesPage({
       </DataCard>
     </div>
   )
-}
-
-function sum<T>(items: T[], pick: (item: T) => number) {
-  return items.reduce((total, item) => total + pick(item), 0)
 }

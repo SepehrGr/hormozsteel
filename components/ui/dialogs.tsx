@@ -3,10 +3,32 @@
 import type { FormEventHandler, ReactNode } from 'react'
 
 import { useId } from 'react'
-import { X } from 'lucide-react'
+import { Plus, Save, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import ModalDialog from '@/components/ui/modal-dialog'
+import { capitalize } from '@/lib/format'
+
+export type FormMode = 'create' | 'edit'
+
+/** Title, button labels, success toast and icon for an add/edit dialog. */
+export function formModeCopy(mode: FormMode, noun: string) {
+  return mode === 'create'
+    ? {
+        title: `Add ${noun}`,
+        submitLabel: 'Create',
+        pendingLabel: 'Creating…',
+        successMessage: `${capitalize(noun)} created`,
+        Icon: Plus,
+      }
+    : {
+        title: `Edit ${noun}`,
+        submitLabel: 'Save',
+        pendingLabel: 'Saving…',
+        successMessage: `${capitalize(noun)} updated`,
+        Icon: Save,
+      }
+}
 
 interface FrameProps {
   title: string
@@ -69,32 +91,24 @@ function DialogFooter({
 }
 
 /**
- * Dialog whose body is a form; Enter submits, the footer has Cancel + submit.
- *
- * ```tsx
- * {open && (
- *   <FormDialog title='Edit category' pending={isSubmitting}
- *     onClose={close} onSubmit={handleSubmit(save)}>
- *     ...fields
- *   </FormDialog>
- * )}
- * ```
+ * Add/edit dialog whose body is a form; Enter submits, the footer has Cancel +
+ * submit. Usually given `{...dialog}` from `useActionForm`.
  */
 export function FormDialog({
-  title,
+  mode,
+  noun,
   onClose,
   onSubmit,
   pending,
-  submitLabel = 'Save',
-  pendingLabel = 'Saving…',
-  submitIcon,
   children,
-}: FrameProps & {
+}: Omit<FrameProps, 'title'> & {
+  mode: FormMode
+  /** Lowercase, as in "Add category". */
+  noun: string
   onSubmit: FormEventHandler<HTMLFormElement>
-  submitLabel?: string
-  pendingLabel?: string
-  submitIcon?: ReactNode
 }) {
+  const { title, submitLabel, pendingLabel, Icon } = formModeCopy(mode, noun)
+
   return (
     <DialogFrame pending={pending} title={title} onClose={onClose}>
       {/* noValidate: zod owns validation and renders its own messages */}
@@ -102,7 +116,7 @@ export function FormDialog({
         <div className='space-y-4 px-5 py-5'>{children}</div>
         <DialogFooter pending={pending} onCancel={onClose}>
           <Button disabled={pending} type='submit'>
-            {submitIcon}
+            <Icon aria-hidden className='h-4 w-4' />
             {pending ? pendingLabel : submitLabel}
           </Button>
         </DialogFooter>
