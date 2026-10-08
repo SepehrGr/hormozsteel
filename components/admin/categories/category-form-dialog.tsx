@@ -1,13 +1,12 @@
-// Browser code, but deliberately not a 'use client' entry: only client
-// components render it, and its function props couldn't cross from a server one.
+'use client'
+
 import type { ActionResult } from '@/lib/actions'
 
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, Save, X } from 'lucide-react'
-import { useFieldArray, useForm, useWatch } from 'react-hook-form'
+import { X } from 'lucide-react'
+import { useFieldArray, useWatch } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
-import { FormDialog } from '@/components/ui/dialogs'
+import { type FormMode, FormDialog } from '@/components/ui/dialogs'
 import {
   FormField,
   Input,
@@ -17,7 +16,7 @@ import {
   labelClass,
 } from '@/components/ui/field'
 import { CATEGORY_ICONS, resolveCategoryIcon } from '@/config/category-icons'
-import { toastResult } from '@/lib/action-toast'
+import { useActionForm } from '@/hooks/use-action-form'
 import { type CategoryFormValues, categorySchema } from '@/lib/schemas/category'
 import { slugify } from '@/lib/slug'
 
@@ -29,47 +28,28 @@ export const emptyCategory: CategoryFormValues = {
   subcategories: [],
 }
 
-const MODES = {
-  create: {
-    title: 'Add category',
-    submitLabel: 'Create',
-    pendingLabel: 'Creating…',
-    successMessage: 'Category created',
-    Icon: Plus,
-  },
-  edit: {
-    title: 'Edit category',
-    submitLabel: 'Save',
-    pendingLabel: 'Saving…',
-    successMessage: 'Category updated',
-    Icon: Save,
-  },
-}
-
 /** Add/edit dialog for one category. Mount only while open. */
 export function CategoryFormDialog({
   mode,
   defaultValues = emptyCategory,
-  onSubmit,
-  onClose,
+  action,
 }: {
-  mode: keyof typeof MODES
+  mode: FormMode
   defaultValues?: CategoryFormValues
-  /** A Server Action; it validates again on the server. */
-  onSubmit: (values: CategoryFormValues) => Promise<ActionResult>
-  onClose: () => void
+  /** A Server Action (or a call to one); it validates again on the server. */
+  action: (values: CategoryFormValues) => Promise<ActionResult>
 }) {
-  const { title, submitLabel, pendingLabel, successMessage, Icon } = MODES[mode]
   const {
-    register,
     control,
-    handleSubmit,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<CategoryFormValues>({
-    // raw: submit the form's own values; the action does the transforming
-    resolver: zodResolver(categorySchema, undefined, { raw: true }),
+    field,
+    formState: { errors },
+    dialog,
+  } = useActionForm({
+    schema: categorySchema,
     defaultValues,
+    action,
+    mode,
+    noun: 'category',
   })
   const subs = useFieldArray({ control, name: 'subcategories' })
   const [name, slug, icon] = useWatch({
@@ -77,44 +57,17 @@ export function CategoryFormDialog({
     name: ['name', 'slug', 'icon'],
   })
 
-  const submit = handleSubmit(async values => {
-    const result = await onSubmit(values)
-
-    if (toastResult(result, successMessage, setError)) onClose()
-  })
-
-  // Spread onto a control so it's marked invalid and announces its message.
-  const invalid = (id: string, message?: string) => ({
-    'aria-invalid': !!message,
-    'aria-describedby': message ? fieldErrorId(id) : undefined,
-  })
-
   return (
-    <FormDialog
-      pending={isSubmitting}
-      pendingLabel={pendingLabel}
-      submitIcon={<Icon aria-hidden className='h-4 w-4' />}
-      submitLabel={submitLabel}
-      title={title}
-      onClose={onClose}
-      onSubmit={submit}
-    >
+    <FormDialog {...dialog}>
       <FormField error={errors.name?.message} id='category-name' label='Name *'>
-        <Input
-          id='category-name'
-          placeholder='e.g. Rebar'
-          {...invalid('category-name', errors.name?.message)}
-          {...register('name')}
-        />
+        <Input placeholder='e.g. Rebar' {...field('name')} />
       </FormField>
 
       <FormField error={errors.slug?.message} id='category-slug' label='Slug'>
         <Input
           className='font-mono'
-          id='category-slug'
           placeholder={slugify(name) || 'auto from name'}
-          {...invalid('category-slug', errors.slug?.message)}
-          {...register('slug')}
+          {...field('slug')}
         />
       </FormField>
 
@@ -126,11 +79,7 @@ export function CategoryFormDialog({
               className={`${resolveCategoryIcon(icon || slug || slugify(name))} text-lg`}
             />
           </span>
-          <Select
-            id='category-icon'
-            {...invalid('category-icon', errors.icon?.message)}
-            {...register('icon')}
-          >
+          <Select {...field('icon')}>
             <option value=''>Default from slug</option>
             {Object.entries(CATEGORY_ICONS).map(([key, cls]) => (
               <option key={cls} value={cls}>
@@ -147,11 +96,9 @@ export function CategoryFormDialog({
         label='Description'
       >
         <Textarea
-          id='category-description'
           placeholder='Short catalog blurb'
           rows={3}
-          {...invalid('category-description', errors.description?.message)}
-          {...register('description')}
+          {...field('description')}
         />
       </FormField>
 
@@ -174,20 +121,18 @@ export function CategoryFormDialog({
           </p>
         ) : (
           <ul className='clear-both space-y-2'>
-            {subs.fields.map((field, index) => {
-              const id = `category-sub-${index}`
+            {subs.fields.map((row, index) => {
+              const control = field(`subcategories.${index}.value`)
               const message = errors.subcategories?.[index]?.value?.message
 
               return (
-                // field.id, not index: keeps each input attached to its own row on remove
-                <li key={field.id}>
+                // row.id, not index: keeps each input attached to its own row on remove
+                <li key={row.id}>
                   <div className='flex gap-2'>
                     <Input
                       aria-label={`Sub-line ${index + 1}`}
-                      id={id}
                       placeholder='e.g. Ribbed'
-                      {...invalid(id, message)}
-                      {...register(`subcategories.${index}.value`)}
+                      {...control}
                     />
                     <Button
                       aria-label={`Remove sub-line ${index + 1}`}
@@ -202,7 +147,7 @@ export function CategoryFormDialog({
                   {message ? (
                     <p
                       className='mt-1 text-xs text-red-700 dark:text-red-400'
-                      id={fieldErrorId(id)}
+                      id={fieldErrorId(control.id)}
                       role='alert'
                     >
                       {message}
