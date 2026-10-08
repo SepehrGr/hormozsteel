@@ -22,7 +22,7 @@ export default async function UsersPage({
 }) {
   // Here, not only in the layout: layouts don't re-run on every navigation,
   // so the check sits next to the data it protects
-  await requireSuperAdmin()
+  const session = await requireSuperAdmin()
 
   const { q, role: roleParam } = await searchParams
   const query = typeof q === 'string' ? q.trim() : ''
@@ -119,7 +119,7 @@ export default async function UsersPage({
 
       <DataCard icon={Users} title={`Accounts (${visible.length})`}>
         {visible.length > 0 ? (
-          <UsersTable users={visible} />
+          <UsersTable currentUserId={session.user.id} users={visible} />
         ) : (
           // You're always in the list, so an empty table means the filters hid everyone
           <EmptyState

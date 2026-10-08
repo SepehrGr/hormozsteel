@@ -79,7 +79,7 @@ export function NameCell({
   )
 }
 
-/** Edit and Delete icon buttons for the row named `name`. */
+/** Edit and Delete icon buttons for the row named `name`; no `onDelete`, no Delete. */
 export function RowActions({
   name,
   onEdit,
@@ -87,7 +87,7 @@ export function RowActions({
 }: {
   name: string
   onEdit: () => void
-  onDelete: () => void
+  onDelete?: () => void
 }) {
   return (
     <div className='flex justify-end gap-1'>
@@ -99,14 +99,16 @@ export function RowActions({
       >
         <Pencil aria-hidden className='h-3.5 w-3.5' />
       </Button>
-      <Button
-        aria-label={`Delete ${name}`}
-        size='icon'
-        variant='danger-outline'
-        onClick={onDelete}
-      >
-        <Trash2 aria-hidden className='h-3.5 w-3.5' />
-      </Button>
+      {onDelete ? (
+        <Button
+          aria-label={`Delete ${name}`}
+          size='icon'
+          variant='danger-outline'
+          onClick={onDelete}
+        >
+          <Trash2 aria-hidden className='h-3.5 w-3.5' />
+        </Button>
+      ) : null}
     </div>
   )
 }

@@ -172,7 +172,7 @@ calls `requireAuth`. Typing the URL opens it, although the API refuses the data.
   - Show last login and lockout state (`lockedUntil`).
 - [x] 3.4 Form dialog and the Add button. The password field is required on create and
   becomes an optional "set new password" on edit.
-- [ ] 3.5 Edit.
+- [x] 3.5 Edit.
 - [ ] 3.6 Role and active toggles as actions with `useOptimistic`. They change
   instantly and roll back with a toast when refused (for example, the last super admin).
 - [ ] 3.7 Delete, through `ConfirmDialog`. The server guards are reflected in the UI:
