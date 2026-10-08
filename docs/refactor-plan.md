@@ -170,7 +170,7 @@ calls `requireAuth`. Typing the URL opens it, although the API refuses the data.
 - [x] 3.3 Server page with `requireSuperAdmin()`, so regular admins are redirected.
   - Search with `?q=` (name, email) and filter with `?role=`.
   - Show last login and lockout state (`lockedUntil`).
-- [ ] 3.4 Form dialog and the Add button. The password field is required on create and
+- [x] 3.4 Form dialog and the Add button. The password field is required on create and
   becomes an optional "set new password" on edit.
 - [ ] 3.5 Edit.
 - [ ] 3.6 Role and active toggles as actions with `useOptimistic`. They change

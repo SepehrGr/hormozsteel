@@ -8,6 +8,8 @@ import { z } from 'zod'
  */
 export const passwordSchema = z
   .string()
+  // Listed first so a blank field shows this, not the length rule
+  .min(1, 'Enter a password')
   .min(6, 'Use at least 6 characters')
   .max(72, 'Use at most 72 characters')
 
@@ -29,6 +31,7 @@ const userFields = z.object({
     .trim()
     .pipe(z.email({ error: 'Enter a valid email address' })),
   role: z.enum(ROLES),
+  isActive: z.boolean(),
 })
 
 /** Adding an admin: the password is required. */
@@ -39,18 +42,11 @@ export const createUserSchema = userFields.extend({ password: passwordSchema })
  * becomes `undefined` and Prisma leaves the column alone.
  */
 export const updateUserSchema = userFields
-  .extend({
-    isActive: z.boolean(),
-    password: z.union([z.literal(''), passwordSchema]),
-  })
+  .extend({ password: z.union([z.literal(''), passwordSchema]) })
   .transform(({ password, ...user }) => ({
     ...user,
     password: password || undefined,
   }))
 
-/** What the create form holds. */
-export type CreateUserValues = z.input<typeof createUserSchema>
-/** What the edit form holds. */
-export type UpdateUserValues = z.input<typeof updateUserSchema>
-/** What an update writes (the password still needs hashing). */
-export type UpdateUserData = z.output<typeof updateUserSchema>
+/** What the add and edit forms hold; both schemas take this same shape. */
+export type UserFormValues = z.input<typeof updateUserSchema>
