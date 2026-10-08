@@ -61,7 +61,6 @@ export default async function UsersPage({
     <div className='space-y-6'>
       <PageHeader
         description='Who can sign in to this admin, and what they can change.'
-        eyebrow='Access'
         icon={Shield}
         title='Admin users'
       />
