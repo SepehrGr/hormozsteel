@@ -159,7 +159,7 @@ Steps marked *(from 8.0)* lock down API routes that are open today. That's the p
 **Access gap:** the sidebar hides the page from non-super admins, but `layout.tsx` only
 calls `requireAuth`. Typing the URL opens it, although the API refuses the data.
 
-- [ ] 3.1 `lib/schemas/user.ts`:
+- [x] 3.1 `lib/schemas/user.ts`:
   - Create: name, email, password, role.
   - Update: name, email, role, `isActive`, plus an optional new password.
   - Export one `passwordSchema` (length rules) for Phase 6 to reuse.
