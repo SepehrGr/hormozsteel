@@ -167,7 +167,7 @@ calls `requireAuth`. Typing the URL opens it, although the API refuses the data.
   - Port each self and last-super-admin guard as an `ActionError`.
   - Hash with bcrypt.
   - Never `select` the password hash.
-- [ ] 3.3 Server page with `requireSuperAdmin()`, so regular admins are redirected.
+- [x] 3.3 Server page with `requireSuperAdmin()`, so regular admins are redirected.
   - Search with `?q=` (name, email) and filter with `?role=`.
   - Show last login and lockout state (`lockedUntil`).
 - [ ] 3.4 Form dialog and the Add button. The password field is required on create and
@@ -181,6 +181,19 @@ calls `requireAuth`. Typing the URL opens it, although the API refuses the data.
 - [ ] 3.8 Optional: an "Unlock" action for accounts locked by failed logins (clears
   `failedLoginAttempts` and `lockedUntil`).
 - [ ] 3.9 Delete `app/api/admin/users/**` once nothing calls it.
+- [ ] 3.10 Stale sessions: the JWT keeps the role from login for up to 6 hours, so a
+  demoted, deactivated, or deleted admin keeps their old access. In the `jwt` callback
+  (`lib/auth.ts`), re-read `role`/`isActive` on every request after sign-in and throw
+  when the account is gone or inactive; next-auth 4.24 then returns no session, so
+  `requireAuth()` redirects to login. The middleware only decodes the token (no
+  callback, no DB on the edge), so the page-level check is what enforces it.
+- [ ] 3.11 Deleting an admin deletes their audit trail (`AdminLog` is
+  `onDelete: Cascade`). Make `userId` nullable with `onDelete: SetNull`.
+  - The demo DB was built with `db push`, so none of the migrations are recorded as applied
+    and `migrate dev` would want to **reset** it. Write the migration with
+    `migrate diff --from-schema-datamodel <old> --to-schema-datamodel prisma/schema.prisma`
+    and apply only that SQL with `prisma db execute`. W0 baselines the history later.
+  - Show "Deleted user" wherever a log's author is read.
 
 ### Phase 4: Orders inbox (`refactor/admin-orders`)
 

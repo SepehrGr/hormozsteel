@@ -14,6 +14,13 @@ export const passwordSchema = z
 /** Matches Prisma's `Role` enum, without importing Prisma into the browser. */
 export const ROLES = ['ADMIN', 'SUPER_ADMIN'] as const
 
+export type Role = (typeof ROLES)[number]
+
+export const ROLE_LABELS: Record<Role, string> = {
+  ADMIN: 'Admin',
+  SUPER_ADMIN: 'Super admin',
+}
+
 const userFields = z.object({
   name: z.string().trim().min(2, 'Name is required').max(80),
   // Not lowercased: login matches the stored email exactly
