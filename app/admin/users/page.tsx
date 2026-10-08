@@ -70,14 +70,14 @@ export default async function UsersPage({
         stats={[
           { label: 'Accounts', value: rows.length, icon: Users },
           {
-            label: 'Super admins',
-            value: rows.filter(u => u.role === 'SUPER_ADMIN').length,
-            icon: ShieldCheck,
-          },
-          {
             label: 'Active',
             value: rows.filter(u => u.isActive).length,
             icon: UserCheck,
+          },
+          {
+            label: 'Super admins',
+            value: rows.filter(u => u.role === 'SUPER_ADMIN').length,
+            icon: ShieldCheck,
           },
           {
             label: 'Locked',
