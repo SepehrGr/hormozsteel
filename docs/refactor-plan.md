@@ -163,7 +163,7 @@ calls `requireAuth`. Typing the URL opens it, although the API refuses the data.
   - Create: name, email, password, role.
   - Update: name, email, role, `isActive`, plus an optional new password.
   - Export one `passwordSchema` (length rules) for Phase 6 to reuse.
-- [ ] 3.2 `app/admin/users/actions.ts`, every action wrapped with `{ superAdmin: true }`:
+- [x] 3.2 `app/admin/users/actions.ts`, every action wrapped with `{ superAdmin: true }`:
   - Port each self and last-super-admin guard as an `ActionError`.
   - Hash with bcrypt.
   - Never `select` the password hash.
