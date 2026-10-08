@@ -28,10 +28,17 @@ export const emptyUser: UserFormValues = {
 export function UserFormDialog({
   mode,
   defaultValues = emptyUser,
+  isSelf = false,
   action,
 }: {
   mode: FormMode
   defaultValues?: UserFormValues
+  /**
+   * Editing your own account: role and status are shown, not offered, since
+   * the server refuses both changes. Their values still submit from
+   * `defaultValues`, because react-hook-form keeps unrendered fields.
+   */
+  isSelf?: boolean
   /** A Server Action (or a call to one); it validates again on the server. */
   action: (values: UserFormValues) => Promise<ActionResult>
 }) {
@@ -64,13 +71,30 @@ export function UserFormDialog({
       </FormField>
 
       <FormField error={errors.role?.message} id='user-role' label='Role'>
-        <Select {...field('role')}>
-          {ROLES.map(role => (
-            <option key={role} value={role}>
-              {ROLE_LABELS[role]}
-            </option>
-          ))}
-        </Select>
+        {isSelf ? (
+          <>
+            <Input
+              readOnly
+              aria-describedby='user-role-self'
+              id='user-role'
+              value={ROLE_LABELS[defaultValues.role]}
+            />
+            <p
+              className='mt-1 text-xs text-muted-foreground'
+              id='user-role-self'
+            >
+              You can&apos;t change your own role or deactivate yourself.
+            </p>
+          </>
+        ) : (
+          <Select {...field('role')}>
+            {ROLES.map(role => (
+              <option key={role} value={role}>
+                {ROLE_LABELS[role]}
+              </option>
+            ))}
+          </Select>
+        )}
       </FormField>
 
       <FormField
@@ -89,7 +113,7 @@ export function UserFormDialog({
         />
       </FormField>
 
-      {isCreate ? null : (
+      {isCreate || isSelf ? null : (
         <label className='flex cursor-pointer items-center gap-2 text-sm text-foreground'>
           <input
             className='h-4 w-4 cursor-pointer accent-foreground'

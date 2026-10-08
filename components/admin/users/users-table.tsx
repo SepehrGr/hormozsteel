@@ -9,6 +9,7 @@ import {
   rowClass,
 } from '@/components/admin/admin-table'
 import { Pill } from '@/components/admin/pill'
+import { UserActions } from '@/components/admin/users/user-actions'
 import { formatDateTime } from '@/lib/format'
 import { ROLE_LABELS } from '@/lib/schemas/user'
 
@@ -30,10 +31,18 @@ const columns: Column[] = [
   { label: 'Status' },
   { label: 'Last login' },
   { label: 'Created' },
+  { label: 'Actions', className: 'text-right' },
 ]
 
 /** Admin accounts with their role, status, and lockout. */
-export function UsersTable({ users }: { users: UserRow[] }) {
+export function UsersTable({
+  users,
+  currentUserId,
+}: {
+  users: UserRow[]
+  /** The signed-in admin, whose own row can't change its role or status. */
+  currentUserId: string
+}) {
   return (
     <AdminTable columns={columns}>
       {users.map(user => (
@@ -68,6 +77,9 @@ export function UsersTable({ users }: { users: UserRow[] }) {
           </td>
           <td className='px-4 py-3 text-muted-foreground'>
             {formatDateTime(user.createdAt)}
+          </td>
+          <td className='px-4 py-3'>
+            <UserActions isSelf={user.id === currentUserId} user={user} />
           </td>
         </tr>
       ))}
