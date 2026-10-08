@@ -173,11 +173,11 @@ calls `requireAuth`. Typing the URL opens it, although the API refuses the data.
 - [x] 3.4 Form dialog and the Add button. The password field is required on create and
   becomes an optional "set new password" on edit.
 - [x] 3.5 Edit.
-- [ ] 3.6 Role and active toggles as actions with `useOptimistic`. They change
-  instantly and roll back with a toast when refused (for example, the last super admin).
-- [ ] 3.7 Delete, through `ConfirmDialog`. The server guards are reflected in the UI:
-  - your own row gets no delete button;
-  - the last super admin's delete is greyed out with the reason.
+- [x] ~~3.6 Role and active toggles as actions with `useOptimistic`.~~ Dropped (the user's
+  call): role and status change in the edit dialog, and the pills stay display-only.
+- [x] 3.7 Delete, through the shared `DeleteDialog`. Your own row gets no delete button.
+  No greyed-out "last super admin" state: the only active super admin is always the
+  viewer, whose row already has none. The server guard (3.2) still refuses it.
 - [ ] 3.8 Optional: an "Unlock" action for accounts locked by failed logins (clears
   `failedLoginAttempts` and `lockedUntil`).
 - [ ] 3.9 Delete `app/api/admin/users/**` once nothing calls it.
