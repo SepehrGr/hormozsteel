@@ -5,7 +5,10 @@ import { EmptyState } from '@/components/admin/empty-state'
 import { PageHeader } from '@/components/admin/page-header'
 import { SearchToolbar } from '@/components/admin/search-toolbar'
 import { StatsBoard } from '@/components/admin/stats-board'
+import { createUser } from '@/app/admin/users/actions'
+import { UserFormDialog } from '@/components/admin/users/user-form-dialog'
 import { UsersTable } from '@/components/admin/users/users-table'
+import { DialogButton } from '@/components/ui/dialog-button'
 import { Select } from '@/components/ui/field'
 import { requireSuperAdmin } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
@@ -60,6 +63,11 @@ export default async function UsersPage({
   return (
     <div className='space-y-6'>
       <PageHeader
+        actions={
+          <DialogButton label='Add user'>
+            <UserFormDialog action={createUser} mode='create' />
+          </DialogButton>
+        }
         description='Who can sign in to this admin, and what they can change.'
         icon={Shield}
         title='Admin users'
