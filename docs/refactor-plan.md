@@ -182,7 +182,10 @@ calls `requireAuth`. Typing the URL opens it, although the API refuses the data.
   `failedLoginAttempts` and `lockedUntil`. The row's lock-open button shows only while
   the lock is still running, with no confirm step. `RowActions` takes extra buttons as
   `children`. `scripts/unlock-account.ts` stays for when no super admin can sign in.
-- [ ] 3.9 Delete `app/api/admin/users/**` once nothing calls it.
+- [x] 3.9 Delete `app/api/admin/users/**`. A grep found no callers; the old page was the
+  only one. (Not an 8.0 item: these handlers always checked for a super admin.) Every check it made lives on in `lib/schemas/user.ts` (name, email,
+  password length, role) or `actions.ts` (self and last-super-admin guards; a taken email
+  is Prisma's P2002).
 - [ ] 3.10 Stale sessions: the JWT keeps the role from login for up to 6 hours, so a
   demoted, deactivated, or deleted admin keeps their old access. In the `jwt` callback
   (`lib/auth.ts`), re-read `role`/`isActive` on every request after sign-in and throw
