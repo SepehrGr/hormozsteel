@@ -136,7 +136,6 @@ export const deleteUser = adminAction(
       throw new ActionError(LAST_SUPER_ADMIN)
     }
 
-    // Cascades to the user's Account, Session and AdminLog rows
     await prisma.user.delete({ where: { id }, select: { id: true } })
 
     await audit('DELETE', 'User', id, {

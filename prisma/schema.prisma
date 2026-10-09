@@ -298,8 +298,8 @@ model VerificationToken {
 
 model AdminLog {
   id           String  @id @default(cuid())
-  userId       String
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String?
+  user         User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
   action       String
   resourceType String
   resourceId   String?
