@@ -186,12 +186,16 @@ calls `requireAuth`. Typing the URL opens it, although the API refuses the data.
   only one. (Not an 8.0 item: these handlers always checked for a super admin.) Every check it made lives on in `lib/schemas/user.ts` (name, email,
   password length, role) or `actions.ts` (self and last-super-admin guards; a taken email
   is Prisma's P2002).
-- [ ] 3.10 Stale sessions: the JWT keeps the role from login for up to 6 hours, so a
+- [x] 3.10 Stale sessions: the JWT keeps the role from login for up to 6 hours, so a
   demoted, deactivated, or deleted admin keeps their old access. In the `jwt` callback
   (`lib/auth.ts`), re-read `role`/`isActive` on every request after sign-in and throw
   when the account is gone or inactive; next-auth 4.24 then returns no session, so
   `requireAuth()` redirects to login. The middleware only decodes the token (no
   callback, no DB on the edge), so the page-level check is what enforces it.
+  - Throw, don't return `null`: a `null` token still yields a session, just without
+    `id` and `role`.
+  - Name and email still come from the login-time token (next-auth builds them from
+    the decoded cookie), so a rename shows after the next sign-in.
 - [ ] 3.11 Deleting an admin deletes their audit trail (`AdminLog` is
   `onDelete: Cascade`). Make `userId` nullable with `onDelete: SetNull`.
   - The demo DB was built with `db push`, so none of the migrations are recorded as applied
