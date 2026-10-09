@@ -178,8 +178,10 @@ calls `requireAuth`. Typing the URL opens it, although the API refuses the data.
 - [x] 3.7 Delete, through the shared `DeleteDialog`. Your own row gets no delete button.
   No greyed-out "last super admin" state: the only active super admin is always the
   viewer, whose row already has none. The server guard (3.2) still refuses it.
-- [ ] 3.8 Optional: an "Unlock" action for accounts locked by failed logins (clears
-  `failedLoginAttempts` and `lockedUntil`).
+- [x] 3.8 Unlock, for accounts locked by failed logins: `unlockUser` clears
+  `failedLoginAttempts` and `lockedUntil`. The row's lock-open button shows only while
+  the lock is still running, with no confirm step. `RowActions` takes extra buttons as
+  `children`. `scripts/unlock-account.ts` stays for when no super admin can sign in.
 - [ ] 3.9 Delete `app/api/admin/users/**` once nothing calls it.
 - [ ] 3.10 Stale sessions: the JWT keeps the role from login for up to 6 hours, so a
   demoted, deactivated, or deleted admin keeps their old access. In the `jwt` callback
