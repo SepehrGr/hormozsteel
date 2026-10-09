@@ -159,28 +159,65 @@ Steps marked *(from 8.0)* lock down API routes that are open today. That's the p
 **Access gap:** the sidebar hides the page from non-super admins, but `layout.tsx` only
 calls `requireAuth`. Typing the URL opens it, although the API refuses the data.
 
-- [ ] 3.1 `lib/schemas/user.ts`:
+- [x] 3.1 `lib/schemas/user.ts`:
   - Create: name, email, password, role.
   - Update: name, email, role, `isActive`, plus an optional new password.
   - Export one `passwordSchema` (length rules) for Phase 6 to reuse.
-- [ ] 3.2 `app/admin/users/actions.ts`, every action wrapped with `{ superAdmin: true }`:
+- [x] 3.2 `app/admin/users/actions.ts`, every action wrapped with `{ superAdmin: true }`:
   - Port each self and last-super-admin guard as an `ActionError`.
   - Hash with bcrypt.
   - Never `select` the password hash.
-- [ ] 3.3 Server page with `requireSuperAdmin()`, so regular admins are redirected.
+- [x] 3.3 Server page with `requireSuperAdmin()`, so regular admins are redirected.
   - Search with `?q=` (name, email) and filter with `?role=`.
   - Show last login and lockout state (`lockedUntil`).
-- [ ] 3.4 Form dialog and the Add button. The password field is required on create and
+- [x] 3.4 Form dialog and the Add button. The password field is required on create and
   becomes an optional "set new password" on edit.
-- [ ] 3.5 Edit.
-- [ ] 3.6 Role and active toggles as actions with `useOptimistic`. They change
-  instantly and roll back with a toast when refused (for example, the last super admin).
-- [ ] 3.7 Delete, through `ConfirmDialog`. The server guards are reflected in the UI:
-  - your own row gets no delete button;
-  - the last super admin's delete is greyed out with the reason.
-- [ ] 3.8 Optional: an "Unlock" action for accounts locked by failed logins (clears
-  `failedLoginAttempts` and `lockedUntil`).
-- [ ] 3.9 Delete `app/api/admin/users/**` once nothing calls it.
+- [x] 3.5 Edit.
+- [x] ~~3.6 Role and active toggles as actions with `useOptimistic`.~~ Dropped (the user's
+  call): role and status change in the edit dialog, and the pills stay display-only.
+- [x] 3.7 Delete, through the shared `DeleteDialog`. Your own row gets no delete button.
+  No greyed-out "last super admin" state: the only active super admin is always the
+  viewer, whose row already has none. The server guard (3.2) still refuses it.
+- [x] 3.8 Unlock, for accounts locked by failed logins: `unlockUser` clears
+  `failedLoginAttempts` and `lockedUntil`. The row's lock-open button shows only while
+  the lock is still running, with no confirm step. `RowActions` takes extra buttons as
+  `children`. `scripts/unlock-account.ts` stays for when no super admin can sign in.
+- [x] 3.9 Delete `app/api/admin/users/**`. A grep found no callers; the old page was the
+  only one. (Not an 8.0 item: these handlers always checked for a super admin.) Every check it made lives on in `lib/schemas/user.ts` (name, email,
+  password length, role) or `actions.ts` (self and last-super-admin guards; a taken email
+  is Prisma's P2002).
+- [x] 3.10 Stale sessions: the JWT keeps the role from login for up to 6 hours, so a
+  demoted, deactivated, or deleted admin keeps their old access. In the `jwt` callback
+  (`lib/auth.ts`), re-read `role`/`isActive` on every request after sign-in and throw
+  when the account is gone or inactive; next-auth 4.24 then returns no session, so
+  `requireAuth()` redirects to login. The middleware only decodes the token (no
+  callback, no DB on the edge), so the page-level check is what enforces it.
+  - Throw, don't return `null`: a `null` token still yields a session, just without
+    `id` and `role`.
+  - Name and email still come from the login-time token (next-auth builds them from
+    the decoded cookie), so a rename shows after the next sign-in.
+- [x] 3.11 Deleting an admin deletes their audit trail (`AdminLog` is
+  `onDelete: Cascade`). Make `userId` nullable with `onDelete: SetNull`.
+  - Migration `20261009184608_admin_log_keep_on_user_delete`: generated from the old
+    schema, checked against the live DB (same SQL, no drift), and applied with
+    `db execute`. Afterwards live DB → schema diffs empty.
+  - Kept rows lose their author (`userId` becomes null). The delete dialog now says so
+    and points to deactivating instead.
+  - Nothing reads a log's author yet, so there was no "Deleted user" label to add. The
+    first log viewer should show one for `userId: null`.
+- [x] 3.12 Keep "who" after a delete: `AdminLog.userName` and `userEmail`, copied from
+  the author when `logAdminAction` writes the row (read from the DB, since the session's
+  name/email are from sign-in). They record the name as it was at the time, so later
+  renames don't rewrite history.
+  - Migration `20261009190137_admin_log_author_snapshot`, edited by hand: add the
+    columns nullable, backfill the existing rows from `users`, then `SET NOT NULL`.
+  - The delete dialog's warning is gone; deleting no longer loses anything.
+  - A log viewer shows `userName`, plus "(deleted)" when `userId` is null.
+  - The demo DB was built with `db push`, so none of the migrations are recorded as applied
+    and `migrate dev` would want to **reset** it. Write the migration with
+    `migrate diff --from-schema-datamodel <old> --to-schema-datamodel prisma/schema.prisma`
+    and apply only that SQL with `prisma db execute`. W0 baselines the history later.
+  - Show "Deleted user" wherever a log's author is read.
 
 ### Phase 4: Orders inbox (`refactor/admin-orders`)
 

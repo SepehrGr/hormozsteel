@@ -50,7 +50,6 @@ export default async function CategoriesPage({
       <PageHeader
         actions={addButton}
         description='Product families, slugs, icons, and sub-lines.'
-        eyebrow='Catalog'
         icon={FolderTree}
         title='Categories'
       />
