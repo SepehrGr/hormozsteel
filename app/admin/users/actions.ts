@@ -102,6 +102,23 @@ export const updateUser = adminAction(
   superAdmin,
 )
 
+/** Lift a failed-login lockout early; the next login starts from zero attempts. */
+export const unlockUser = adminAction(
+  z.object({ id: userId }),
+  async ({ id }, { audit }) => {
+    // A missing user is P2025, which adminAction turns into a message
+    await prisma.user.update({
+      where: { id },
+      data: { failedLoginAttempts: 0, lockedUntil: null },
+      select: { id: true },
+    })
+
+    await audit('UNLOCK', 'User', id)
+    revalidatePath('/admin/users')
+  },
+  superAdmin,
+)
+
 export const deleteUser = adminAction(
   z.object({ id: userId }),
   async ({ id }, { session, audit }) => {

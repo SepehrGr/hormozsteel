@@ -79,18 +79,24 @@ export function NameCell({
   )
 }
 
-/** Edit and Delete icon buttons for the row named `name`; no `onDelete`, no Delete. */
+/**
+ * Edit and Delete icon buttons for the row named `name`; no `onDelete`, no
+ * Delete. `children` are extra buttons, placed before Edit.
+ */
 export function RowActions({
   name,
   onEdit,
   onDelete,
+  children,
 }: {
   name: string
   onEdit: () => void
   onDelete?: () => void
+  children?: ReactNode
 }) {
   return (
     <div className='flex justify-end gap-1'>
+      {children}
       <Button
         aria-label={`Edit ${name}`}
         size='icon'
