@@ -240,8 +240,13 @@ taken"). The change also has no audit entry. Do this on its own branch from a fr
   - Not using `isolationLevel: 'Serializable'` for now. The `isLastSuperAdmin` race
     needs two super admins demoting each other in the same instant, and Serializable
     would add retry handling to every action. The `ponytail:` note names the upgrade.
-- [ ] F.4 Test: make the audit throw on purpose. The change must not be saved and the
+- [x] F.4 Test: make the audit throw on purpose. The change must not be saved and the
   error must show. Then check the normal path still saves both rows.
+  - A temporary throw in `logAdminAction` (only for details containing `F4-FAIL`):
+    creating "F4-FAIL Mill" showed the error and left no manufacturer and no log row.
+    The throw was then removed (`git diff` clean).
+  - Normal path: creating and deleting "F4 OK Mill" both succeeded, with CREATE and
+    DELETE log rows signed by the admin.
 
 Not covered: the route handlers that call `logAdminAction` directly (categories,
 products bulk/import, quick-orders). Phases 4–6 delete most of them. Excel import stays
