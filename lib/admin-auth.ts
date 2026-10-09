@@ -61,16 +61,17 @@ export async function logAdminAction(
   resourceId?: string,
   details?: Prisma.InputJsonValue,
   source?: Request | Headers,
+  db: Prisma.TransactionClient = prisma,
 ) {
   const headers = source instanceof Headers ? source : source?.headers
   const ipAddress = headers ? getClientIP(headers) : 'unknown'
   const userAgent = headers?.get('user-agent') || 'unknown'
-  const author = await prisma.user.findUniqueOrThrow({
+  const author = await db.user.findUniqueOrThrow({
     where: { id: userId },
     select: { name: true, email: true },
   })
 
-  await prisma.adminLog.create({
+  await db.adminLog.create({
     data: {
       userId,
       userName: author.name,
