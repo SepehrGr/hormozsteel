@@ -235,10 +235,11 @@ taken"). The change also has no audit entry. Do this on its own branch from a fr
     a rollback costs at most one extra re-render.
   - Interactive transactions time out after 5 s by default. Hash passwords (bcrypt,
     ~250 ms) before the first write so the transaction stays short.
-- [ ] F.3 Switch the three `actions.ts` files from `prisma.` to `tx.` (13 calls),
-  including the users guards (`findUser`, `isLastSuperAdmin`). Decide whether
-  `isolationLevel: 'Serializable'` is worth it to close the race noted on
-  `isLastSuperAdmin`.
+- [x] F.3 Switch the three `actions.ts` files from `prisma.` to `tx.` (13 calls),
+  including the users guards (`findUser`, `isLastSuperAdmin`, which now take `tx`).
+  - Not using `isolationLevel: 'Serializable'` for now. The `isLastSuperAdmin` race
+    needs two super admins demoting each other in the same instant, and Serializable
+    would add retry handling to every action. The `ponytail:` note names the upgrade.
 - [ ] F.4 Test: make the audit throw on purpose. The change must not be saved and the
   error must show. Then check the normal path still saves both rows.
 

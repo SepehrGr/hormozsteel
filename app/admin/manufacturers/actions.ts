@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
 import { adminAction } from '@/lib/actions'
-import { prisma } from '@/lib/prisma'
 import { manufacturerSchema } from '@/lib/schemas/manufacturer'
 
 const manufacturerId = z.string().min(1)
@@ -20,8 +19,8 @@ function revalidateManufacturerPages() {
 
 export const createManufacturer = adminAction(
   manufacturerSchema,
-  async (data, { audit }) => {
-    const manufacturer = await prisma.manufacturer.create({ data })
+  async (data, { tx, audit }) => {
+    const manufacturer = await tx.manufacturer.create({ data })
 
     await audit('CREATE', 'Manufacturer', manufacturer.id, {
       name: manufacturer.name,
@@ -32,8 +31,8 @@ export const createManufacturer = adminAction(
 
 export const updateManufacturer = adminAction(
   z.object({ id: manufacturerId, values: manufacturerSchema }),
-  async ({ id, values }, { audit }) => {
-    await prisma.manufacturer.update({ where: { id }, data: values })
+  async ({ id, values }, { tx, audit }) => {
+    await tx.manufacturer.update({ where: { id }, data: values })
 
     await audit('UPDATE', 'Manufacturer', id, values)
     revalidateManufacturerPages()
@@ -42,10 +41,10 @@ export const updateManufacturer = adminAction(
 
 export const deleteManufacturer = adminAction(
   z.object({ id: manufacturerId }),
-  async ({ id }, { audit }) => {
+  async ({ id }, { tx, audit }) => {
     // Its products stay: Product.manufacturer is `onDelete: SetNull`, so the
     // database clears their link and they show no mill.
-    const manufacturer = await prisma.manufacturer.delete({ where: { id } })
+    const manufacturer = await tx.manufacturer.delete({ where: { id } })
 
     await audit('DELETE', 'Manufacturer', id, { name: manufacturer.name })
     revalidateManufacturerPages()
