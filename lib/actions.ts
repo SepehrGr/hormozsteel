@@ -10,6 +10,7 @@ import {
   requireAuth,
   requireSuperAdmin,
 } from '@/lib/admin-auth'
+import { prisma } from '@/lib/prisma'
 import { checkApiRateLimit, getClientIP } from '@/lib/rate-limit'
 
 /** Same envelope the API routes use, so clients handle both alike. */
@@ -27,6 +28,7 @@ export class ActionError extends Error {}
 
 interface ActionContext {
   session: Session
+  tx: Prisma.TransactionClient
   /** Write an AdminLog row attributed to the current user and request. */
   audit: (
     action: string,
@@ -44,10 +46,13 @@ interface ActionContext {
  * come back as `{ success: false }`; nothing throws to the client except
  * Next's own redirect/notFound control flow.
  *
+ * The handler runs in one transaction with its audit row: write through `tx`,
+ * and don't redirect from it (that throws, which rolls the writes back).
+ *
  * ```ts
  * 'use server'
- * export const createCategory = adminAction(categorySchema, async (data, { audit }) => {
- *   const category = await prisma.category.create({ data })
+ * export const createCategory = adminAction(categorySchema, async (data, { tx, audit }) => {
+ *   const category = await tx.category.create({ data })
  *   await audit('CREATE', 'Category', category.id)
  *   revalidatePath('/admin/categories')
  * })
@@ -77,14 +82,25 @@ export function adminAction<S extends z.ZodType, T>(
       }
     }
 
-    const audit: ActionContext['audit'] = (action, type, id, details) =>
-      logAdminAction(session.user.id, action, type, id, details, requestHeaders)
-
     try {
-      return {
-        success: true,
-        data: await handler(parsed.data, { session, audit }),
-      }
+      const data = await prisma.$transaction(tx =>
+        handler(parsed.data, {
+          session,
+          tx,
+          audit: (action, type, id, details) =>
+            logAdminAction(
+              session.user.id,
+              action,
+              type,
+              id,
+              details,
+              requestHeaders,
+              tx,
+            ),
+        }),
+      )
+
+      return { success: true, data }
     } catch (error) {
       unstable_rethrow(error)
       if (error instanceof ActionError) {

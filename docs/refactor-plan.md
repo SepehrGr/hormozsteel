@@ -229,7 +229,7 @@ taken"). The change also has no audit entry. Do this on its own branch from a fr
 
 - [x] F.1 `logAdminAction` takes an optional client (`db = prisma`), so it can write
   inside a transaction; the author lookup uses the same client.
-- [ ] F.2 `adminAction` runs the handler inside `prisma.$transaction(async tx => …)`.
+- [x] F.2 `adminAction` runs the handler inside `prisma.$transaction(async tx => …)`.
   The context gains `tx`, and `audit` writes through it. Both commit, or neither does.
   - `revalidatePath` inside the transaction is harmless: it only marks pages stale, so
     a rollback costs at most one extra re-render.
