@@ -219,6 +219,33 @@ calls `requireAuth`. Typing the URL opens it, although the API refuses the data.
     and apply only that SQL with `prisma db execute`. W0 baselines the history later.
   - Show "Deleted user" wherever a log's author is read.
 
+### Fix: change and audit row commit together (`fix/atomic-audit`)
+
+Found in the Phase 3 click-through. Every action saves its change, then writes the
+`AdminLog` row separately. If the log write fails, the change stays saved, the UI says
+"Something went wrong", and a retry fails with a confusing error (e.g. "email already
+taken"). The change also has no audit entry. Do this on its own branch from a fresh
+`main`, after Phase 3 merges.
+
+- [ ] F.1 `logAdminAction` takes an optional client (`db = prisma`), so it can write
+  inside a transaction; the author lookup uses the same client.
+- [ ] F.2 `adminAction` runs the handler inside `prisma.$transaction(async tx => …)`.
+  The context gains `tx`, and `audit` writes through it. Both commit, or neither does.
+  - `revalidatePath` inside the transaction is harmless: it only marks pages stale, so
+    a rollback costs at most one extra re-render.
+  - Interactive transactions time out after 5 s by default. Hash passwords (bcrypt,
+    ~250 ms) before the first write so the transaction stays short.
+- [ ] F.3 Switch the three `actions.ts` files from `prisma.` to `tx.` (13 calls),
+  including the users guards (`findUser`, `isLastSuperAdmin`). Decide whether
+  `isolationLevel: 'Serializable'` is worth it to close the race noted on
+  `isLastSuperAdmin`.
+- [ ] F.4 Test: make the audit throw on purpose. The change must not be saved and the
+  error must show. Then check the normal path still saves both rows.
+
+Not covered: the route handlers that call `logAdminAction` directly (categories,
+products bulk/import, quick-orders). Phases 4–6 delete most of them. Excel import stays
+a route, so Phase 5 gives it the same transaction.
+
 ### Phase 4: Orders inbox (`refactor/admin-orders`)
 
 **Current code:**
