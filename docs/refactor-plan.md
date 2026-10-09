@@ -196,8 +196,15 @@ calls `requireAuth`. Typing the URL opens it, although the API refuses the data.
     `id` and `role`.
   - Name and email still come from the login-time token (next-auth builds them from
     the decoded cookie), so a rename shows after the next sign-in.
-- [ ] 3.11 Deleting an admin deletes their audit trail (`AdminLog` is
+- [x] 3.11 Deleting an admin deletes their audit trail (`AdminLog` is
   `onDelete: Cascade`). Make `userId` nullable with `onDelete: SetNull`.
+  - Migration `20261009184608_admin_log_keep_on_user_delete`: generated from the old
+    schema, checked against the live DB (same SQL, no drift), and applied with
+    `db execute`. Afterwards live DB → schema diffs empty.
+  - Kept rows lose their author (`userId` becomes null). The delete dialog now says so
+    and points to deactivating instead.
+  - Nothing reads a log's author yet, so there was no "Deleted user" label to add. The
+    first log viewer should show one for `userId: null`.
   - The demo DB was built with `db push`, so none of the migrations are recorded as applied
     and `migrate dev` would want to **reset** it. Write the migration with
     `migrate diff --from-schema-datamodel <old> --to-schema-datamodel prisma/schema.prisma`

@@ -86,9 +86,8 @@ export function UserActions({
             name={user.name}
             noun='user'
           >
-            {/* AdminLog is onDelete: Cascade until 3.11 makes it SetNull */}
-            Their activity log is deleted with them. To keep it, deactivate the
-            account instead.
+            Their activity log is kept, but no longer shows who made those
+            changes. To keep that, deactivate the account instead.
           </DeleteDialog>
         </DialogScope>
       ) : null}
