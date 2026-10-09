@@ -227,7 +227,7 @@ Found in the Phase 3 click-through. Every action saves its change, then writes t
 taken"). The change also has no audit entry. Do this on its own branch from a fresh
 `main`, after Phase 3 merges.
 
-- [ ] F.1 `logAdminAction` takes an optional client (`db = prisma`), so it can write
+- [x] F.1 `logAdminAction` takes an optional client (`db = prisma`), so it can write
   inside a transaction; the author lookup uses the same client.
 - [ ] F.2 `adminAction` runs the handler inside `prisma.$transaction(async tx => …)`.
   The context gains `tx`, and `audit` writes through it. Both commit, or neither does.
