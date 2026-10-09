@@ -1,11 +1,12 @@
 'use server'
 
+import type { Prisma } from '@prisma/client'
+
 import bcrypt from 'bcryptjs'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
 import { ActionError, adminAction } from '@/lib/actions'
-import { prisma } from '@/lib/prisma'
 import { createUserSchema, updateUserSchema } from '@/lib/schemas/user'
 
 const userId = z.string().min(1)
@@ -17,8 +18,8 @@ const LAST_SUPER_ADMIN = 'There must always be at least one active super admin.'
 const hashPassword = (password: string) => bcrypt.hash(password, 12)
 
 /** Read only what the guards need; the password hash is never selected. */
-async function findUser(id: string) {
-  const user = await prisma.user.findUnique({
+async function findUser(tx: Prisma.TransactionClient, id: string) {
+  const user = await tx.user.findUnique({
     where: { id },
     select: { email: true, name: true, role: true, isActive: true },
   })
@@ -31,11 +32,12 @@ async function findUser(id: string) {
 /**
  * True when no other active super admin exists, so this one can't lose the
  * role, be deactivated, or be deleted.
- * ponytail: check-then-write, so two simultaneous demotions could both pass;
- * wrap in a Serializable `$transaction` if that ever matters.
+ * ponytail: check-then-write at Read Committed, so two simultaneous demotions
+ * could both pass; give these actions `isolationLevel: 'Serializable'` if that
+ * ever matters.
  */
-async function isLastSuperAdmin(id: string) {
-  const others = await prisma.user.count({
+async function isLastSuperAdmin(tx: Prisma.TransactionClient, id: string) {
+  const others = await tx.user.count({
     where: { role: 'SUPER_ADMIN', isActive: true, id: { not: id } },
   })
 
@@ -44,8 +46,8 @@ async function isLastSuperAdmin(id: string) {
 
 export const createUser = adminAction(
   createUserSchema,
-  async ({ password, ...data }, { audit }) => {
-    const user = await prisma.user.create({
+  async ({ password, ...data }, { tx, audit }) => {
+    const user = await tx.user.create({
       data: { ...data, password: await hashPassword(password) },
       select: { id: true },
     })
@@ -58,8 +60,8 @@ export const createUser = adminAction(
 
 export const updateUser = adminAction(
   z.object({ id: userId, values: updateUserSchema }),
-  async ({ id, values: { password, ...data } }, { session, audit }) => {
-    const existing = await findUser(id)
+  async ({ id, values: { password, ...data } }, { session, tx, audit }) => {
+    const existing = await findUser(tx, id)
 
     if (id === session.user.id) {
       if (data.role !== existing.role) {
@@ -77,12 +79,12 @@ export const updateUser = adminAction(
     if (
       wasActiveSuperAdmin &&
       !staysActiveSuperAdmin &&
-      (await isLastSuperAdmin(id))
+      (await isLastSuperAdmin(tx, id))
     ) {
       throw new ActionError(LAST_SUPER_ADMIN)
     }
 
-    await prisma.user.update({
+    await tx.user.update({
       where: { id },
       data: {
         ...data,
@@ -105,9 +107,9 @@ export const updateUser = adminAction(
 /** Lift a failed-login lockout early; the next login starts from zero attempts. */
 export const unlockUser = adminAction(
   z.object({ id: userId }),
-  async ({ id }, { audit }) => {
+  async ({ id }, { tx, audit }) => {
     // A missing user is P2025, which adminAction turns into a message
-    await prisma.user.update({
+    await tx.user.update({
       where: { id },
       data: { failedLoginAttempts: 0, lockedUntil: null },
       select: { id: true },
@@ -121,22 +123,22 @@ export const unlockUser = adminAction(
 
 export const deleteUser = adminAction(
   z.object({ id: userId }),
-  async ({ id }, { session, audit }) => {
+  async ({ id }, { session, tx, audit }) => {
     if (id === session.user.id) {
       throw new ActionError('You cannot delete your own account.')
     }
 
-    const existing = await findUser(id)
+    const existing = await findUser(tx, id)
 
     if (
       existing.role === 'SUPER_ADMIN' &&
       existing.isActive &&
-      (await isLastSuperAdmin(id))
+      (await isLastSuperAdmin(tx, id))
     ) {
       throw new ActionError(LAST_SUPER_ADMIN)
     }
 
-    await prisma.user.delete({ where: { id }, select: { id: true } })
+    await tx.user.delete({ where: { id }, select: { id: true } })
 
     await audit('DELETE', 'User', id, {
       email: existing.email,
