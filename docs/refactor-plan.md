@@ -205,6 +205,14 @@ calls `requireAuth`. Typing the URL opens it, although the API refuses the data.
     and points to deactivating instead.
   - Nothing reads a log's author yet, so there was no "Deleted user" label to add. The
     first log viewer should show one for `userId: null`.
+- [x] 3.12 Keep "who" after a delete: `AdminLog.userName` and `userEmail`, copied from
+  the author when `logAdminAction` writes the row (read from the DB, since the session's
+  name/email are from sign-in). They record the name as it was at the time, so later
+  renames don't rewrite history.
+  - Migration `20261009190137_admin_log_author_snapshot`, edited by hand: add the
+    columns nullable, backfill the existing rows from `users`, then `SET NOT NULL`.
+  - The delete dialog's warning is gone; deleting no longer loses anything.
+  - A log viewer shows `userName`, plus "(deleted)" when `userId` is null.
   - The demo DB was built with `db push`, so none of the migrations are recorded as applied
     and `migrate dev` would want to **reset** it. Write the migration with
     `migrate diff --from-schema-datamodel <old> --to-schema-datamodel prisma/schema.prisma`

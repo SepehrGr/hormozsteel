@@ -65,10 +65,16 @@ export async function logAdminAction(
   const headers = source instanceof Headers ? source : source?.headers
   const ipAddress = headers ? getClientIP(headers) : 'unknown'
   const userAgent = headers?.get('user-agent') || 'unknown'
+  const author = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+    select: { name: true, email: true },
+  })
 
   await prisma.adminLog.create({
     data: {
       userId,
+      userName: author.name,
+      userEmail: author.email,
       action,
       resourceType,
       resourceId,
