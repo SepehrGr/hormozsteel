@@ -19,12 +19,15 @@ export function SearchToolbar({
   path,
   query,
   placeholder,
+  filtered = false,
   children,
 }: {
   /** Route the form navigates to, e.g. `/admin/categories`. */
   path: string
   query?: string
   placeholder: string
+  /** A filter in `children` is set, so offer Clear even with no search text. */
+  filtered?: boolean
   children?: ReactNode
 }) {
   return (
@@ -55,7 +58,7 @@ export function SearchToolbar({
             <Search aria-hidden className='h-4 w-4' />
             Search
           </Button>
-          {query ? (
+          {query || filtered ? (
             <Button asChild variant='outline'>
               <Link href={path}>Clear</Link>
             </Button>

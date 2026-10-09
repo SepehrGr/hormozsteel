@@ -129,8 +129,23 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as any).role
+        token.role = user.role
+
+        return token
       }
+
+      const account = token.sub
+        ? await prisma.user.findUnique({
+            where: { id: token.sub },
+            select: { role: true, isActive: true },
+          })
+        : null
+
+      if (!account?.isActive) {
+        throw new Error('Account deleted or deactivated')
+      }
+
+      token.role = account.role
 
       return token
     },

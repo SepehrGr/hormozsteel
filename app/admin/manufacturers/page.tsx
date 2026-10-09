@@ -53,7 +53,6 @@ export default async function ManufacturersPage({
       <PageHeader
         actions={addButton}
         description='Mills and suppliers linked to catalog products.'
-        eyebrow='Catalog'
         icon={Factory}
         title='Manufacturers'
       />
