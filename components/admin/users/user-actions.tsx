@@ -85,10 +85,7 @@ export function UserActions({
             action={() => deleteUser({ id: user.id })}
             name={user.name}
             noun='user'
-          >
-            Their activity log is kept, but no longer shows who made those
-            changes. To keep that, deactivate the account instead.
-          </DeleteDialog>
+          />
         </DialogScope>
       ) : null}
     </>
