@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
+import type { InboxStatus } from '@/config/order-status'
 
+import { statusLabel, statusTone } from '@/config/order-status'
 import { cn } from '@/lib/utils'
 
 // Tailwind only ships classes it can see written out in full.
@@ -35,4 +37,8 @@ export function Pill({
       {children}
     </span>
   )
+}
+
+export function StatusPill({ status }: { status: InboxStatus }) {
+  return <Pill tone={statusTone(status)}>{statusLabel(status)}</Pill>
 }
