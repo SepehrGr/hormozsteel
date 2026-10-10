@@ -265,7 +265,7 @@ a route, so Phase 5 gives it the same transaction.
 - `ContactFormStatus` is `NEW|READ|REPLIED`.
 - `ContactForm` has unused `reply`/`repliedAt`/`repliedBy` columns.
 
-- [ ] 4.1 `config/order-status.ts`: a label and tone for each status, typed as
+- [x] 4.1 `config/order-status.ts`: a label and tone for each status, typed as
   `Record<QuickOrderStatus | ContactFormStatus, …>`, so a new enum value fails the
   typecheck until it gets a label. Move `StatusPill` into `components/admin/`.
 - [ ] 4.2 `app/admin/orders/actions.ts`:
