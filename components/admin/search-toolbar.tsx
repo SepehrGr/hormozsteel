@@ -13,13 +13,14 @@ import { Input } from '@/components/ui/field'
  * reloads, and a server page can read them from `searchParams`.
  *
  * `next/form` turns the native GET submit into a client-side navigation.
- * Extra filters (selects, hidden inputs) go in `children` and submit with it.
+ * Extra filters (selects) go in `children` and submit with it.
  */
 export function SearchToolbar({
   path,
   query,
   placeholder,
   filtered = false,
+  params = {},
   children,
 }: {
   /** Route the form navigates to, e.g. `/admin/categories`. */
@@ -28,8 +29,13 @@ export function SearchToolbar({
   placeholder: string
   /** A filter in `children` is set, so offer Clear even with no search text. */
   filtered?: boolean
+  /** Search params to keep across Search and Clear, e.g. `{ tab: 'contact' }`. */
+  params?: Record<string, string>
   children?: ReactNode
 }) {
+  // A GET form drops any query string in its action, so params travel as hidden inputs.
+  const kept = new URLSearchParams(params).toString()
+
   return (
     <DataCard title='Filters'>
       <Form
@@ -52,6 +58,9 @@ export function SearchToolbar({
             type='search'
           />
         </div>
+        {Object.entries(params).map(([name, value]) => (
+          <input key={name} name={name} type='hidden' value={value} />
+        ))}
         {children}
         <div className='flex flex-wrap gap-2'>
           <Button type='submit' variant='outline'>
@@ -60,7 +69,7 @@ export function SearchToolbar({
           </Button>
           {query || filtered ? (
             <Button asChild variant='outline'>
-              <Link href={path}>Clear</Link>
+              <Link href={kept ? `${path}?${kept}` : path}>Clear</Link>
             </Button>
           ) : null}
         </div>
