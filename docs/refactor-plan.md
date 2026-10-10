@@ -268,10 +268,11 @@ a route, so Phase 5 gives it the same transaction.
 - [x] 4.1 `config/order-status.ts`: a label and tone for each status, typed as
   `Record<QuickOrderStatus | ContactFormStatus, …>`, so a new enum value fails the
   typecheck until it gets a label. Move `StatusPill` into `components/admin/`.
-- [ ] 4.2 `app/admin/orders/actions.ts`:
+- [x] 4.2 `app/admin/orders/actions.ts`:
   - `updateQuickOrderStatus` (validated with `z.enum(QuickOrderStatus)`), `deleteQuickOrder`
-  - `markContactRead`, `markContactReplied`, `deleteContactMessage`
-- [ ] 4.3 Server page:
+  - `updateContactStatus` (one action instead of mark read / mark replied; sets
+    `repliedAt` on `REPLIED`), `deleteContactMessage`
+- [x] 4.3 Server page:
   - `?tab=quick|contact` in the URL, with the tabs as links.
   - `?status=` filter and `?q=` search.
   - Stats per tab: new, pending.
