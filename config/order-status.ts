@@ -19,6 +19,14 @@ export const CONTACT_TONES: Record<ContactFormStatus, PillTone> = {
   REPLIED: 'success',
 }
 
+// Safe casts: a Record's keys are exactly the enum's values.
+export const QUICK_ORDER_STATUSES = Object.keys(
+  QUICK_ORDER_TONES,
+) as QuickOrderStatus[]
+export const CONTACT_STATUSES = Object.keys(
+  CONTACT_TONES,
+) as ContactFormStatus[]
+
 const STATUS_TONES: Record<InboxStatus, PillTone> = {
   ...QUICK_ORDER_TONES,
   ...CONTACT_TONES,
