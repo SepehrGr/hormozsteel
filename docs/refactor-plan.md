@@ -276,10 +276,13 @@ a route, so Phase 5 gives it the same transaction.
   - `?tab=quick|contact` in the URL, with the tabs as links.
   - `?status=` filter and `?q=` search.
   - Stats per tab: new, pending.
-- [ ] 4.4 Quick orders table: a status `<select>` that saves through the action with
-  `useOptimistic`; delete through `ConfirmDialog`, replacing `window.confirm`.
-- [ ] 4.5 Contact messages table: expand a row to read the full message (same pattern as
-  category sub-lines); buttons for mark read and mark replied; delete.
+- [ ] 4.4 Quick orders table:
+  - A status `<select>` that saves through the action with `useOptimistic`.
+  - Delete through the shared `DeleteDialog`, replacing `window.confirm`.
+  - Expand a row to see full specs, product and notes (replaces the old Eye modal).
+    One shared `ExpandableRow` client component, which categories switch to as well.
+- [ ] 4.5 Contact messages table: expand a row (`ExpandableRow`) to read the full
+  message; buttons for mark read and mark replied; delete.
 - [ ] 4.6 Notification bell: `components/admin/admin-header.tsx` polls
   `/api/contact?status=new` and `/api/quick-orders?status=pending` every 30 s with raw
   `fetch` + `setInterval`. Replace it with one SWR hook (`refreshInterval: 30_000`) on a

@@ -15,6 +15,12 @@ export interface Column {
   className?: string
 }
 
+/** First column of a table whose rows are `ExpandableRow`s. */
+export const expandColumn: Column = {
+  label: <span className='sr-only'>Expand</span>,
+  className: 'w-12',
+}
+
 /**
  * Scrollable admin table: header row from `columns`, body rows as children.
  *
