@@ -3,12 +3,14 @@ import type { QuickOrder } from '@prisma/client'
 import {
   type Column,
   AdminTable,
-  rowClass,
+  expandColumn,
 } from '@/components/admin/admin-table'
+import { ExpandableRow } from '@/components/admin/expandable-row'
 import { StatusPill } from '@/components/admin/pill'
 import { capitalize, formatDateTime } from '@/lib/format'
 
 const columns: Column[] = [
+  expandColumn,
   { label: 'Customer' },
   { label: 'Specs / qty' },
   { label: 'Delivery' },
@@ -21,7 +23,12 @@ export function QuickOrdersTable({ orders }: { orders: QuickOrder[] }) {
   return (
     <AdminTable columns={columns}>
       {orders.map(order => (
-        <tr key={order.id} className={rowClass}>
+        <ExpandableRow
+          key={order.id}
+          colSpan={columns.length}
+          detail={<OrderDetails order={order} />}
+          label={`Details of ${order.customerName}'s request`}
+        >
           <td className='px-4 py-3'>
             <p className='font-medium text-foreground'>{order.customerName}</p>
             <p className='mt-0.5 text-xs text-muted-foreground'>
@@ -52,8 +59,29 @@ export function QuickOrdersTable({ orders }: { orders: QuickOrder[] }) {
           <td className='px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground'>
             {formatDateTime(order.createdAt)}
           </td>
-        </tr>
+        </ExpandableRow>
       ))}
     </AdminTable>
+  )
+}
+
+function OrderDetails({ order }: { order: QuickOrder }) {
+  const details = [
+    ['Specs', order.productSpecs],
+    ['Product', order.productName],
+    ['Notes', order.additionalNotes],
+  ].filter(([, value]) => value)
+
+  return (
+    <dl className='grid max-w-3xl gap-3 sm:grid-cols-[6rem_1fr]'>
+      {details.map(([label, value]) => (
+        <div key={label} className='contents'>
+          <dt className='text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:pt-0.5'>
+            {label}
+          </dt>
+          <dd className='whitespace-pre-line text-foreground'>{value}</dd>
+        </div>
+      ))}
+    </dl>
   )
 }
