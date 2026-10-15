@@ -289,11 +289,17 @@ a route, so Phase 5 gives it the same transaction.
   single auth-guarded `/api/admin/notifications` route. Polling is a genuinely
   browser-driven read, so it keeps an API route rather than becoming a Server Action.
   Refresh the bell after the inbox actions too.
-- [ ] 4.7 Lock down and clean up:
+- [x] 4.7 Lock down and clean up:
   - `/api/contact` `GET`/`PATCH`/`DELETE` are public today and expose customer messages
     *(from 8.0)*. Delete them once 4.6 has moved the bell off them.
   - Delete the admin `GET`/`PATCH`/`DELETE` in `/api/quick-orders` once unused.
   - Keep the public `POST`s, which the contact page and the order-request modal use.
+  - Found on the way: the public `POST`s now count on their own rate-limit counter
+    (`checkSubmitRateLimitAndRespond`). The quote form's limit of 20 was checked against
+    the counter every API call shares, so 20 catalog reads blocked a quote; the contact
+    form had no limit at all. The admin writes in `/api/categories/**` and
+    `/api/products/**` still pass custom limits to the shared counter; they go in 6.4
+    and Phase 5.
 
 ### Phase 5: Products (`refactor/admin-products`), the largest
 
