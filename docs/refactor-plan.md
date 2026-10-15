@@ -276,7 +276,7 @@ a route, so Phase 5 gives it the same transaction.
   - `?tab=quick|contact` in the URL, with the tabs as links.
   - `?status=` filter and `?q=` search.
   - Stats per tab: new, pending.
-- [ ] 4.4 Quick orders table:
+- [x] 4.4 Quick orders table:
   - A status `<select>` that saves through the action with `useOptimistic`.
   - Delete through the shared `DeleteDialog`, replacing `window.confirm`.
   - Expand a row to see full specs, product and notes (replaces the old Eye modal).
