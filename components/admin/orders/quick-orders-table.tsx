@@ -1,10 +1,12 @@
 import type { QuickOrder } from '@prisma/client'
 
+import { deleteQuickOrder } from '@/app/admin/orders/actions'
 import {
   type Column,
   AdminTable,
   expandColumn,
 } from '@/components/admin/admin-table'
+import { DeleteRowButton } from '@/components/admin/delete-row-button'
 import { ExpandableRow } from '@/components/admin/expandable-row'
 import { QuickOrderStatusSelect } from '@/components/admin/orders/quick-order-status'
 import { capitalize, formatDateTime } from '@/lib/format'
@@ -16,6 +18,7 @@ const columns: Column[] = [
   { label: 'Delivery' },
   { label: 'Status' },
   { label: 'Received' },
+  { label: 'Actions', className: 'text-right' },
 ]
 
 /** Quote requests from the public order form. */
@@ -62,6 +65,13 @@ export function QuickOrdersTable({ orders }: { orders: QuickOrder[] }) {
           </td>
           <td className='px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground'>
             {formatDateTime(order.createdAt)}
+          </td>
+          <td className='px-4 py-3'>
+            <DeleteRowButton
+              action={deleteQuickOrder.bind(null, { id: order.id })}
+              name={order.customerName}
+              noun='quote request'
+            />
           </td>
         </ExpandableRow>
       ))}
