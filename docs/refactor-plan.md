@@ -283,7 +283,7 @@ a route, so Phase 5 gives it the same transaction.
     One shared `ExpandableRow` client component, which categories switch to as well.
 - [x] 4.5 Contact messages table: expand a row (`ExpandableRow`) to read the full
   message; buttons for mark read and mark replied; delete.
-- [ ] 4.6 Notification bell: `components/admin/admin-header.tsx` polls
+- [x] 4.6 Notification bell: `components/admin/admin-header.tsx` polls
   `/api/contact?status=new` and `/api/quick-orders?status=pending` every 30 s with raw
   `fetch` + `setInterval`. Replace it with one SWR hook (`refreshInterval: 30_000`) on a
   single auth-guarded `/api/admin/notifications` route. Polling is a genuinely

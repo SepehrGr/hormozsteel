@@ -2,10 +2,13 @@ import type { FieldValues, Path, UseFormSetError } from 'react-hook-form'
 import type { ActionResult } from '@/lib/actions'
 
 import { addToast } from '@heroui/toast'
+import { mutate } from 'swr'
 
 /**
- * Toast a Server Action's outcome. On failure, zod field errors are pushed
- * into the form (when `setError` is given) so they render under each field.
+ * Toast a Server Action's outcome. On success, every SWR poll (the admin bell)
+ * refetches, since the write may have changed it. On failure, zod field errors
+ * are pushed into the form (when `setError` is given) so they render under
+ * each field.
  * Returns true on success, narrowing `result` to its data branch.
  *
  * ```ts
@@ -19,6 +22,7 @@ export function toastResult<T, F extends FieldValues = FieldValues>(
   setError?: UseFormSetError<F>,
 ): result is Extract<ActionResult<T>, { success: true }> {
   if (result.success) {
+    void mutate(() => true)
     addToast({ title: 'Done', description: successMessage, color: 'success' })
 
     return true
