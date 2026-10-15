@@ -11,6 +11,7 @@ interface RateLimitEntry {
 // Separate maps for different endpoint types
 const loginRateLimitMap = new Map<string, RateLimitEntry>()
 const apiRateLimitMap = new Map<string, RateLimitEntry>()
+const submitRateLimitMap = new Map<string, RateLimitEntry>()
 
 // Rate limit configurations
 const LOGIN_MAX_ATTEMPTS = 5
@@ -19,6 +20,10 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
 const API_MAX_ATTEMPTS = 1000 // More lenient for API endpoints
 const API_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
 
+// Public form posts count apart from API reads, so browsing can't use them up
+const SUBMIT_MAX_ATTEMPTS = 20
+const SUBMIT_WINDOW_MS = 15 * 60 * 1000
+
 /**
  * Clean up expired entries periodically
  */
@@ -26,21 +31,13 @@ setInterval(
   () => {
     const now = Date.now()
 
-    // Clean up login rate limit map
-    const loginEntries = Array.from(loginRateLimitMap.entries())
-
-    for (const [ip, entry] of loginEntries) {
-      if (entry.resetTime < now) {
-        loginRateLimitMap.delete(ip)
-      }
-    }
-
-    // Clean up API rate limit map
-    const apiEntries = Array.from(apiRateLimitMap.entries())
-
-    for (const [ip, entry] of apiEntries) {
-      if (entry.resetTime < now) {
-        apiRateLimitMap.delete(ip)
+    for (const map of [
+      loginRateLimitMap,
+      apiRateLimitMap,
+      submitRateLimitMap,
+    ]) {
+      for (const [ip, entry] of Array.from(map.entries())) {
+        if (entry.resetTime < now) map.delete(ip)
       }
     }
   },
@@ -176,38 +173,54 @@ export function resetRateLimit(
   }
 }
 
+/** The 429 response for a limited request, or null to carry on. */
+function tooManyRequests(rateLimit: {
+  isLimited: boolean
+  remainingMinutes: number
+}): Response | null {
+  if (!rateLimit.isLimited) return null
+
+  return new Response(
+    JSON.stringify({
+      success: false,
+      error: 'Too many requests',
+      message: `Rate limit exceeded. Please try again in ${rateLimit.remainingMinutes} minutes.`,
+      remainingMinutes: rateLimit.remainingMinutes,
+    }),
+    {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json',
+        'Retry-After': String(rateLimit.remainingMinutes * 60),
+      },
+    },
+  )
+}
+
 /**
- * Helper function to check API rate limit and return error response if exceeded
- * @param request - The NextRequest object
- * @param maxAttempts - Maximum attempts allowed (default: API_MAX_ATTEMPTS)
- * @param windowMs - Time window in milliseconds (default: API_WINDOW_MS)
- * @returns NextResponse with 429 status if rate limited, null otherwise
+ * Rate-limit guard for API routes: a 429 response, or null to carry on.
+ * `maxAttempts` is checked against the one counter all API calls share.
  */
 export function checkApiRateLimitAndRespond(
   request: Request,
   maxAttempts: number = API_MAX_ATTEMPTS,
   windowMs: number = API_WINDOW_MS,
 ): Response | null {
-  const ip = getClientIP(request)
-  const rateLimit = checkApiRateLimit(ip, maxAttempts, windowMs)
+  return tooManyRequests(
+    checkApiRateLimit(getClientIP(request), maxAttempts, windowMs),
+  )
+}
 
-  if (rateLimit.isLimited) {
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: 'Too many requests',
-        message: `Rate limit exceeded. Please try again in ${rateLimit.remainingMinutes} minutes.`,
-        remainingMinutes: rateLimit.remainingMinutes,
-      }),
-      {
-        status: 429,
-        headers: {
-          'Content-Type': 'application/json',
-          'Retry-After': String(rateLimit.remainingMinutes * 60),
-        },
-      },
-    )
-  }
-
-  return null
+/** The same guard for public form posts, on their own tighter counter. */
+export function checkSubmitRateLimitAndRespond(
+  request: Request,
+): Response | null {
+  return tooManyRequests(
+    checkRateLimitWithConfig(
+      getClientIP(request),
+      submitRateLimitMap,
+      SUBMIT_MAX_ATTEMPTS,
+      SUBMIT_WINDOW_MS,
+    ),
+  )
 }
