@@ -265,31 +265,41 @@ a route, so Phase 5 gives it the same transaction.
 - `ContactFormStatus` is `NEW|READ|REPLIED`.
 - `ContactForm` has unused `reply`/`repliedAt`/`repliedBy` columns.
 
-- [ ] 4.1 `config/order-status.ts`: a label and tone for each status, typed as
+- [x] 4.1 `config/order-status.ts`: a label and tone for each status, typed as
   `Record<QuickOrderStatus | ContactFormStatus, …>`, so a new enum value fails the
   typecheck until it gets a label. Move `StatusPill` into `components/admin/`.
-- [ ] 4.2 `app/admin/orders/actions.ts`:
+- [x] 4.2 `app/admin/orders/actions.ts`:
   - `updateQuickOrderStatus` (validated with `z.enum(QuickOrderStatus)`), `deleteQuickOrder`
-  - `markContactRead`, `markContactReplied`, `deleteContactMessage`
-- [ ] 4.3 Server page:
+  - `updateContactStatus` (one action instead of mark read / mark replied; sets
+    `repliedAt` on `REPLIED`), `deleteContactMessage`
+- [x] 4.3 Server page:
   - `?tab=quick|contact` in the URL, with the tabs as links.
   - `?status=` filter and `?q=` search.
   - Stats per tab: new, pending.
-- [ ] 4.4 Quick orders table: a status `<select>` that saves through the action with
-  `useOptimistic`; delete through `ConfirmDialog`, replacing `window.confirm`.
-- [ ] 4.5 Contact messages table: expand a row to read the full message (same pattern as
-  category sub-lines); buttons for mark read and mark replied; delete.
-- [ ] 4.6 Notification bell: `components/admin/admin-header.tsx` polls
+- [x] 4.4 Quick orders table:
+  - A status `<select>` that saves through the action with `useOptimistic`.
+  - Delete through the shared `DeleteDialog`, replacing `window.confirm`.
+  - Expand a row to see full specs, product and notes (replaces the old Eye modal).
+    One shared `ExpandableRow` client component, which categories switch to as well.
+- [x] 4.5 Contact messages table: expand a row (`ExpandableRow`) to read the full
+  message; buttons for mark read and mark replied; delete.
+- [x] 4.6 Notification bell: `components/admin/admin-header.tsx` polls
   `/api/contact?status=new` and `/api/quick-orders?status=pending` every 30 s with raw
   `fetch` + `setInterval`. Replace it with one SWR hook (`refreshInterval: 30_000`) on a
   single auth-guarded `/api/admin/notifications` route. Polling is a genuinely
   browser-driven read, so it keeps an API route rather than becoming a Server Action.
   Refresh the bell after the inbox actions too.
-- [ ] 4.7 Lock down and clean up:
+- [x] 4.7 Lock down and clean up:
   - `/api/contact` `GET`/`PATCH`/`DELETE` are public today and expose customer messages
     *(from 8.0)*. Delete them once 4.6 has moved the bell off them.
   - Delete the admin `GET`/`PATCH`/`DELETE` in `/api/quick-orders` once unused.
   - Keep the public `POST`s, which the contact page and the order-request modal use.
+  - Found on the way: the public `POST`s now count on their own rate-limit counter
+    (`checkSubmitRateLimitAndRespond`). The quote form's limit of 20 was checked against
+    the counter every API call shares, so 20 catalog reads blocked a quote; the contact
+    form had no limit at all. The admin writes in `/api/categories/**` and
+    `/api/products/**` still pass custom limits to the shared counter; they go in 6.4
+    and Phase 5.
 
 ### Phase 5: Products (`refactor/admin-products`), the largest
 

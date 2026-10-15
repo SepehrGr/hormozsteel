@@ -1,3 +1,4 @@
+import type { InboxNotifications } from '@/types'
 import type { CategoryDTO, ProductDTO } from '@/types/products'
 
 import useSWR from 'swr'
@@ -360,4 +361,15 @@ export function useCreateOrder() {
   }
 
   return { createOrder, isLoading, error }
+}
+
+// The admin bell's inbox summary, polled every 30 s
+export function useNotifications() {
+  const { data, isLoading } = useSWR<ApiResponse<InboxNotifications>>(
+    '/api/admin/notifications',
+    fetcher,
+    { refreshInterval: 30_000 },
+  )
+
+  return { notifications: data?.success ? data.data : null, isLoading }
 }

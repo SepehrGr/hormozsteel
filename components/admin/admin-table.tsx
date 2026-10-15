@@ -15,6 +15,12 @@ export interface Column {
   className?: string
 }
 
+/** First column of a table whose rows are `ExpandableRow`s. */
+export const expandColumn: Column = {
+  label: <span className='sr-only'>Expand</span>,
+  className: 'w-12',
+}
+
 /**
  * Scrollable admin table: header row from `columns`, body rows as children.
  *
@@ -80,8 +86,8 @@ export function NameCell({
 }
 
 /**
- * Edit and Delete icon buttons for the row named `name`; no `onDelete`, no
- * Delete. `children` are extra buttons, placed before Edit.
+ * Edit and Delete icon buttons for the row named `name`; a button whose
+ * handler is missing isn't shown. `children` are extra buttons, placed first.
  */
 export function RowActions({
   name,
@@ -90,21 +96,23 @@ export function RowActions({
   children,
 }: {
   name: string
-  onEdit: () => void
+  onEdit?: () => void
   onDelete?: () => void
   children?: ReactNode
 }) {
   return (
     <div className='flex justify-end gap-1'>
       {children}
-      <Button
-        aria-label={`Edit ${name}`}
-        size='icon'
-        variant='outline'
-        onClick={onEdit}
-      >
-        <Pencil aria-hidden className='h-3.5 w-3.5' />
-      </Button>
+      {onEdit ? (
+        <Button
+          aria-label={`Edit ${name}`}
+          size='icon'
+          variant='outline'
+          onClick={onEdit}
+        >
+          <Pencil aria-hidden className='h-3.5 w-3.5' />
+        </Button>
+      ) : null}
       {onDelete ? (
         <Button
           aria-label={`Delete ${name}`}
