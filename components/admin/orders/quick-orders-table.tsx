@@ -6,7 +6,7 @@ import {
   expandColumn,
 } from '@/components/admin/admin-table'
 import { ExpandableRow } from '@/components/admin/expandable-row'
-import { StatusPill } from '@/components/admin/pill'
+import { QuickOrderStatusSelect } from '@/components/admin/orders/quick-order-status'
 import { capitalize, formatDateTime } from '@/lib/format'
 
 const columns: Column[] = [
@@ -54,7 +54,11 @@ export function QuickOrdersTable({ orders }: { orders: QuickOrder[] }) {
             ) : null}
           </td>
           <td className='px-4 py-3'>
-            <StatusPill status={order.status} />
+            <QuickOrderStatusSelect
+              id={order.id}
+              name={order.customerName}
+              status={order.status}
+            />
           </td>
           <td className='px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground'>
             {formatDateTime(order.createdAt)}
