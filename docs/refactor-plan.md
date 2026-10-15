@@ -281,7 +281,7 @@ a route, so Phase 5 gives it the same transaction.
   - Delete through the shared `DeleteDialog`, replacing `window.confirm`.
   - Expand a row to see full specs, product and notes (replaces the old Eye modal).
     One shared `ExpandableRow` client component, which categories switch to as well.
-- [ ] 4.5 Contact messages table: expand a row (`ExpandableRow`) to read the full
+- [x] 4.5 Contact messages table: expand a row (`ExpandableRow`) to read the full
   message; buttons for mark read and mark replied; delete.
 - [ ] 4.6 Notification bell: `components/admin/admin-header.tsx` polls
   `/api/contact?status=new` and `/api/quick-orders?status=pending` every 30 s with raw
