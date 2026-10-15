@@ -16,16 +16,7 @@ import {
 
 import { ThemeSwitch } from '@/components/layout/theme-switch'
 import ModalDialog from '@/components/ui/modal-dialog'
-
-interface Notification {
-  id: string
-  type: 'contact' | 'order'
-  title: string
-  description: string
-  time: string
-  icon: 'mail' | 'package'
-  link: string
-}
+import { useNotifications } from '@/hooks/use-api'
 
 function getTimeAgo(date: Date): string {
   const now = new Date()
@@ -48,68 +39,9 @@ export default function AdminHeader() {
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading] = useState(true)
-
-  const fetchNotifications = async () => {
-    try {
-      const [contactRes, ordersRes] = await Promise.all([
-        fetch('/api/contact?status=new&limit=5'),
-        fetch('/api/quick-orders?status=pending&limit=5'),
-      ])
-
-      const [contactData, ordersData] = await Promise.all([
-        contactRes.json(),
-        ordersRes.json(),
-      ])
-
-      const next: Notification[] = []
-
-      if (contactData.success && contactData.data?.contactForms) {
-        for (const form of contactData.data.contactForms) {
-          next.push({
-            id: `contact-${form.id}`,
-            type: 'contact',
-            title: `Message from ${form.name}`,
-            description: getTimeAgo(new Date(form.createdAt)),
-            time: form.createdAt,
-            icon: 'mail',
-            link: '/admin/orders',
-          })
-        }
-      }
-
-      if (ordersData.success && ordersData.data?.quickOrders) {
-        for (const order of ordersData.data.quickOrders) {
-          next.push({
-            id: `order-${order.id}`,
-            type: 'order',
-            title: `Quote from ${order.customerName}`,
-            description: getTimeAgo(new Date(order.createdAt)),
-            time: order.createdAt,
-            icon: 'package',
-            link: '/admin/orders',
-          })
-        }
-      }
-
-      next.sort(
-        (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
-      )
-      setNotifications(next.slice(0, 10))
-    } catch (error) {
-      console.error('Error fetching notifications:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchNotifications()
-    const interval = setInterval(fetchNotifications, 30000)
-
-    return () => clearInterval(interval)
-  }, [])
+  const { notifications, isLoading } = useNotifications()
+  const items = notifications?.items ?? []
+  const notificationCount = notifications?.count ?? 0
 
   useEffect(() => {
     setShowNotifications(false)
@@ -120,8 +52,6 @@ export default function AdminHeader() {
     signOut({ callbackUrl: '/admin/login' })
   }
 
-  const notificationCount = notifications.length
-
   return (
     <>
       <header className='sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:px-6'>
@@ -131,7 +61,11 @@ export default function AdminHeader() {
           {/* Notifications */}
           <div className='relative'>
             <button
-              aria-label='Notifications'
+              aria-label={
+                notificationCount
+                  ? `Notifications, ${notificationCount} waiting`
+                  : 'Notifications'
+              }
               className='relative flex h-8 w-8 items-center justify-center border border-border bg-card text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground cursor-pointer'
               type='button'
               onClick={() => {
@@ -163,11 +97,11 @@ export default function AdminHeader() {
                   </button>
                 </div>
                 <div className='max-h-80 overflow-y-auto'>
-                  {loading ? (
+                  {isLoading ? (
                     <p className='px-4 py-6 text-center text-sm text-muted-foreground'>
                       Loading…
                     </p>
-                  ) : notifications.length === 0 ? (
+                  ) : items.length === 0 ? (
                     <div className='px-4 py-8 text-center'>
                       <Bell className='mx-auto mb-2 h-8 w-8 text-muted-foreground/40' />
                       <p className='text-sm text-muted-foreground'>
@@ -176,18 +110,22 @@ export default function AdminHeader() {
                     </div>
                   ) : (
                     <ul className='divide-y divide-border'>
-                      {notifications.map(notif => (
-                        <li key={notif.id}>
+                      {items.map(item => (
+                        <li key={`${item.type}-${item.id}`}>
                           <button
                             className='flex w-full items-start gap-3 px-3 py-3 text-left transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                             type='button'
                             onClick={() => {
                               setShowNotifications(false)
-                              router.push(notif.link)
+                              router.push(
+                                item.type === 'contact'
+                                  ? '/admin/orders?tab=contact'
+                                  : '/admin/orders',
+                              )
                             }}
                           >
                             <span className='mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center border border-border bg-background'>
-                              {notif.icon === 'mail' ? (
+                              {item.type === 'contact' ? (
                                 <Mail className='h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400' />
                               ) : (
                                 <Package className='h-3.5 w-3.5 text-amber-800 dark:text-amber-500' />
@@ -195,10 +133,12 @@ export default function AdminHeader() {
                             </span>
                             <span className='min-w-0'>
                               <span className='block text-sm font-medium text-foreground'>
-                                {notif.title}
+                                {item.type === 'contact'
+                                  ? `Message from ${item.name}`
+                                  : `Quote from ${item.name}`}
                               </span>
                               <span className='mt-0.5 block text-xs text-muted-foreground'>
-                                {notif.description}
+                                {getTimeAgo(new Date(item.createdAt))}
                               </span>
                             </span>
                           </button>
@@ -207,7 +147,7 @@ export default function AdminHeader() {
                     </ul>
                   )}
                 </div>
-                {notifications.length > 0 && (
+                {items.length > 0 && (
                   <button
                     className='w-full border-t border-border px-3 py-2.5 text-center text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
                     type='button'
