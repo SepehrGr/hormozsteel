@@ -21,10 +21,11 @@ This is **not** the live client site. It uses a **dedicated database** (`ahanhor
 # 1. Create demo database (once, via psql)
 CREATE DATABASE ahanhormoz_demo;
 
-# 2. Environment
-cp .env.example .env.local
-# Set DATABASE_URL → .../ahanhormoz_demo?schema=public
-# Prisma CLI also reads root `.env` — point it at ahanhormoz_demo too
+# 2. Environment: create `.env.local` (the app) and `.env` (Prisma CLI) with
+#   DATABASE_URL="postgresql://postgres:PASSWORD@localhost:5432/ahanhormoz_demo?schema=public"
+#   NEXTAUTH_URL="http://localhost:3000"
+#   NEXTAUTH_SECRET="<a long random string>"
+# Both must point at ahanhormoz_demo
 
 # 3. Install + schema + seed
 yarn
