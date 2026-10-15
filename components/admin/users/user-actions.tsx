@@ -3,16 +3,15 @@
 import type { UserRow } from '@/components/admin/users/users-table'
 import type { UserFormValues } from '@/lib/schemas/user'
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import { LockOpen } from 'lucide-react'
 
 import { deleteUser, unlockUser, updateUser } from '@/app/admin/users/actions'
+import { ActionButton } from '@/components/admin/action-button'
 import { RowActions } from '@/components/admin/admin-table'
 import { UserFormDialog } from '@/components/admin/users/user-form-dialog'
-import { Button } from '@/components/ui/button'
 import { DeleteDialog } from '@/components/ui/delete-dialog'
 import { DialogScope } from '@/components/ui/dialog-scope'
-import { toastResult } from '@/lib/action-toast'
 
 /** A database row in the shape the user form holds; the password starts blank. */
 function toFormValues(user: UserRow): UserFormValues {
@@ -41,13 +40,6 @@ export function UserActions({
   // One value, not two booleans, so both dialogs can't be open at once
   const [open, setOpen] = useState<'edit' | 'delete' | null>(null)
   const close = () => setOpen(null)
-  const [unlocking, startUnlock] = useTransition()
-
-  // No confirm step: unlocking only gives back sign-in the lock took away
-  const unlock = () =>
-    startUnlock(async () => {
-      toastResult(await unlockUser({ id: user.id }), `${user.name} unlocked`)
-    })
 
   return (
     <>
@@ -57,15 +49,13 @@ export function UserActions({
         onEdit={() => setOpen('edit')}
       >
         {user.lockedUntil ? (
-          <Button
-            aria-label={`Unlock ${user.name}`}
-            disabled={unlocking}
-            size='icon'
-            variant='outline'
-            onClick={unlock}
+          <ActionButton
+            action={() => unlockUser({ id: user.id })}
+            label={`Unlock ${user.name}`}
+            success={`${user.name} unlocked`}
           >
             <LockOpen aria-hidden className='h-3.5 w-3.5' />
-          </Button>
+          </ActionButton>
         ) : null}
       </RowActions>
 
