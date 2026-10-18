@@ -1,4 +1,5 @@
 import type {
+  Prisma,
   Product,
   Category,
   Manufacturer,
@@ -38,14 +39,17 @@ function slugifyName(name: string) {
  * Resolve mill from manufacturerId and/or free-text brand name.
  * Creates a manufacturer when brand is new (admin add/edit flows).
  */
-export async function resolveManufacturerId(opts: {
-  manufacturerId?: string | null
-  brand?: string | null
-}): Promise<string | null> {
+export async function resolveManufacturerId(
+  opts: {
+    manufacturerId?: string | null
+    brand?: string | null
+  },
+  db: Prisma.TransactionClient = prisma,
+): Promise<string | null> {
   const { manufacturerId, brand } = opts
 
   if (manufacturerId) {
-    const byId = await prisma.manufacturer.findUnique({
+    const byId = await db.manufacturer.findUnique({
       where: { id: manufacturerId },
       select: { id: true },
     })
@@ -57,7 +61,7 @@ export async function resolveManufacturerId(opts: {
 
   if (!name) return null
 
-  const existing = await prisma.manufacturer.findFirst({
+  const existing = await db.manufacturer.findFirst({
     where: { name: { equals: name, mode: 'insensitive' } },
     select: { id: true },
   })
@@ -65,14 +69,14 @@ export async function resolveManufacturerId(opts: {
   if (existing) return existing.id
 
   let slug = slugifyName(name) || `mill-${Date.now()}`
-  const slugTaken = await prisma.manufacturer.findUnique({
+  const slugTaken = await db.manufacturer.findUnique({
     where: { slug },
     select: { id: true },
   })
 
   if (slugTaken) slug = `${slug}-${Date.now().toString(36)}`
 
-  const created = await prisma.manufacturer.create({
+  const created = await db.manufacturer.create({
     data: { name, slug },
     select: { id: true },
   })

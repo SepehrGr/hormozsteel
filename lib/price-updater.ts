@@ -1,4 +1,4 @@
-import { PriceDirection } from '@prisma/client'
+import { PriceDirection, type Prisma } from '@prisma/client'
 
 import { prisma } from '@/lib/prisma'
 
@@ -10,8 +10,53 @@ function directionFromDelta(delta: number): PriceDirection {
 }
 
 /**
- * Update a product's price and append a price-history row.
+ * Set a product's price inside the caller's transaction, keeping
+ * `previousPrice`/`priceDirection` in step and appending a price-history row.
+ * Does nothing when the price is unchanged.
  */
+export async function setProductPrice(
+  tx: Prisma.TransactionClient,
+  productId: string,
+  newPrice: number,
+  note?: string,
+) {
+  const product = await tx.product.findUnique({ where: { id: productId } })
+
+  if (!product) {
+    throw new Error(`Product not found: ${productId}`)
+  }
+  if (product.price === newPrice) return product
+
+  const oldPrice = product.price
+  const delta = newPrice - oldPrice
+  const direction = directionFromDelta(delta)
+
+  const row = await tx.product.update({
+    where: { id: productId },
+    data: {
+      previousPrice: oldPrice,
+      price: newPrice,
+      priceDirection: direction,
+      priceDelta: Math.abs(delta),
+      priceUpdatedAt: new Date(),
+    },
+  })
+
+  await tx.priceHistory.create({
+    data: {
+      productId,
+      oldPrice,
+      newPrice,
+      direction,
+      delta: Math.abs(delta),
+      note,
+    },
+  })
+
+  return row
+}
+
+/** `setProductPrice` in a transaction of its own, for callers outside one. */
 export async function updateProductPrice(
   productId: string,
   newPrice: number,
@@ -20,44 +65,9 @@ export async function updateProductPrice(
   { success: true; data: unknown } | { success: false; error: string }
 > {
   try {
-    const updated = await prisma.$transaction(async tx => {
-      const product = await tx.product.findUnique({ where: { id: productId } })
-
-      if (!product) {
-        throw new Error(`Product not found: ${productId}`)
-      }
-
-      const oldPrice = product.price
-      const delta = newPrice - oldPrice
-      const direction = directionFromDelta(delta)
-
-      const row = await tx.product.update({
-        where: { id: productId },
-        data: {
-          previousPrice: oldPrice,
-          price: newPrice,
-          priceDirection: direction,
-          priceDelta: Math.abs(delta),
-          priceUpdatedAt:
-            direction === PriceDirection.STABLE
-              ? product.priceUpdatedAt
-              : new Date(),
-        },
-      })
-
-      await tx.priceHistory.create({
-        data: {
-          productId,
-          oldPrice,
-          newPrice,
-          direction,
-          delta: Math.abs(delta),
-          note,
-        },
-      })
-
-      return row
-    })
+    const updated = await prisma.$transaction(tx =>
+      setProductPrice(tx, productId, newPrice, note),
+    )
 
     return { success: true, data: updated }
   } catch (e) {

@@ -1,3 +1,5 @@
+import type { Prisma } from '@prisma/client'
+
 import { prisma } from '@/lib/prisma'
 
 /**
@@ -10,6 +12,7 @@ import { prisma } from '@/lib/prisma'
 export async function generateUniqueSlug(
   baseName: string,
   excludeId?: string,
+  db: Prisma.TransactionClient = prisma,
 ): Promise<string> {
   const baseSlug = baseName
     .toLowerCase()
@@ -23,7 +26,7 @@ export async function generateUniqueSlug(
   }
 
   // Check if base slug is available
-  const existing = await prisma.product.findUnique({
+  const existing = await db.product.findUnique({
     where: { slug: baseSlug },
   })
 
@@ -36,7 +39,7 @@ export async function generateUniqueSlug(
   let newSlug = `${baseSlug}-${counter}`
 
   while (true) {
-    const conflict = await prisma.product.findUnique({
+    const conflict = await db.product.findUnique({
       where: { slug: newSlug },
     })
 

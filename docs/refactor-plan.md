@@ -326,10 +326,18 @@ by price" doesn't give the cheapest products overall.
     (`weight` → `weightKg`). The mill is a picked `manufacturerId` or a typed `brand`.
   - The server also checks that the subcategory belongs to the chosen category. That
     needs the database, so it lives in the 5.2 actions, not the schema.
-- [ ] 5.2 `app/admin/products/actions.ts`:
-  - create, update, delete;
-  - `updatePrice`, through `price-updater`;
-  - `toggleStock`, `bulkUpdate`, `bulkDelete`.
+- [x] 5.2 `app/admin/products/actions.ts`:
+  - `createProduct`, `updateProduct`;
+  - `updateProducts({ ids, changes })` for price, stock and category. Inline price edit and
+    the stock toggle send one id, so there's no separate `updatePrice`/`toggleStock`;
+  - `deleteProducts({ ids })` for single and bulk delete.
+  - Prices go through `setProductPrice(tx, …)`, split out of `price-updater`, which now
+    skips unchanged prices instead of writing a STABLE history row.
+    `generateUniqueSlug` and `resolveManufacturerId` take a `db` client, like `logAdminAction`.
+  - Only a rename gets a new slug. Seeded slugs don't follow the name, so regenerating
+    on every save would move product URLs.
+  - The server checks that the sub-line belongs to the category. A bulk category change
+    clears sub-lines the new category doesn't have.
   - Revalidate `/admin/products`, `/admin/dashboard`, and the public `/products` layout.
 - [ ] 5.3 Server page with every filter in the URL: `?q`, `?category`, `?stock`, `?page`,
   `?limit`, `?sort`, `?dir`.
