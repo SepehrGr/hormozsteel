@@ -320,10 +320,12 @@ by price" doesn't give the cheapest products overall.
   `priceDirection` stay consistent.
 - Slugs come from `generateUniqueSlug`.
 
-- [ ] 5.1 `lib/schemas/product.ts`, built from `ProductFormData`:
+- [x] 5.1 `lib/schemas/product.ts`, built from `ProductFormData`:
   - name, brand, `manufacturerId`, size, price, `inStock`, `categoryId`, subcategory,
-    weight.
-  - The server also checks that the subcategory belongs to the chosen category.
+    weight. Price and weight are strings in the form and numbers in the output
+    (`weight` → `weightKg`). The mill is a picked `manufacturerId` or a typed `brand`.
+  - The server also checks that the subcategory belongs to the chosen category. That
+    needs the database, so it lives in the 5.2 actions, not the schema.
 - [ ] 5.2 `app/admin/products/actions.ts`:
   - create, update, delete;
   - `updatePrice`, through `price-updater`;
