@@ -5,7 +5,7 @@ import { EmptyState } from '@/components/admin/empty-state'
 import { PageHeader } from '@/components/admin/page-header'
 import { SearchToolbar } from '@/components/admin/search-toolbar'
 import { StatsBoard } from '@/components/admin/stats-board'
-import { createUser } from '@/app/admin/users/actions'
+import { createUser } from '@/app/admin/(panel)/users/actions'
 import { UserFormDialog } from '@/components/admin/users/user-form-dialog'
 import { UsersTable } from '@/components/admin/users/users-table'
 import { DialogButton } from '@/components/ui/dialog-button'
@@ -20,8 +20,6 @@ export default async function UsersPage({
 }: {
   searchParams: Promise<{ q?: string | string[]; role?: string | string[] }>
 }) {
-  // Here, not only in the layout: layouts don't re-run on every navigation,
-  // so the check sits next to the data it protects
   const session = await requireSuperAdmin()
 
   const { q, role: roleParam } = await searchParams

@@ -1,6 +1,6 @@
 import type { QuickOrder } from '@prisma/client'
 
-import { deleteQuickOrder } from '@/app/admin/orders/actions'
+import { deleteQuickOrder } from '@/app/admin/(panel)/orders/actions'
 import {
   type Column,
   actionsColumn,

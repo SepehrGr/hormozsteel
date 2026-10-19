@@ -9,6 +9,7 @@ import { RequestDesk } from '@/components/admin/dashboard/request-desk'
 import { PageHeader } from '@/components/admin/page-header'
 import { StatsBoard } from '@/components/admin/stats-board'
 import { Button } from '@/components/ui/button'
+import { requireAuth } from '@/lib/admin-auth'
 import { formatRelative, pluralize } from '@/lib/format'
 import { prisma } from '@/lib/prisma'
 import { sum } from '@/lib/utils'
@@ -16,6 +17,8 @@ import { sum } from '@/lib/utils'
 const OPEN: QuickOrderStatus[] = ['PENDING', 'CONFIRMED', 'PROCESSING']
 
 export default async function DashboardPage() {
+  await requireAuth()
+
   const [
     productCount,
     outOfStock,

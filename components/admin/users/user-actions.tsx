@@ -6,7 +6,11 @@ import type { UserFormValues } from '@/lib/schemas/user'
 import { useState } from 'react'
 import { LockOpen } from 'lucide-react'
 
-import { deleteUser, unlockUser, updateUser } from '@/app/admin/users/actions'
+import {
+  deleteUser,
+  unlockUser,
+  updateUser,
+} from '@/app/admin/(panel)/users/actions'
 import { ActionButton } from '@/components/admin/action-button'
 import { RowActions } from '@/components/admin/admin-table'
 import { UserFormDialog } from '@/components/admin/users/user-form-dialog'

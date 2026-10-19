@@ -1,6 +1,6 @@
 import { FolderTree, Layers, Package } from 'lucide-react'
 
-import { createCategory } from '@/app/admin/categories/actions'
+import { createCategory } from '@/app/admin/(panel)/categories/actions'
 import { CategoryFormDialog } from '@/components/admin/categories/category-form-dialog'
 import { DialogButton } from '@/components/ui/dialog-button'
 import { CategoriesTable } from '@/components/admin/categories/categories-table'
@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/admin/empty-state'
 import { PageHeader } from '@/components/admin/page-header'
 import { SearchToolbar } from '@/components/admin/search-toolbar'
 import { StatsBoard } from '@/components/admin/stats-board'
+import { requireAuth } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
 import { matchesSearch, sum } from '@/lib/utils'
 
@@ -17,6 +18,8 @@ export default async function CategoriesPage({
 }: {
   searchParams: Promise<{ q?: string | string[] }>
 }) {
+  await requireAuth()
+
   const { q } = await searchParams
   const query = typeof q === 'string' ? q.trim() : ''
 

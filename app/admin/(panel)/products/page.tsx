@@ -10,7 +10,7 @@ import {
   Pagination,
   pageParams,
 } from '@/components/admin/pagination'
-import { createProduct } from '@/app/admin/products/actions'
+import { createProduct } from '@/app/admin/(panel)/products/actions'
 import { ImportExcelButton } from '@/components/admin/products/import-excel-button'
 import { ProductFormDialog } from '@/components/admin/products/product-form-dialog'
 import { ProductsWorkspace } from '@/components/admin/products/products-workspace'
@@ -19,6 +19,7 @@ import { StatsBoard } from '@/components/admin/stats-board'
 import { Button } from '@/components/ui/button'
 import { DialogButton } from '@/components/ui/dialog-button'
 import { Select } from '@/components/ui/field'
+import { requireAuth } from '@/lib/admin-auth'
 import { productFilters, setOnly } from '@/lib/product-filters'
 import { prisma } from '@/lib/prisma'
 
@@ -27,6 +28,8 @@ export default async function ProductsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
+  await requireAuth()
+
   const params = await searchParams
   const {
     query,

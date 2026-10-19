@@ -9,7 +9,10 @@ import type { ProductDTO } from '@/types/products'
 import { useState } from 'react'
 import { Pencil, Trash2, X } from 'lucide-react'
 
-import { deleteProducts, updateProduct } from '@/app/admin/products/actions'
+import {
+  deleteProducts,
+  updateProduct,
+} from '@/app/admin/(panel)/products/actions'
 import { BulkEditDialog } from '@/components/admin/products/bulk-edit-dialog'
 import {
   ProductFormDialog,

@@ -572,8 +572,13 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
   - Recent activity: the first `AdminLog` viewer. It shows `userName`, plus "(deleted)"
     when `userId` is null, and a readable line built from each row's `details`.
   - Two columns on desktop, one on phones, and an empty state per panel.
-- [ ] 6.6 Delete `/api/admin/profile` once unused. Fix the `requireAuth` vs
+- [x] 6.6 Delete `/api/admin/profile` once unused. Fix the `requireAuth` vs
   `requireSuperAdmin` placement in layouts, if any remain.
+  - The 7 identical section layouts became one, in the route group `app/admin/(panel)/`
+    (URLs unchanged; login stays outside, with no shell).
+  - Layouts don't re-run on navigation, so every page now starts with `requireAuth()`
+    (users: `requireSuperAdmin()`). `getAuthSession` is wrapped in React `cache()`, so
+    the layout and the page share one session read per request.
 
 - [ ] 6.7 Dialog pass (shared `components/ui/dialogs.tsx`, `modal-dialog.tsx`), from the
   dialog critique:

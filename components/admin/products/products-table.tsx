@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { ArrowDown, ArrowUp } from 'lucide-react'
 
-import { updateProducts } from '@/app/admin/products/actions'
+import { updateProducts } from '@/app/admin/(panel)/products/actions'
 import {
   actionsColumn,
   AdminTable,

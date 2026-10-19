@@ -5,7 +5,7 @@ import type { ProfileFormValues } from '@/lib/schemas/user'
 import { KeyRound, Save, ShieldCheck, UserRound } from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
 
-import { updateProfile } from '@/app/admin/settings/actions'
+import { updateProfile } from '@/app/admin/(panel)/settings/actions'
 import { DataCard } from '@/components/admin/data-card'
 import { Button } from '@/components/ui/button'
 import { buttonRowClass } from '@/components/ui/dialogs'

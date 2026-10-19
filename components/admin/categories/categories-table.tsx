@@ -4,7 +4,10 @@ import type { CategoryFormValues } from '@/lib/schemas/category'
 
 import { useState } from 'react'
 
-import { deleteCategory, updateCategory } from '@/app/admin/categories/actions'
+import {
+  deleteCategory,
+  updateCategory,
+} from '@/app/admin/(panel)/categories/actions'
 import {
   type Column,
   actionsColumn,
