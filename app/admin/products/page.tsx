@@ -164,7 +164,7 @@ export default async function ProductsPage({
         </Select>
       </SearchToolbar>
 
-      <DataCard icon={Package} title={`Line items (${total})`}>
+      <DataCard titleHidden title={`Line items (${total})`}>
         {products.length > 0 ? (
           <ProductsWorkspace
             // A new page or filter starts with nothing selected

@@ -117,7 +117,7 @@ export default async function UsersPage({
         </Select>
       </SearchToolbar>
 
-      <DataCard icon={Users} title={`Accounts (${visible.length})`}>
+      <DataCard titleHidden title={`Accounts (${visible.length})`}>
         {visible.length > 0 ? (
           <UsersTable currentUserId={session.user.id} users={visible} />
         ) : (

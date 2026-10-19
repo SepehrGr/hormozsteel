@@ -80,7 +80,7 @@ export default async function ManufacturersPage({
         query={query}
       />
 
-      <DataCard icon={Factory} title={`Mills (${visible.length})`}>
+      <DataCard titleHidden title={`Mills (${visible.length})`}>
         {visible.length > 0 ? (
           <ManufacturersTable manufacturers={visible} />
         ) : (

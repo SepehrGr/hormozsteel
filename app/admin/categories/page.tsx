@@ -76,7 +76,7 @@ export default async function CategoriesPage({
         query={query}
       />
 
-      <DataCard icon={FolderTree} title={`Families (${visible.length})`}>
+      <DataCard titleHidden title={`Families (${visible.length})`}>
         {visible.length > 0 ? (
           <CategoriesTable categories={visible} />
         ) : (
