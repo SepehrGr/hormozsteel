@@ -45,14 +45,14 @@ export function ProductsWorkspace({
   return (
     <>
       {selectedIds.length > 0 ? (
-        <div className='flex items-center justify-between gap-2 border-b border-border px-4 py-2 text-sm'>
-          <span className='text-muted-foreground'>
+        <div className='flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2 text-sm max-sm:py-3'>
+          <span className='text-muted-foreground max-sm:basis-full'>
             <span className='font-medium tabular-nums text-foreground'>
               {selectedIds.length}
             </span>{' '}
             selected
           </span>
-          <div className='flex gap-2'>
+          <div className='flex gap-2 max-sm:flex-1 max-sm:*:h-11 max-sm:*:flex-1'>
             <Button size='sm' variant='outline' onClick={() => setBulk('edit')}>
               <Pencil aria-hidden className='h-3.5 w-3.5' />
               Edit selected

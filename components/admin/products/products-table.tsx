@@ -67,7 +67,7 @@ export default function ProductsTable({
     return {
       label: (
         <Link
-          className='inline-flex items-center gap-1 hover:text-foreground'
+          className='inline-flex items-center gap-1 hover:text-foreground pointer-coarse:-my-3.5 pointer-coarse:py-3.5'
           href={`${pathname}?${next}`}
         >
           {label}
@@ -202,7 +202,7 @@ function PriceCell({ product }: { product: ProductDTO }) {
   if (draft === null) {
     return (
       <button
-        className='cursor-pointer font-mono text-sm font-semibold tabular-nums text-foreground hover:underline'
+        className='cursor-pointer font-mono text-sm font-semibold tabular-nums text-foreground hover:underline pointer-coarse:-my-3 pointer-coarse:py-3'
         title='Click to edit'
         type='button'
         onClick={() => {
@@ -220,7 +220,7 @@ function PriceCell({ product }: { product: ProductDTO }) {
       // eslint-disable-next-line jsx-a11y/no-autofocus -- focus follows the click that opened this inline editor
       autoFocus
       aria-label={`Unit price of ${product.name}`}
-      className='h-8 w-28 border border-border bg-background px-2 font-mono text-sm font-semibold tabular-nums text-foreground outline-none focus:border-foreground focus:ring-1 focus:ring-foreground'
+      className='h-8 w-28 border border-border bg-background px-2 pointer-coarse:h-11 font-mono text-sm font-semibold tabular-nums text-foreground outline-none focus:border-foreground focus:ring-1 focus:ring-foreground'
       inputMode='decimal'
       min='0'
       step='0.01'
@@ -263,7 +263,7 @@ function StockToggle({ product }: { product: ProductDTO }) {
     <button
       aria-label={`${product.name}: ${inStock ? 'in stock' : 'out of stock'}. Switch`}
       className={cn(
-        'cursor-pointer border px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide transition-colors duration-200 ease-out disabled:cursor-wait',
+        'cursor-pointer border px-2 py-0.5 text-[11px] font-medium pointer-coarse:px-3 pointer-coarse:py-2.5 uppercase tracking-wide transition-colors duration-200 ease-out disabled:cursor-wait',
         inStock
           ? 'border-emerald-600/30 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-200'
           : 'border-red-600/30 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200',

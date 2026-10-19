@@ -500,9 +500,13 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     long forms keep both in view.
   - The header does dim: the dialog is in the top layer, under one 50% backdrop. The M.0 note
     was a false alarm (dimmed dark icons on a dark page).
-- [ ] M.5 Page check: categories, manufacturers, users, orders and products, including the
+- [x] M.5 Page check: categories, manufacturers, users, orders and products, including the
   products bulk bar, filters and import/export. On every page the document is no wider than
-  the viewport at 390, 768, 1024, 1280 and 1536px.
+  the viewport at 390, 768, 1024, 1280 and 1536px (40 of 40 page and width pairs). Fixed:
+  - Products bulk bar: the count gets its own line, and the two buttons share the row at 44px.
+  - 44px touch targets for the order status select, the products sort links, the inline price
+    button and input, and the stock toggle.
+  - Left for 6.5: the dashboard's "Manage products" and "View all" links (20px and 16px).
 
 ### Phase 6: Settings, login, leftovers (`refactor/admin-settings`)
 
