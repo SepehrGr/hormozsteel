@@ -26,7 +26,7 @@ function pageWindow(page: number, totalPages: number) {
 }
 
 const cell =
-  'inline-flex h-9 min-w-9 items-center justify-center border px-2 text-sm font-medium transition-colors duration-200 ease-out'
+  'inline-flex h-9 min-w-9 items-center justify-center border px-2 text-sm font-medium transition-colors duration-200 ease-out pointer-coarse:h-11 pointer-coarse:min-w-11'
 const idle = 'border-border bg-card text-foreground hover:bg-muted'
 const current = 'border-primary bg-primary text-primary-foreground'
 const disabled = 'pointer-events-none border-border bg-card opacity-50'
@@ -99,18 +99,31 @@ export function Pagination({
         </span>
       </p>
 
-      <nav aria-label='Pages' className='flex items-center gap-1'>
+      <nav
+        aria-label='Pages'
+        className='flex items-center gap-1 max-sm:justify-between'
+      >
         {step(page - 1, 'Previous page', ChevronLeft)}
         {pageWindow(page, totalPages).map(n => (
           <Link
             key={n}
             aria-current={n === page ? 'page' : undefined}
-            className={cn(cell, n === page ? current : idle)}
+            className={cn(cell, 'max-sm:hidden', n === page ? current : idle)}
             href={href({ page: n })}
           >
             {n}
           </Link>
         ))}
+        <span className='text-sm text-muted-foreground sm:hidden'>
+          Page{' '}
+          <span className='font-medium tabular-nums text-foreground'>
+            {page}
+          </span>{' '}
+          of{' '}
+          <span className='font-medium tabular-nums text-foreground'>
+            {totalPages}
+          </span>
+        </span>
         {step(page + 1, 'Next page', ChevronRight)}
       </nav>
     </div>

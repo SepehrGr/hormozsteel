@@ -456,12 +456,15 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     `lg` up.
   - The 10px labels in the sidebar and header go up to the 11px floor, and the header's
     icon buttons get 44px tap targets on touch.
-- [ ] M.2 Headers and toolbars:
-  - `PageHeader` actions: below `sm` the primary action comes first at full width, and the
-    rest share a row.
-  - `StatsBoard`: an odd last stat spans both columns, so there's no empty cell.
-  - The `SearchToolbar` Search button goes full width on phones, and `Pagination` gets
-    44px targets.
+- [x] M.2 Headers and toolbars:
+  - `PageHeader` actions: below `sm` they share rows at equal width, and the primary stays
+    last, so it's rightmost or alone at full width (the same rule as the M.4 footers). Products
+    drops its extra wrapper `div` so its buttons are direct children.
+  - `StatsBoard`: an odd last stat spans both columns, so there's no empty cell. Labels go
+    up to 11px.
+  - `SearchToolbar`: Search and Clear fill the row on phones.
+  - `Pagination`: 44px cells on touch. Below `sm` the page numbers give way to
+    "Page 3 of 8" between Previous and Next, because seven 44px cells don't fit in the card.
 - [ ] M.3 `AdminTable` as an accordion on narrow screens (the user's choice: never scroll a
   table sideways):
   - The switch follows the table's own width through a container query (`@container`,

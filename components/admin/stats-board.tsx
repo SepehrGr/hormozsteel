@@ -27,9 +27,12 @@ export function StatsBoard({ stats }: { stats: Stat[] }) {
       )}
     >
       {stats.map(({ label, value, icon: Icon }) => (
-        <div key={label} className='bg-card px-4 py-4'>
+        <div
+          key={label}
+          className='bg-card px-4 py-4 max-sm:last:odd:col-span-2'
+        >
           <div className='flex items-start justify-between gap-2'>
-            <dt className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+            <dt className='text-[11px] font-medium uppercase tracking-wide text-muted-foreground'>
               {label}
             </dt>
             {Icon ? (
