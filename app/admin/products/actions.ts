@@ -8,7 +8,11 @@ import { z } from 'zod'
 import { ActionError, adminAction } from '@/lib/actions'
 import { setProductPrice } from '@/lib/price-updater'
 import { resolveManufacturerId } from '@/lib/product-dto'
-import { type ProductData, productSchema } from '@/lib/schemas/product'
+import {
+  type ProductData,
+  productChangesSchema,
+  productSchema,
+} from '@/lib/schemas/product'
 import { generateUniqueSlug } from '@/lib/slug-generator'
 
 const productId = z.string().min(1)
@@ -93,15 +97,7 @@ export const updateProduct = adminAction(
 export const updateProducts = adminAction(
   z.object({
     ids: productIds,
-    changes: z
-      .object({
-        price: z.number().positive().optional(),
-        inStock: z.boolean().optional(),
-        categoryId: productId.optional(),
-      })
-      .refine(changes => Object.values(changes).some(v => v !== undefined), {
-        error: 'Choose at least one change.',
-      }),
+    changes: productChangesSchema,
   }),
   async ({ ids, changes: { price, inStock, categoryId } }, { tx, audit }) => {
     if (categoryId) {

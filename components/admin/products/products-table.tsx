@@ -1,251 +1,253 @@
-import type { SortDescriptor } from '@heroui/table'
-import type { KeyboardEvent } from 'react'
+import type { Column } from '@/components/admin/admin-table'
 import type { ProductDTO } from '@/types/products'
 
-import { useRef, useState } from 'react'
-import { Checkbox } from '@heroui/checkbox'
+import { useOptimistic, useRef, useState, useTransition } from 'react'
+import Link from 'next/link'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { ArrowDown, ArrowUp } from 'lucide-react'
+
+import { updateProducts } from '@/app/admin/products/actions'
 import {
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-} from '@heroui/table'
-import { Edit, Trash2 } from 'lucide-react'
-
+  AdminTable,
+  RowActions,
+  rowClass,
+} from '@/components/admin/admin-table'
+import { toastResult } from '@/lib/action-toast'
 import { formatUsd } from '@/lib/format'
+import { cn } from '@/lib/utils'
 
-interface Props {
-  isLoading: boolean
-  products: ProductDTO[]
-  selectedIds: string[]
-  sortDescriptor: SortDescriptor
-  onDelete: (product: ProductDTO) => void
-  onEdit: (product: ProductDTO) => void
-  onPriceSave: (product: ProductDTO, price: number) => Promise<unknown>
-  onSelect: (id: string, checked: boolean) => void
-  onSelectAll: (checked: boolean) => void
-  onSortChange: (descriptor: SortDescriptor) => void
-  onStockToggle: (product: ProductDTO) => void
-}
-
-const iconBtn =
-  'inline-flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-card transition-colors duration-200 ease-out hover:bg-muted'
+const checkboxClass = 'h-4 w-4 cursor-pointer accent-foreground'
 
 export default function ProductsTable({
-  isLoading,
   products,
   selectedIds,
-  sortDescriptor,
-  onDelete,
-  onEdit,
-  onPriceSave,
+  sort,
+  dir,
   onSelect,
   onSelectAll,
-  onSortChange,
-  onStockToggle,
-}: Props) {
-  const [editingPriceId, setEditingPriceId] = useState<string | null>(null)
-  const [tempPrice, setTempPrice] = useState('')
-  // Enter blurs the input, so the save would otherwise fire twice
-  const saveLock = useRef(false)
+  onEdit,
+  onDelete,
+}: {
+  products: ProductDTO[]
+  selectedIds: string[]
+  sort: string
+  dir: 'asc' | 'desc'
+  onSelect: (id: string, checked: boolean) => void
+  onSelectAll: (checked: boolean) => void
+  onEdit: (product: ProductDTO) => void
+  onDelete: (product: ProductDTO) => void
+}) {
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const allSelected = selectedIds.length === products.length
+  const Arrow = dir === 'asc' ? ArrowUp : ArrowDown
 
-  const startPriceEdit = (product: ProductDTO) => {
-    saveLock.current = false
-    setEditingPriceId(product.id)
-    setTempPrice(product.price.toString())
-  }
+  /** A header that sorts by `column`: ascending first, a second click flips it. */
+  const sortable = (column: string, label: string): Column => {
+    const active = sort === column
+    const next = new URLSearchParams(searchParams)
 
-  const cancelPriceEdit = () => {
-    saveLock.current = false
-    setEditingPriceId(null)
-    setTempPrice('')
-  }
+    next.set('sort', column)
+    next.set('dir', active && dir === 'asc' ? 'desc' : 'asc')
+    next.delete('page')
 
-  const savePrice = async (product: ProductDTO) => {
-    if (saveLock.current || editingPriceId !== product.id) return
-
-    const newPrice = parseFloat(tempPrice)
-
-    // Unchanged / invalid — leave quietly (no error toast)
-    if (Number.isNaN(newPrice) || newPrice <= 0 || newPrice === product.price) {
-      cancelPriceEdit()
-
-      return
-    }
-
-    saveLock.current = true
-    // Exit edit mode immediately so the input (and its validation chrome) unmounts
-    setEditingPriceId(null)
-    setTempPrice('')
-
-    try {
-      await onPriceSave(product, newPrice)
-    } finally {
-      saveLock.current = false
+    return {
+      label: (
+        <Link
+          className='inline-flex items-center gap-1 hover:text-foreground'
+          href={`${pathname}?${next}`}
+        >
+          {label}
+          {active ? <Arrow aria-hidden className='h-3 w-3' /> : null}
+        </Link>
+      ),
+      sort: active ? (dir === 'asc' ? 'ascending' : 'descending') : undefined,
     }
   }
 
-  const handlePriceKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      // Blur once — onBlur saves (avoids a double PATCH from Enter + blur)
-      e.currentTarget.blur()
-    } else if (e.key === 'Escape') {
-      e.preventDefault()
-      cancelPriceEdit()
-    }
+  const columns: Column[] = [
+    {
+      label: (
+        <input
+          ref={el => {
+            if (el) el.indeterminate = selectedIds.length > 0 && !allSelected
+          }}
+          aria-label='Select all products on this page'
+          checked={allSelected}
+          className={checkboxClass}
+          type='checkbox'
+          onChange={e => onSelectAll(e.target.checked)}
+        />
+      ),
+      className: 'w-12',
+    },
+    sortable('name', 'Product'),
+    sortable('brand', 'Mill'),
+    sortable('size', 'Size'),
+    sortable('price', 'Price (USD)'),
+    sortable('inStock', 'Stock'),
+    sortable('category', 'Category'),
+    { label: 'Sub-line' },
+    { label: <span className='sr-only'>Actions</span>, className: 'w-24' },
+  ]
+
+  return (
+    <AdminTable className='min-w-[960px]' columns={columns}>
+      {products.map(product => {
+        const selected = selectedIds.includes(product.id)
+
+        return (
+          <tr
+            key={product.id}
+            className={cn(rowClass, selected && 'bg-muted/40')}
+          >
+            <td className='px-4 py-3'>
+              <input
+                aria-label={`Select ${product.name}`}
+                checked={selected}
+                className={checkboxClass}
+                type='checkbox'
+                onChange={e => onSelect(product.id, e.target.checked)}
+              />
+            </td>
+            <td className='px-4 py-3 font-medium text-foreground'>
+              {product.name}
+            </td>
+            <td className='px-4 py-3 text-muted-foreground'>
+              {product.brand || '—'}
+            </td>
+            <td className='px-4 py-3 font-mono text-xs tabular-nums text-foreground'>
+              {product.size || '—'}
+            </td>
+            <td className='px-4 py-3'>
+              <PriceCell product={product} />
+            </td>
+            <td className='px-4 py-3'>
+              <StockToggle product={product} />
+            </td>
+            <td className='px-4 py-3'>
+              <span className='border border-border bg-muted/40 px-2 py-0.5 text-xs text-foreground'>
+                {product.category?.name}
+              </span>
+            </td>
+            <td className='px-4 py-3 text-muted-foreground'>
+              {product.subcategory}
+            </td>
+            <td className='px-4 py-3'>
+              <RowActions
+                name={product.name}
+                onDelete={() => onDelete(product)}
+                onEdit={() => onEdit(product)}
+              />
+            </td>
+          </tr>
+        )
+      })}
+    </AdminTable>
+  )
+}
+
+/**
+ * The unit price; click to edit, Enter or leaving the field saves, Escape
+ * cancels. The new price shows at once and falls back if the save fails.
+ */
+function PriceCell({ product }: { product: ProductDTO }) {
+  const [shown, setShown] = useOptimistic(product.price)
+  const [, startTransition] = useTransition()
+  const [draft, setDraft] = useState<string | null>(null)
+  // Escape unmounts the input, and a blur on the way out mustn't save
+  const cancelled = useRef(false)
+
+  const save = () => {
+    const price = Number(draft)
+
+    setDraft(null)
+    if (cancelled.current || !(price > 0) || price === shown) return
+
+    startTransition(async () => {
+      setShown(price)
+      toastResult(
+        await updateProducts({ ids: [product.id], changes: { price } }),
+        `${product.name} now costs ${formatUsd(price)}`,
+      )
+    })
+  }
+
+  if (draft === null) {
+    return (
+      <button
+        className='cursor-pointer font-mono text-sm font-semibold tabular-nums text-foreground hover:underline'
+        title='Click to edit'
+        type='button'
+        onClick={() => {
+          cancelled.current = false
+          setDraft(String(shown))
+        }}
+      >
+        {formatUsd(shown)}
+      </button>
+    )
   }
 
   return (
-    <div className='overflow-x-auto'>
-      <Table
-        aria-label='Products table'
-        classNames={{
-          wrapper: 'shadow-none rounded-none',
-          th: 'bg-muted/50 text-muted-foreground text-[10px] font-semibold uppercase tracking-[0.12em]',
-          td: 'py-3',
-        }}
-        sortDescriptor={sortDescriptor}
-        onSortChange={onSortChange}
-      >
-        <TableHeader>
-          <TableColumn width={50}>
-            <Checkbox
-              aria-label='Select all products'
-              isSelected={
-                products.length > 0 && selectedIds.length === products.length
-              }
-              onValueChange={onSelectAll}
-            />
-          </TableColumn>
-          <TableColumn key='name' allowsSorting>
-            Product
-          </TableColumn>
-          <TableColumn key='brand' allowsSorting>
-            Mill
-          </TableColumn>
-          <TableColumn key='size' allowsSorting>
-            Size
-          </TableColumn>
-          <TableColumn key='price' allowsSorting>
-            Price (USD)
-          </TableColumn>
-          <TableColumn key='inStock' allowsSorting>
-            Stock
-          </TableColumn>
-          <TableColumn key='category' allowsSorting>
-            Category
-          </TableColumn>
-          <TableColumn key='subcategory'>Sub-line</TableColumn>
-          <TableColumn width={150}>Actions</TableColumn>
-        </TableHeader>
-        <TableBody emptyContent='No products found' isLoading={isLoading}>
-          {products.map(product => (
-            <TableRow
-              key={product.id}
-              className='transition-colors duration-200 ease-out hover:bg-muted/50'
-            >
-              <TableCell>
-                <Checkbox
-                  aria-label={`Select ${product.name}`}
-                  isSelected={selectedIds.includes(product.id)}
-                  onValueChange={checked => onSelect(product.id, checked)}
-                />
-              </TableCell>
-              <TableCell>
-                <span className='font-medium text-foreground'>
-                  {product.name}
-                </span>
-              </TableCell>
-              <TableCell>
-                <span className='text-muted-foreground'>
-                  {product.brand || '—'}
-                </span>
-              </TableCell>
-              <TableCell>
-                <span className='font-mono text-xs tabular-nums text-foreground'>
-                  {product.size || '—'}
-                </span>
-              </TableCell>
-              <TableCell>
-                {editingPriceId === product.id ? (
-                  <input
-                    // eslint-disable-next-line jsx-a11y/no-autofocus -- focus follows the click that opened this inline editor
-                    autoFocus
-                    aria-label='Edit unit price'
-                    className='h-8 w-28 border border-border bg-background px-2 font-mono text-sm font-semibold tabular-nums text-foreground outline-none focus:border-foreground focus:ring-1 focus:ring-foreground'
-                    inputMode='decimal'
-                    min='0'
-                    step='0.01'
-                    type='number'
-                    value={tempPrice}
-                    onBlur={() => savePrice(product)}
-                    onChange={e => setTempPrice(e.target.value)}
-                    onKeyDown={handlePriceKeyDown}
-                  />
-                ) : (
-                  <button
-                    className='cursor-pointer font-mono text-sm font-semibold tabular-nums text-foreground hover:underline'
-                    title='Click to edit'
-                    type='button'
-                    onClick={() => startPriceEdit(product)}
-                  >
-                    {formatUsd(Number(product.price))}
-                  </button>
-                )}
-              </TableCell>
-              <TableCell>
-                <button
-                  className={`cursor-pointer border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide transition-colors duration-200 ease-out ${
-                    product.inStock
-                      ? 'border-emerald-600/30 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-200'
-                      : 'border-red-600/30 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200'
-                  }`}
-                  title='Click to toggle stock'
-                  type='button'
-                  onClick={() => onStockToggle(product)}
-                >
-                  {product.inStock ? 'In stock' : 'Out'}
-                </button>
-              </TableCell>
-              <TableCell>
-                <span className='border border-border bg-muted/40 px-2 py-0.5 text-xs text-foreground'>
-                  {product.category?.name}
-                </span>
-              </TableCell>
-              <TableCell>
-                <span className='text-sm text-muted-foreground'>
-                  {product.subcategory}
-                </span>
-              </TableCell>
-              <TableCell>
-                <div className='flex gap-1'>
-                  <button
-                    aria-label={`Edit ${product.name}`}
-                    className={`${iconBtn} text-foreground`}
-                    title='Edit'
-                    type='button'
-                    onClick={() => onEdit(product)}
-                  >
-                    <Edit className='h-3.5 w-3.5' />
-                  </button>
-                  <button
-                    aria-label={`Delete ${product.name}`}
-                    className={`${iconBtn} text-red-600 dark:text-red-400`}
-                    title='Delete'
-                    type='button'
-                    onClick={() => onDelete(product)}
-                  >
-                    <Trash2 className='h-3.5 w-3.5' />
-                  </button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <input
+      // eslint-disable-next-line jsx-a11y/no-autofocus -- focus follows the click that opened this inline editor
+      autoFocus
+      aria-label={`Unit price of ${product.name}`}
+      className='h-8 w-28 border border-border bg-background px-2 font-mono text-sm font-semibold tabular-nums text-foreground outline-none focus:border-foreground focus:ring-1 focus:ring-foreground'
+      inputMode='decimal'
+      min='0'
+      step='0.01'
+      type='number'
+      value={draft}
+      onBlur={save}
+      onChange={e => setDraft(e.target.value)}
+      onKeyDown={e => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          e.currentTarget.blur()
+        } else if (e.key === 'Escape') {
+          e.preventDefault()
+          cancelled.current = true
+          setDraft(null)
+        }
+      }}
+    />
+  )
+}
+
+/** In stock / Out as a button that flips it, shown at once like `PriceCell`. */
+function StockToggle({ product }: { product: ProductDTO }) {
+  const [inStock, setInStock] = useOptimistic(product.inStock)
+  const [pending, startTransition] = useTransition()
+
+  const toggle = () =>
+    startTransition(async () => {
+      setInStock(!inStock)
+      toastResult(
+        await updateProducts({
+          ids: [product.id],
+          changes: { inStock: !inStock },
+        }),
+        `${product.name} marked ${inStock ? 'out of stock' : 'in stock'}`,
+      )
+    })
+
+  return (
+    <button
+      aria-label={`${product.name}: ${inStock ? 'in stock' : 'out of stock'}. Switch`}
+      className={cn(
+        'cursor-pointer border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide transition-colors duration-200 ease-out disabled:cursor-wait',
+        inStock
+          ? 'border-emerald-600/30 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-200'
+          : 'border-red-600/30 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200',
+      )}
+      disabled={pending}
+      title='Click to toggle stock'
+      type='button'
+      onClick={toggle}
+    >
+      {inStock ? 'In stock' : 'Out'}
+    </button>
   )
 }

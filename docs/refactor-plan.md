@@ -339,15 +339,26 @@ by price" doesn't give the cheapest products overall.
   - The server checks that the sub-line belongs to the category. A bulk category change
     clears sub-lines the new category doesn't have.
   - Revalidate `/admin/products`, `/admin/dashboard`, and the public `/products` layout.
-- [ ] 5.3 Server page with every filter in the URL: `?q`, `?category`, `?stock`, `?page`,
+- [x] 5.3 Server page with every filter in the URL: `?q`, `?category`, `?stock`, `?page`,
   `?limit`, `?sort`, `?dir`.
-  - Prisma does the `where`, `orderBy`, `skip` and `take`. This fixes the sort bug and
-    removes SWR from this page.
-  - `filters.tsx` becomes inputs inside `SearchToolbar`; `pagination.tsx` renders links.
-- [ ] 5.4 The table island:
-  - checkbox selection;
-  - column sorting as links;
-  - inline price edit and stock toggle with `useOptimistic`.
+  - Prisma does the `where`, `orderBy` (plus `id` as a tie-break), `skip` and `take`.
+    This fixes the sort bug and removes SWR from this page.
+  - `filters.tsx` became two selects inside `SearchToolbar`. Pagination is now the shared
+    `components/admin/pagination.tsx` (`Pagination` links and `pageParams`), ready for the
+    orders inbox.
+  - Two client islands for now. `header-actions.tsx` has Add and Excel;
+    `products-workspace.tsx` has selection, the bulk bar, and the edit/delete/bulk
+    modals, on the old API hooks with `router.refresh()`. 5.4–5.8 take them apart.
+    Sorting pushes `?sort&dir` with `router.push` for now.
+- [x] 5.4 The table island, rebuilt on the shared `AdminTable` (dropped HeroUI `Table`):
+  - checkbox selection with native checkboxes; select-all goes indeterminate when only some rows are selected;
+  - column sorting as links (`?sort&dir`, page reset; a second click flips the order).
+    `Column.sort` sets `aria-sort` on the header;
+  - inline price edit (`PriceCell`) and stock toggle (`StockToggle`) call `updateProducts`
+    with one id, through `useOptimistic`.
+  - Found: Next rejects any sync function inside an exported `'use server'` value (the
+    `.refine` arrow broke the whole dev server once a page imported the actions). The bulk
+    changes schema moved to `lib/schemas/product.ts` as `productChangesSchema`.
 - [ ] 5.5 One `ProductFormDialog` for add and edit:
   - the category select drives the sub-line options (`useWatch`);
   - a manufacturer select.
@@ -366,6 +377,8 @@ by price" doesn't give the cheapest products overall.
 - [ ] 5.9 Cleanup:
   - Delete `/api/products` `POST`, `/api/products/[id]` `PATCH`/`PUT`/`DELETE`, and
     `/api/products/bulk` once unused *(from 8.0)*. Public `GET`s stay.
+  - Remove `@heroui/table` and `@heroui/checkbox` from `package.json` if still unused
+    (nothing imports them since 5.4).
   - Delete the dead mutation hooks in `hooks/use-api.ts`: `useCreateProduct`,
     `useUpdateProduct` and `useDeleteProduct` have no callers.
 

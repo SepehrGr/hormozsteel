@@ -44,3 +44,15 @@ export const productSchema = z
 export type ProductFormValues = z.input<typeof productSchema>
 /** What the actions receive. */
 export type ProductData = z.output<typeof productSchema>
+
+/** What a bulk edit sets on many products, or an inline edit on one. */
+// Not in actions.ts: Next rejects a sync function inside an exported 'use server' value
+export const productChangesSchema = z
+  .object({
+    price: z.number().positive().optional(),
+    inStock: z.boolean().optional(),
+    categoryId: z.string().min(1).optional(),
+  })
+  .refine(changes => Object.values(changes).some(v => v !== undefined), {
+    error: 'Choose at least one change.',
+  })

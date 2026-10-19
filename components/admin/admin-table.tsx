@@ -13,6 +13,8 @@ export interface Column {
   label: ReactNode
   /** Width or alignment, e.g. `text-right`. */
   className?: string
+  /** The column the rows are sorted by, announced to screen readers. */
+  sort?: 'ascending' | 'descending'
 }
 
 /** First column of a table whose rows are `ExpandableRow`s. */
@@ -46,7 +48,11 @@ export function AdminTable({
         <thead>
           <tr className='border-b border-border bg-muted/50 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground'>
             {columns.map((column, index) => (
-              <th key={index} className={cn('px-4 py-2.5', column.className)}>
+              <th
+                key={index}
+                aria-sort={column.sort}
+                className={cn('px-4 py-2.5', column.className)}
+              >
                 {column.label}
               </th>
             ))}
