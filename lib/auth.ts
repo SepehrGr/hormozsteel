@@ -1,3 +1,5 @@
+import type { User } from '@prisma/client'
+
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
@@ -6,6 +8,58 @@ import { prisma } from '@/lib/prisma'
 
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000 // 15 minutes
 const MAX_FAILED_ATTEMPTS = 5
+
+/** Cost 12, as the old API used; each hash stores its own cost, so login checks any. */
+export const hashPassword = (password: string) => bcrypt.hash(password, 12)
+
+/**
+ * Compare `password` with the account's hash and keep the lockout count: a
+ * wrong one counts toward the lock, a right one resets it. Login and the
+ * settings re-auth both use it, so guesses on either share one limit.
+ */
+export async function checkPassword(
+  user: Pick<User, 'id' | 'password' | 'failedLoginAttempts' | 'lockedUntil'>,
+  password: string,
+): Promise<{ status: 'ok' | 'wrong' } | { status: 'locked'; minutes: number }> {
+  const now = Date.now()
+  const lockedUntil = user.lockedUntil?.getTime()
+
+  if (lockedUntil && lockedUntil > now) {
+    return {
+      status: 'locked',
+      minutes: Math.ceil((lockedUntil - now) / 60_000),
+    }
+  }
+
+  // An expired lock starts the count again
+  const failed = lockedUntil ? 0 : user.failedLoginAttempts
+
+  // Global client, not a caller's transaction: a wrong guess must stick even
+  // when the caller rolls back
+  if (!(await bcrypt.compare(password, user.password))) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        failedLoginAttempts: failed + 1,
+        lockedUntil:
+          failed + 1 >= MAX_FAILED_ATTEMPTS
+            ? new Date(now + LOCKOUT_DURATION_MS)
+            : null,
+      },
+    })
+
+    return { status: 'wrong' }
+  }
+
+  if (user.failedLoginAttempts || lockedUntil) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { failedLoginAttempts: 0, lockedUntil: null },
+    })
+  }
+
+  return { status: 'ok' }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -31,65 +85,19 @@ export const authOptions: NextAuthOptions = {
             throw new Error('USER_NOT_FOUND')
           }
 
-          if (!user.isActive) {
-            throw new Error('USER_INACTIVE')
+          const check = await checkPassword(user, credentials.password)
+
+          // Encode minutes in error message (NextAuth will pass this through)
+          if (check.status === 'locked') {
+            throw new Error(`AccountLocked:${check.minutes}`)
           }
+          if (check.status === 'wrong') throw new Error('WRONG_PASSWORD')
+          // After the password, so it doesn't reveal that the account exists
+          if (!user.isActive) throw new Error('USER_INACTIVE')
 
-          // Check if account is locked
-          if (user.lockedUntil && user.lockedUntil > new Date()) {
-            const remainingMs = user.lockedUntil.getTime() - Date.now()
-            const remainingMinutes = Math.ceil(remainingMs / (60 * 1000))
-
-            // Encode minutes in error message (NextAuth will pass this through)
-            throw new Error(`AccountLocked:${remainingMinutes}`)
-          }
-
-          // If lockout period has passed, reset the lockout and get fresh user data
-          let currentFailedAttempts = user.failedLoginAttempts || 0
-
-          if (user.lockedUntil && user.lockedUntil <= new Date()) {
-            await prisma.user.update({
-              where: { id: user.id },
-              data: {
-                lockedUntil: null,
-                failedLoginAttempts: 0,
-              },
-            })
-            // Reset counter after unlocking
-            currentFailedAttempts = 0
-          }
-
-          const isPasswordValid = await bcrypt.compare(
-            credentials.password,
-            user.password,
-          )
-
-          if (!isPasswordValid) {
-            // Increment failed login attempts using the current (possibly reset) value
-            const newFailedAttempts = currentFailedAttempts + 1
-            const shouldLock = newFailedAttempts >= MAX_FAILED_ATTEMPTS
-
-            await prisma.user.update({
-              where: { id: user.id },
-              data: {
-                failedLoginAttempts: newFailedAttempts,
-                lockedUntil: shouldLock
-                  ? new Date(Date.now() + LOCKOUT_DURATION_MS)
-                  : user.lockedUntil,
-              },
-            })
-
-            throw new Error('WRONG_PASSWORD')
-          }
-
-          // Password is valid - reset failed attempts and update last login
           await prisma.user.update({
             where: { id: user.id },
-            data: {
-              lastLogin: new Date(),
-              failedLoginAttempts: 0,
-              lockedUntil: null,
-            },
+            data: { lastLogin: new Date() },
           })
 
           return {
@@ -137,7 +145,7 @@ export const authOptions: NextAuthOptions = {
       const account = token.sub
         ? await prisma.user.findUnique({
             where: { id: token.sub },
-            select: { role: true, isActive: true },
+            select: { role: true, isActive: true, name: true, email: true },
           })
         : null
 
@@ -146,6 +154,8 @@ export const authOptions: NextAuthOptions = {
       }
 
       token.role = account.role
+      token.name = account.name
+      token.email = account.email
 
       return token
     },
@@ -153,13 +163,17 @@ export const authOptions: NextAuthOptions = {
       if (token && session.user) {
         session.user.id = token.sub!
         session.user.role = token.role as 'ADMIN' | 'SUPER_ADMIN'
+        // next-auth fills these from the cookie as it was, before `jwt` ran
+        session.user.name = token.name
+        session.user.email = token.email
       }
 
       return session
     },
     async redirect({ url, baseUrl }) {
       // Only allow redirects to the same origin
-      if (url.startsWith(baseUrl)) return url
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      if (new URL(url).origin === baseUrl) return url
 
       return baseUrl
     },

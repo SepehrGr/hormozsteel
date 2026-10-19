@@ -2,13 +2,14 @@ import { Contact, Factory, Package } from 'lucide-react'
 
 import { DataCard } from '@/components/admin/data-card'
 import { EmptyState } from '@/components/admin/empty-state'
-import { createManufacturer } from '@/app/admin/manufacturers/actions'
+import { createManufacturer } from '@/app/admin/(panel)/manufacturers/actions'
 import { ManufacturerFormDialog } from '@/components/admin/manufacturers/manufacturer-form-dialog'
 import { DialogButton } from '@/components/ui/dialog-button'
 import { ManufacturersTable } from '@/components/admin/manufacturers/manufacturers-table'
 import { PageHeader } from '@/components/admin/page-header'
 import { SearchToolbar } from '@/components/admin/search-toolbar'
 import { StatsBoard } from '@/components/admin/stats-board'
+import { requireAuth } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
 import { matchesSearch, sum } from '@/lib/utils'
 
@@ -17,6 +18,8 @@ export default async function ManufacturersPage({
 }: {
   searchParams: Promise<{ q?: string | string[] }>
 }) {
+  await requireAuth()
+
   const { q } = await searchParams
   const query = typeof q === 'string' ? q.trim() : ''
 

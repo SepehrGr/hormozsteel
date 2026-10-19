@@ -9,8 +9,8 @@ them to the next page.
 
 | File | Job | Runs on |
 |---|---|---|
-| `app/admin/categories/page.tsx` | Reads the database, filters by `?q=`, lays out the page | server |
-| `app/admin/categories/actions.ts` | `createCategory`, `updateCategory`, `deleteCategory` | server |
+| `app/admin/(panel)/categories/page.tsx` | Reads the database, filters by `?q=`, lays out the page | server |
+| `app/admin/(panel)/categories/actions.ts` | `createCategory`, `updateCategory`, `deleteCategory` | server |
 | `lib/schemas/category.ts` | The rules for a valid category | both |
 | `components/admin/categories/categories-table.tsx` | Rows, plus which are expanded, edited or being deleted | browser |
 | `components/admin/categories/category-form-dialog.tsx` | The add/edit form | browser |
@@ -53,8 +53,8 @@ Compare the old page, which made five hops before showing any data:
 The new page makes one: the server queries Prisma and sends HTML that already contains
 the data.
 
-**Why it's always fresh.** `app/admin/categories/layout.tsx` calls `requireAuth()`,
-which reads the session cookie. A route that reads cookies is rendered per request,
+**Why it's always fresh.** The page calls `requireAuth()`, which reads the session
+cookie. A route that reads cookies is rendered per request,
 so there's no stale cached copy and no need for `export const dynamic`.
 
 ### Where `'use client'` goes
@@ -241,13 +241,16 @@ new props instead of remounting it, so expanded rows stay expanded.
 
 1. **Schema:** `lib/schemas/<entity>.ts`. Input is the form's shape, output is
    Prisma's shape. Import nothing server-only.
-2. **Actions:** `app/admin/<entity>/actions.ts` with `'use server'`.
+2. **Actions:** `app/admin/(panel)/<entity>/actions.ts` with `'use server'`.
+   `(panel)` is a route group: it shares one layout (the admin shell) and doesn't
+   appear in the URL.
    - Wrap each action in `adminAction`; pass `{ superAdmin: true }` for user
      management.
    - Call `audit` after each write.
    - Revalidate every path that shows the entity, public pages included.
    - Throw `ActionError` for refusals the user should read.
-3. **Page:** a server component. Read with Prisma, `select` only the columns the table
+3. **Page:** a server component that starts with `await requireAuth()` (or
+   `requireSuperAdmin()`); the layout's check only covers the first load. Read with Prisma, `select` only the columns the table
    uses, read `?q=` (and other filters) from `searchParams`, and compose the shared
    admin components.
 4. **Islands:**

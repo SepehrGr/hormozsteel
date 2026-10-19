@@ -1,6 +1,6 @@
 // Browser code, but deliberately not a 'use client' entry: only client
 // components render it, and its function props couldn't cross from a server one.
-import type { FormEventHandler, ReactNode } from 'react'
+import type { ComponentProps, FormEventHandler, ReactNode } from 'react'
 
 import { useId } from 'react'
 import { Plus, Save, X } from 'lucide-react'
@@ -17,9 +17,9 @@ export function formModeCopy(mode: FormMode, noun: string) {
   return mode === 'create'
     ? {
         title: `Add ${noun}`,
-        submitLabel: 'Create',
-        pendingLabel: 'Creating…',
-        successMessage: `${capitalize(noun)} created`,
+        submitLabel: `Add ${noun}`,
+        pendingLabel: 'Adding…',
+        successMessage: `${capitalize(noun)} added`,
         Icon: Plus,
       }
     : {
@@ -49,7 +49,11 @@ function DialogFrame({
   pending,
   sheet,
   children,
-}: FrameProps & { sheet: 'full' | 'bottom' }) {
+  ...modal
+}: FrameProps & { sheet: 'full' | 'bottom' } & Pick<
+    ComponentProps<typeof ModalDialog>,
+    'describedBy' | 'role' | 'closeOnBackdrop'
+  >) {
   const titleId = useId()
 
   return (
@@ -64,6 +68,7 @@ function DialogFrame({
       dismissable={!pending}
       labelledBy={titleId}
       onClose={onClose}
+      {...modal}
     >
       <div className='sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-5 py-3'>
         <h2
@@ -88,20 +93,39 @@ function DialogFrame({
   )
 }
 
+/** Cancel + action buttons: right-aligned, stacked full width on phones (action on top). */
+export const buttonRowClass =
+  'flex flex-col-reverse gap-2 max-sm:*:h-11 sm:flex-row sm:justify-end'
+
 function DialogFooter({
   onCancel,
   pending,
+  cancelLabel = 'Cancel',
+  focusCancel = false,
   children,
 }: {
   onCancel: () => void
   pending?: boolean
+  cancelLabel?: string
+  /** Start on Cancel, so Enter right after opening can't confirm. */
+  focusCancel?: boolean
   children: ReactNode
 }) {
   return (
     // Phones stack the buttons, action on top; the DOM keeps Cancel first for tab order
-    <div className='sticky bottom-0 flex flex-col-reverse gap-2 border-t border-border bg-card px-5 py-4 max-sm:*:h-11 sm:flex-row sm:justify-end'>
-      <Button disabled={pending} variant='outline' onClick={onCancel}>
-        Cancel
+    <div
+      className={cn(
+        buttonRowClass,
+        'sticky bottom-0 border-t border-border bg-card px-5 py-4',
+      )}
+    >
+      <Button
+        data-autofocus={focusCancel || undefined}
+        disabled={pending}
+        variant='outline'
+        onClick={onCancel}
+      >
+        {cancelLabel}
       </Button>
       {children}
     </div>
@@ -120,6 +144,7 @@ export function FormDialog({
   onClose,
   onSubmit,
   pending,
+  dirty,
   children,
 }: Omit<FrameProps, 'title'> & {
   mode: FormMode
@@ -129,11 +154,14 @@ export function FormDialog({
   submitLabel?: string
   pendingLabel?: string
   onSubmit: FormEventHandler<HTMLFormElement>
+  /** Has unsaved edits: a backdrop click then doesn't close it. */
+  dirty?: boolean
 }) {
   const copy = formModeCopy(mode, noun)
 
   return (
     <DialogFrame
+      closeOnBackdrop={!dirty}
       pending={pending}
       sheet='full'
       title={copy.title}
@@ -147,7 +175,7 @@ export function FormDialog({
       >
         <div className='space-y-4 px-5 py-5 max-sm:flex-1'>{children}</div>
         <DialogFooter pending={pending} onCancel={onClose}>
-          <Button disabled={pending} type='submit'>
+          <Button className='sm:min-w-28' disabled={pending} type='submit'>
             <copy.Icon aria-hidden className='h-4 w-4' />
             {pending
               ? (pendingLabel ?? copy.pendingLabel)
@@ -159,7 +187,10 @@ export function FormDialog({
   )
 }
 
-/** Destructive yes/no confirmation; `children` explains what will happen. */
+/**
+ * Destructive yes/no confirmation; `children` explains what will happen and
+ * is read out when it opens. Starts on Cancel.
+ */
 export function ConfirmDialog({
   title,
   onClose,
@@ -168,7 +199,7 @@ export function ConfirmDialog({
   confirmLabel,
   pendingLabel,
   confirmIcon,
-  confirmDisabled,
+  blockedAction,
   children,
 }: FrameProps & {
   onConfirm: () => void
@@ -176,28 +207,46 @@ export function ConfirmDialog({
   confirmLabel: string
   pendingLabel: string
   confirmIcon?: ReactNode
-  /** Blocks only the confirm button (e.g. the action can't succeed); Cancel stays usable. */
-  confirmDisabled?: boolean
+  /**
+   * Set when the action can't go ahead: replaces the confirm button (e.g. a
+   * link to fix what blocks it), and Cancel reads "Close".
+   */
+  blockedAction?: ReactNode
 }) {
+  const bodyId = useId()
+
   return (
     <DialogFrame
+      describedBy={bodyId}
       pending={pending}
+      role='alertdialog'
       sheet='bottom'
       title={title}
       onClose={onClose}
     >
-      <div className='space-y-3 px-5 py-5 text-sm text-muted-foreground'>
+      <div
+        className='space-y-3 px-5 py-5 text-sm text-muted-foreground'
+        id={bodyId}
+      >
         {children}
       </div>
-      <DialogFooter pending={pending} onCancel={onClose}>
-        <Button
-          disabled={pending || confirmDisabled}
-          variant='danger'
-          onClick={onConfirm}
-        >
-          {confirmIcon}
-          {pending ? pendingLabel : confirmLabel}
-        </Button>
+      <DialogFooter
+        focusCancel
+        cancelLabel={blockedAction ? 'Close' : 'Cancel'}
+        pending={pending}
+        onCancel={onClose}
+      >
+        {blockedAction ?? (
+          <Button
+            className='sm:min-w-28'
+            disabled={pending}
+            variant='danger'
+            onClick={onConfirm}
+          >
+            {confirmIcon}
+            {pending ? pendingLabel : confirmLabel}
+          </Button>
+        )}
       </DialogFooter>
     </DialogFrame>
   )

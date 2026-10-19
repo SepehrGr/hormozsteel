@@ -8,7 +8,7 @@ import { Factory, Globe, Mail, Phone } from 'lucide-react'
 import {
   deleteManufacturer,
   updateManufacturer,
-} from '@/app/admin/manufacturers/actions'
+} from '@/app/admin/(panel)/manufacturers/actions'
 import {
   type Column,
   actionsColumn,

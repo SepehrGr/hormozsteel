@@ -14,6 +14,7 @@ import {
   QUICK_ORDER_STATUSES,
   statusLabel,
 } from '@/config/order-status'
+import { requireAuth } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
 import { cn, sum } from '@/lib/utils'
 
@@ -35,6 +36,8 @@ export default async function OrdersPage({
     status?: string | string[]
   }>
 }) {
+  await requireAuth()
+
   const { tab: tabParam, q, status: statusParam } = await searchParams
   const tab: Tab = tabParam === 'contact' ? 'contact' : 'quick'
   const query = typeof q === 'string' ? q.trim() : ''

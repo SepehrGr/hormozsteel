@@ -2,15 +2,15 @@ import type { Prisma } from '@prisma/client'
 
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
+import { cache } from 'react'
 import { NextResponse } from 'next/server'
 
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getClientIP } from '@/lib/rate-limit'
 
-export async function getAuthSession() {
-  return await getServerSession(authOptions)
-}
+/** One session read per request, however many layouts and pages ask. */
+export const getAuthSession = cache(() => getServerSession(authOptions))
 
 export async function requireAuth() {
   const session = await getAuthSession()

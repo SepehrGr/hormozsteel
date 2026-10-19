@@ -4,7 +4,7 @@ import type { QuickOrderStatus } from '@prisma/client'
 
 import { useOptimistic, useTransition } from 'react'
 
-import { updateQuickOrderStatus } from '@/app/admin/orders/actions'
+import { updateQuickOrderStatus } from '@/app/admin/(panel)/orders/actions'
 import { Select } from '@/components/ui/field'
 import { QUICK_ORDER_STATUSES, statusLabel } from '@/config/order-status'
 import { toastResult } from '@/lib/action-toast'

@@ -11,10 +11,20 @@ export const labelClass =
 /** Id of a field's error message; point the control's `aria-describedby` at it. */
 export const fieldErrorId = (id: string) => `${id}-error`
 
-/** Spread onto a control: marks it invalid and links it to its error message. */
-export const invalidProps = (id: string, message?: string) => ({
+/** Id of a field's hint, shown under it while there's no error. */
+export const fieldHintId = (id: string) => `${id}-hint`
+
+/**
+ * Spread onto a control: marks it invalid and links it to its error message,
+ * or to its hint (`hint: true`) while there's no error.
+ */
+export const invalidProps = (id: string, message?: string, hint = false) => ({
   'aria-invalid': !!message,
-  'aria-describedby': message ? fieldErrorId(id) : undefined,
+  'aria-describedby': message
+    ? fieldErrorId(id)
+    : hint
+      ? fieldHintId(id)
+      : undefined,
 })
 
 /**
@@ -30,12 +40,15 @@ export function FormField({
   id,
   label,
   error,
+  hint,
   className,
   children,
 }: {
   id: string
   label: ReactNode
   error?: string
+  /** Help under the control; the error replaces it. */
+  hint?: ReactNode
   className?: string
   children: ReactNode
 }) {
@@ -52,6 +65,10 @@ export function FormField({
           role='alert'
         >
           {error}
+        </p>
+      ) : hint ? (
+        <p className='mt-1 text-xs text-muted-foreground' id={fieldHintId(id)}>
+          {hint}
         </p>
       ) : null}
     </div>

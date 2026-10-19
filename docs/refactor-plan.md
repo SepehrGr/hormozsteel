@@ -513,7 +513,7 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
 
 ### Phase 6: Settings, login, leftovers (`refactor/admin-settings`)
 
-- [ ] 6.1 Settings, which today is a 352-line client page with 7 `useState`s and per-field
+- [x] 6.1 Settings, which today is a 352-line client page with 7 `useState`s and per-field
   edit toggles:
   - A server page reads the profile with Prisma.
   - One RHF + zod form, reusing `passwordSchema` from 3.1.
@@ -534,22 +534,53 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     - Discard and Save stay disabled until something changes, and Enter submits. Set
       `autocomplete` on every field (`name`, `email`, `current-password`, `new-password`).
     - Mobile: a single column with full-width buttons.
-- [ ] 6.2 After an email or password change, sign out, or refresh the session, so the
+- [x] 6.2 After an email or password change, sign out, or refresh the session, so the
   JWT doesn't keep the old email.
-- [ ] 6.3 Login, 433 lines with 8 `useState`s:
+  - Email or password change: sign out this session (other sessions keep their 6-hour JWT).
+  - The `jwt` callback re-reads `name`/`email` with `role`/`isActive`; the `session`
+    callback copies them, since next-auth builds `session.user` from the cookie as it was.
+    A name change calls `useSession().update()`, so the header updates without a reload.
+  - Fixed on the way: the NextAuth POST wrapper parsed every body as a form, so
+    `update()` (JSON) got a 500; the `redirect` callback sent relative callback URLs to
+    `/`, so Sign out never reached `/admin/login`.
+- [x] 6.3 Login, 433 lines with 8 `useState`s:
   - The form moves to RHF + zod.
   - It stays a client component, because NextAuth's `signIn` runs in the browser.
   - Move the lockout and rate-limit error messages into a pure function in `lib/`, and
     split out the visual side panel.
-- [ ] 6.4 Delete the orphaned `app/admin/categories/[id]/page.tsx` (363 lines, unlinked,
+  - Done as: a server `page.tsx` (session check + redirect, the static layout) and a
+    client `LoginForm`; `loginErrorMessage` in `lib/login-errors.ts`; `loginSchema`.
+  - `callbackUrl` is honoured, for same-site paths only.
+  - Fixes: the rate limit answered with a redirect that `signIn()` can't read, so its
+    message never showed (now JSON 429 with `RateLimitExceeded:<minutes>`); an unknown
+    email and an inactive account no longer reveal that an account exists; login no
+    longer lowercases the email (stored as typed).
+- [x] 6.4 Delete the orphaned `app/admin/categories/[id]/page.tsx` (363 lines, unlinked,
   34 Persian strings). Then delete `POST`/`PATCH`/`DELETE` in `app/api/categories/**`,
   which no longer have callers. `GET` stays for the public pages.
-- [ ] 6.5 Dashboard (already a server page): swap its hand-written stats and cards for
-  `StatsBoard`/`DataCard` where they repeat.
-- [ ] 6.6 Delete `/api/admin/profile` once unused. Fix the `requireAuth` vs
+- [x] 6.5 Dashboard redesign (already a server page), from `/impeccable`, inside the
+  existing admin look:
+  - Drop the `Order` tiles (orders, customers, pending, revenue) and "Recent orders".
+    The table has 0 rows: the public form saves `QuickOrder`, and only the uncalled
+    `POST /api/orders` writes `Order` (8.0 deletes it, W3 decides the models).
+  - `PageHeader` (no eyebrow) and a `StatsBoard` row: open requests, new messages,
+    products (with out of stock), last price update. `StatsBoard` gains `href` and
+    `detail`, so each tile opens its filtered list.
+  - Desk: the latest quote requests with status pills, each linking into the inbox.
+  - Price board: an up / flat / down split of the catalog, then the latest
+    `PriceHistory` changes (old → new, ▲/▼ percent, how long ago).
+  - Recent activity: the first `AdminLog` viewer. It shows `userName`, plus "(deleted)"
+    when `userId` is null, and a readable line built from each row's `details`.
+  - Two columns on desktop, one on phones, and an empty state per panel.
+- [x] 6.6 Delete `/api/admin/profile` once unused. Fix the `requireAuth` vs
   `requireSuperAdmin` placement in layouts, if any remain.
+  - The 7 identical section layouts became one, in the route group `app/admin/(panel)/`
+    (URLs unchanged; login stays outside, with no shell).
+  - Layouts don't re-run on navigation, so every page now starts with `requireAuth()`
+    (users: `requireSuperAdmin()`). `getAuthSession` is wrapped in React `cache()`, so
+    the layout and the page share one session read per request.
 
-- [ ] 6.7 Dialog pass (shared `components/ui/dialogs.tsx`, `modal-dialog.tsx`), from the
+- [x] 6.7 Dialog pass (shared `components/ui/dialogs.tsx`, `modal-dialog.tsx`), from the
   dialog critique:
   - Delete dialogs focus Cancel on open, with `role="alertdialog"` and `aria-describedby` on
     the body so "This can't be undone" is announced. Forms focus their first field.
@@ -558,6 +589,11 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
   - Smaller items: a blocked delete shows no dead button (Close + a link to the category's
     products); "Create" vs "Add" wording; a `min-w` on confirm buttons so pending text
     doesn't shift Cancel.
+  - Done as: `ModalDialog` focuses `[data-autofocus]`, else a form's first field, and
+    takes `role`, `describedBy` and `closeOnBackdrop`. `ConfirmDialog` is an
+    `alertdialog` that starts on Cancel; its `blockedAction` replaces the confirm button.
+    `DeleteDialog`'s `blocked` is now `{ label, href }`. `FormDialog` gets `dirty` from
+    `useActionForm`. Create reads "Add {noun}" / "Adding…" / "{Noun} added".
 
 ## Phase 7: Public side
 

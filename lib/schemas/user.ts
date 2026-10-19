@@ -34,6 +34,14 @@ const userFields = z.object({
   isActive: z.boolean(),
 })
 
+/** The sign-in form. No length rule: that's for setting a password, not typing one. */
+export const loginSchema = z.object({
+  email: userFields.shape.email,
+  password: z.string().min(1, 'Enter your password'),
+})
+
+export type LoginValues = z.input<typeof loginSchema>
+
 /** Adding an admin: the password is required. */
 export const createUserSchema = userFields.extend({ password: passwordSchema })
 
@@ -50,3 +58,27 @@ export const updateUserSchema = userFields
 
 /** What the add and edit forms hold; both schemas take this same shape. */
 export type UserFormValues = z.input<typeof updateUserSchema>
+
+/**
+ * Your own profile on /admin/settings. The action decides whether
+ * `currentPassword` is needed: only the server knows if the email changed.
+ */
+export const profileSchema = userFields
+  .pick({ name: true, email: true })
+  .extend({
+    password: z.union([z.literal(''), passwordSchema]),
+    confirmPassword: z.string(),
+    currentPassword: z.string(),
+  })
+  .refine(v => v.password === v.confirmPassword, {
+    error: "The passwords don't match",
+    path: ['confirmPassword'],
+  })
+  .transform(({ name, email, password, currentPassword }) => ({
+    name,
+    email,
+    password: password || undefined,
+    currentPassword,
+  }))
+
+export type ProfileFormValues = z.input<typeof profileSchema>

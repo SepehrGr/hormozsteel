@@ -1,6 +1,6 @@
 import type { CategoryOption } from '@/components/admin/products/types'
 
-import { updateProducts } from '@/app/admin/products/actions'
+import { updateProducts } from '@/app/admin/(panel)/products/actions'
 import { FormDialog } from '@/components/ui/dialogs'
 import { FormField, Input, Select } from '@/components/ui/field'
 import { useActionForm } from '@/hooks/use-action-form'

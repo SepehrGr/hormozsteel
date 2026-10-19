@@ -5,7 +5,7 @@ import { MailOpen, Reply } from 'lucide-react'
 import {
   deleteContactMessage,
   updateContactStatus,
-} from '@/app/admin/orders/actions'
+} from '@/app/admin/(panel)/orders/actions'
 import { ActionButton } from '@/components/admin/action-button'
 import {
   type Column,

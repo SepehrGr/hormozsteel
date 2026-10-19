@@ -2,20 +2,17 @@
 
 import type { Prisma } from '@prisma/client'
 
-import bcrypt from 'bcryptjs'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
 import { ActionError, adminAction } from '@/lib/actions'
+import { hashPassword } from '@/lib/auth'
 import { createUserSchema, updateUserSchema } from '@/lib/schemas/user'
 
 const userId = z.string().min(1)
 const superAdmin = { superAdmin: true }
 
 const LAST_SUPER_ADMIN = 'There must always be at least one active super admin.'
-
-/** Cost 12, as the old API used; each hash stores its own cost, so login checks any. */
-const hashPassword = (password: string) => bcrypt.hash(password, 12)
 
 /** Read only what the guards need; the password hash is never selected. */
 async function findUser(tx: Prisma.TransactionClient, id: string) {

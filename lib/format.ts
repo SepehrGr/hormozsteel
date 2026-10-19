@@ -35,6 +35,11 @@ const shortDateTimeFmt = new Intl.DateTimeFormat(locale, {
   hour: '2-digit',
   minute: '2-digit',
 })
+const relativeFmt = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+const narrowRelativeFmt = new Intl.RelativeTimeFormat(locale, {
+  numeric: 'auto',
+  style: 'narrow',
+})
 
 type DateInput = Date | string | null | undefined
 
@@ -77,6 +82,41 @@ export function formatShortDateTime(value: DateInput) {
   const date = toDate(value)
 
   return date ? shortDateTimeFmt.format(date) : null
+}
+
+// Each unit, and how many of it make the next one
+const RELATIVE_STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
+  ['second', 60],
+  ['minute', 60],
+  ['hour', 24],
+  ['day', 7],
+  ['week', 4.35],
+  ['month', 12],
+  ['year', Infinity],
+]
+
+/**
+ * `5 minutes ago`, `yesterday`, `3 months ago`; `narrow` gives `5m ago`.
+ * Render on the server only: the client's clock would differ.
+ */
+export function formatRelative(value: DateInput, { narrow = false } = {}) {
+  const date = toDate(value)
+
+  if (!date) return EMPTY_VALUE
+
+  let amount = (date.getTime() - Date.now()) / 1000
+
+  for (const [unit, size] of RELATIVE_STEPS) {
+    if (Math.abs(amount) < size) {
+      return (narrow ? narrowRelativeFmt : relativeFmt).format(
+        Math.round(amount),
+        unit,
+      )
+    }
+    amount /= size
+  }
+
+  return EMPTY_VALUE
 }
 
 /** `category` → `Category` */
