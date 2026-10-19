@@ -491,12 +491,15 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
   - Rows that already expand (category sub-lines, order details) put that detail in the
     same body, so there's one toggle, not two. The order status select stays usable there.
   - Build it on `ExpandableRow`, which already holds the open state and the toggle.
-- [ ] M.4 Dialogs on phones (shared `components/ui/dialogs.tsx`, `modal-dialog.tsx`):
-  - Below `sm`, the footer is two equal columns (`grid-cols-2`, `h-11`), Cancel left and the
-    action right (the user's choice: keep the action rightmost, no stacking).
-  - Long forms become full-height sheets with a sticky footer.
-  - Check that the backdrop dims the header: at 390px the bell and theme buttons looked
-    undimmed above the "Add manufacturer" dialog.
+- [x] M.4 Dialogs on phones, all in `DialogFrame` (`components/ui/dialogs.tsx`):
+  - Below `sm` the footer buttons stack at full width and 44px, the action on top
+    (`flex-col-reverse`, so the tab order stays Cancel then action). The user changed their
+    earlier "two columns, no stacking" call.
+  - `FormDialog` is a full-height sheet; `ConfirmDialog` is anchored to the bottom. Both slide
+    up (`starting:translate-y-full`). The title bar and footer are `sticky` at every width, so
+    long forms keep both in view.
+  - The header does dim: the dialog is in the top layer, under one 50% backdrop. The M.0 note
+    was a false alarm (dimmed dark icons on a dark page).
 - [ ] M.5 Page check: categories, manufacturers, users, orders and products, including the
   products bulk bar, filters and import/export. On every page the document is no wider than
   the viewport at 390, 768, 1024, 1280 and 1536px.
