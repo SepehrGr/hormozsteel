@@ -52,7 +52,7 @@ export function useActionForm<T extends FieldValues>({
     resolver: zodResolver(schema, undefined, { raw: true }),
     defaultValues,
   })
-  const { errors, isSubmitting } = form.formState
+  const { errors, isSubmitting, isDirty } = form.formState
   const { successMessage } = formModeCopy(mode, noun)
 
   const onSubmit = form.handleSubmit(async values => {
@@ -86,6 +86,7 @@ export function useActionForm<T extends FieldValues>({
       mode,
       noun,
       pending: isSubmitting,
+      dirty: isDirty,
       onClose: () => close?.(),
       onSubmit,
     },

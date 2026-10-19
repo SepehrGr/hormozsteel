@@ -121,7 +121,14 @@ export function CategoriesTable({ categories }: { categories: CategoryRow[] }) {
           <DeleteDialog
             action={() => deleteCategory({ id: deleting.id })}
             // The action refuses too; this count is only as fresh as the page.
-            blocked={deleting._count.products > 0}
+            blocked={
+              deleting._count.products > 0
+                ? {
+                    label: `Show its ${pluralize(deleting._count.products, 'product')}`,
+                    href: `/admin/products?category=${deleting.slug}`,
+                  }
+                : undefined
+            }
             name={deleting.name}
             noun='category'
           >

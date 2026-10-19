@@ -4,7 +4,9 @@ import type { ActionResult } from '@/lib/actions'
 
 import { useTransition } from 'react'
 import { Trash2 } from 'lucide-react'
+import Link from 'next/link'
 
+import { Button } from '@/components/ui/button'
 import { useCloseDialog } from '@/components/ui/dialog-scope'
 import { ConfirmDialog } from '@/components/ui/dialogs'
 import { toastResult } from '@/lib/action-toast'
@@ -36,8 +38,11 @@ export function DeleteDialog({
   name: string
   /** A call to the delete Server Action. */
   action: () => Promise<ActionResult>
-  /** Disables Delete and drops the question; `children` says why. */
-  blocked?: boolean
+  /**
+   * Set when the delete would be refused: no Delete button and no question,
+   * just a link to what needs fixing first. `children` says why.
+   */
+  blocked?: { label: string; href: string }
   /** A warning, shown in an amber box. */
   children?: ReactNode
 }) {
@@ -55,7 +60,13 @@ export function DeleteDialog({
 
   return (
     <ConfirmDialog
-      confirmDisabled={blocked}
+      blockedAction={
+        blocked ? (
+          <Button asChild variant='outline'>
+            <Link href={blocked.href}>{blocked.label}</Link>
+          </Button>
+        ) : undefined
+      }
       confirmIcon={<Trash2 aria-hidden className='h-4 w-4' />}
       confirmLabel={`Yes, delete ${object}`}
       pending={pending}

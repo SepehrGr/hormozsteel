@@ -580,7 +580,7 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     (users: `requireSuperAdmin()`). `getAuthSession` is wrapped in React `cache()`, so
     the layout and the page share one session read per request.
 
-- [ ] 6.7 Dialog pass (shared `components/ui/dialogs.tsx`, `modal-dialog.tsx`), from the
+- [x] 6.7 Dialog pass (shared `components/ui/dialogs.tsx`, `modal-dialog.tsx`), from the
   dialog critique:
   - Delete dialogs focus Cancel on open, with `role="alertdialog"` and `aria-describedby` on
     the body so "This can't be undone" is announced. Forms focus their first field.
@@ -589,6 +589,11 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
   - Smaller items: a blocked delete shows no dead button (Close + a link to the category's
     products); "Create" vs "Add" wording; a `min-w` on confirm buttons so pending text
     doesn't shift Cancel.
+  - Done as: `ModalDialog` focuses `[data-autofocus]`, else a form's first field, and
+    takes `role`, `describedBy` and `closeOnBackdrop`. `ConfirmDialog` is an
+    `alertdialog` that starts on Cancel; its `blockedAction` replaces the confirm button.
+    `DeleteDialog`'s `blocked` is now `{ label, href }`. `FormDialog` gets `dirty` from
+    `useActionForm`. Create reads "Add {noun}" / "Adding…" / "{Noun} added".
 
 ## Phase 7: Public side
 
