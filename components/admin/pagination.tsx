@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
+import { PageSizeSelect } from '@/components/admin/page-size-select'
 import { cn } from '@/lib/utils'
 
 export const PAGE_SIZES = [10, 20, 50, 100]
@@ -26,7 +27,7 @@ function pageWindow(page: number, totalPages: number) {
 }
 
 const cell =
-  'inline-flex h-9 min-w-9 items-center justify-center border px-2 text-sm font-medium transition-colors duration-200 ease-out'
+  'inline-flex h-9 min-w-9 items-center justify-center border px-2 text-sm font-medium transition-colors duration-200 ease-out pointer-coarse:h-11 pointer-coarse:min-w-11'
 const idle = 'border-border bg-card text-foreground hover:bg-muted'
 const current = 'border-primary bg-primary text-primary-foreground'
 const disabled = 'pointer-events-none border-border bg-card opacity-50'
@@ -74,19 +75,12 @@ export function Pagination({
 
   return (
     <div className='flex flex-col gap-3 border-t border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between'>
-      <div className='flex items-center gap-1 text-sm text-muted-foreground'>
-        <span className='mr-1'>Per page</span>
-        {PAGE_SIZES.map(size => (
-          <Link
-            key={size}
-            aria-current={size === limit ? 'true' : undefined}
-            className={cn(cell, size === limit ? current : idle)}
-            href={href({ limit: size })}
-          >
-            {size}
-          </Link>
-        ))}
-      </div>
+      <PageSizeSelect
+        hrefs={Object.fromEntries(
+          PAGE_SIZES.map(size => [size, href({ limit: size })]),
+        )}
+        limit={limit}
+      />
 
       <p className='text-sm text-muted-foreground'>
         Showing{' '}
@@ -99,18 +93,31 @@ export function Pagination({
         </span>
       </p>
 
-      <nav aria-label='Pages' className='flex items-center gap-1'>
+      <nav
+        aria-label='Pages'
+        className='flex items-center gap-1 max-sm:justify-between'
+      >
         {step(page - 1, 'Previous page', ChevronLeft)}
         {pageWindow(page, totalPages).map(n => (
           <Link
             key={n}
             aria-current={n === page ? 'page' : undefined}
-            className={cn(cell, n === page ? current : idle)}
+            className={cn(cell, 'max-sm:hidden', n === page ? current : idle)}
             href={href({ page: n })}
           >
             {n}
           </Link>
         ))}
+        <span className='text-sm text-muted-foreground sm:hidden'>
+          Page{' '}
+          <span className='font-medium tabular-nums text-foreground'>
+            {page}
+          </span>{' '}
+          of{' '}
+          <span className='font-medium tabular-nums text-foreground'>
+            {totalPages}
+          </span>
+        </span>
         {step(page + 1, 'Next page', ChevronRight)}
       </nav>
     </div>

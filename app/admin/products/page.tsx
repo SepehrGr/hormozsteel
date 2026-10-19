@@ -90,7 +90,7 @@ export default async function ProductsPage({
     <div className='space-y-6'>
       <PageHeader
         actions={
-          <div className='flex flex-wrap gap-2'>
+          <>
             <ImportExcelButton categories={categories} />
             <Button asChild variant='outline'>
               {/* A plain link: the browser downloads the file the route sends */}
@@ -107,7 +107,7 @@ export default async function ProductsPage({
                 mode='create'
               />
             </DialogButton>
-          </div>
+          </>
         }
         description='View, edit, and manage catalog line items.'
         icon={Package}
@@ -164,7 +164,7 @@ export default async function ProductsPage({
         </Select>
       </SearchToolbar>
 
-      <DataCard icon={Package} title={`Line items (${total})`}>
+      <DataCard titleHidden title={`Line items (${total})`}>
         {products.length > 0 ? (
           <ProductsWorkspace
             // A new page or filter starts with nothing selected

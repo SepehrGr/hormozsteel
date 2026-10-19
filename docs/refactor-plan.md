@@ -425,15 +425,115 @@ by price" doesn't give the cheapest products overall.
     imports them, and the Tailwind config only uses the theme package.
   - Phase-end checks: `yarn lint:check`, `yarn build`, `tsc`.
 
+### Phase M: Admin on phones (`refactor/admin-mobile`)
+
+Runs before Phase 6. On a phone the admin is unusable: `AdminShell` pads the content by the
+sidebar's width at every screen size (`pl-60`), so a 390px screen leaves about 150px for the
+page. Most of the fix lives in the shared pieces, so every page gets it at once. Settings, the
+dashboard and login are skipped here, because Phase 6 rebuilds them and checks them at 390px.
+
+- [x] M.0 Scope: `/impeccable adapt` on every admin page, measured at 390, 768, 1024, 1280
+  and 1536px. Findings:
+  - **The page scrolls sideways at every width**, not only on phones. `<main>` has fixed
+    widths (`md:w-[900px] xl:w-[1100px] 2xl:w-[1400px]`) on top of the 240px sidebar padding:
+    1024px renders 1141px wide, 1280 → 1340, 1536 → 1640.
+  - Its column has no `min-w-0`, so on a phone it stretches to the widest table (products:
+    994px) and `AdminTable`'s own `overflow-x-auto` never kicks in.
+  - On a 390px phone the sidebar leaves `<main>` 162px.
+  - With the shell fixed (simulated by hiding the sidebar), filters stack and dialogs fit.
+    What's left: the tables; header action rows that wrap (products: "Add product" alone on
+    a second line); `StatsBoard` leaving an empty cell for an odd count (dashboard 7,
+    products 3); 32px icon buttons (header bell and theme, collapse, `RowActions`); 16px
+    checkboxes; 10px table headers and sidebar labels.
+  - Login already works at 390px.
+- [x] M.1 Shell:
+  - `<main>` becomes `w-full max-w-[1400px]` with `min-w-0` on its column, so nothing
+    scrolls sideways at any width. `AdminTable`'s scroll box gets `relative`: without it the
+    `sr-only` "Actions" heading (absolutely positioned) escaped it and kept products 893px wide.
+  - Below `lg`, the sidebar becomes a drawer: the same `AdminSidebar` inside `ModalDialog`,
+    opened from a menu button in the header. It closes on Esc, on a backdrop click, on
+    navigation, and when the window widens to `lg`. The collapsed rail applies only from
+    `lg` up.
+  - The 10px labels in the sidebar and header go up to the 11px floor, and the header's
+    icon buttons get 44px tap targets on touch.
+- [x] M.2 Headers and toolbars:
+  - `PageHeader` actions: below `sm` they share rows at equal width, and the primary stays
+    last, so it's rightmost or alone at full width (the same rule as the M.4 footers). Products
+    drops its extra wrapper `div` so its buttons are direct children.
+  - `StatsBoard`: an odd last stat spans both columns, so there's no empty cell. Labels go
+    up to 11px.
+  - `SearchToolbar`: Search and Clear fill the row on phones.
+  - `Pagination`: 44px cells on touch. Below `sm` the page numbers give way to
+    "Page 3 of 8" between Previous and Next, because seven 44px cells don't fit in the card.
+    The per-page links became a native `<select>` (`PageSizeSelect`, the user's call): phones
+    open their own picker, and desktop browsers open it upward when there's no room below.
+- [x] M.3 `AdminTable` as an accordion on narrow screens (the user's choice: never scroll a
+  table sideways). As built:
+  - `AdminTable` draws every row from `columns` (`cell`, `narrow: 'title' | 'summary'`,
+    `narrowHeader`), plus `rows`, `rowLabel`, `detail` and `rowClassName` (the user's pick
+    over a `data-label` on each hand-written cell). `actionsColumn()` is the shared last
+    column.
+  - A `narrow:` variant in `globals.css` (container queries: 45rem, or 60rem with `wide`)
+    replaces the table min-widths. `AdminRow` replaces `ExpandableRow`.
+  - The products select-all and sort links stay as a header bar on narrow screens.
+  - Known duplicate: an open narrow quote request shows its specs in the field and again in
+    the details panel.
+
+  The plan, for reference:
+  - The switch follows the table's own width through a container query (`@container`,
+    built into Tailwind 4), not the viewport, so it holds with the sidebar open or closed.
+  - It uses the same markup, restyled. No second mobile table (the public
+    `product-table.tsx` renders two; don't copy that).
+  - A closed row shows the name, one key value (price, status, role), and a chevron.
+    Products keep the bulk checkbox on the left at 44px.
+  - An open row shows the other cells as label and value pairs (labels from `columns`),
+    then the row's actions as a full-width bar with text labels at 44px.
+  - Rows that already expand (category sub-lines, order details) put that detail in the
+    same body, so there's one toggle, not two. The order status select stays usable there.
+  - Build it on `ExpandableRow`, which already holds the open state and the toggle.
+- [x] M.4 Dialogs on phones, all in `DialogFrame` (`components/ui/dialogs.tsx`):
+  - Below `sm` the footer buttons stack at full width and 44px, the action on top
+    (`flex-col-reverse`, so the tab order stays Cancel then action). The user changed their
+    earlier "two columns, no stacking" call.
+  - `FormDialog` is a full-height sheet; `ConfirmDialog` is anchored to the bottom. Both slide
+    up (`starting:translate-y-full`). The title bar and footer are `sticky` at every width, so
+    long forms keep both in view.
+  - The header does dim: the dialog is in the top layer, under one 50% backdrop. The M.0 note
+    was a false alarm (dimmed dark icons on a dark page).
+- [x] M.5 Page check: categories, manufacturers, users, orders and products, including the
+  products bulk bar, filters and import/export. On every page the document is no wider than
+  the viewport at 390, 768, 1024, 1280 and 1536px (40 of 40 page and width pairs). Fixed:
+  - Products bulk bar: the count gets its own line, and the two buttons share the row at 44px.
+    Then, at the user's request: below `sm` it's a dock pinned to the screen bottom (an
+    "Unselect all" ✕ and the count, then equal-width Edit/Delete selected across the bar). From
+    `sm` up it stays the bar above the table, sticky under the header.
+  - 44px touch targets for the order status select, the products sort links, the inline price
+    button and input, and the stock toggle.
+  - Left for 6.5: the dashboard's "Manage products" and "View all" links (20px and 16px).
+
 ### Phase 6: Settings, login, leftovers (`refactor/admin-settings`)
 
 - [ ] 6.1 Settings, which today is a 352-line client page with 7 `useState`s and per-field
   edit toggles:
   - A server page reads the profile with Prisma.
   - One RHF + zod form, reusing `passwordSchema` from 3.1.
-  - The `updateProfile` action.
+  - The `updateProfile` action looks the user up by `session.user.id`. Today the route
+    uses the login-time JWT email, so after an email change the page 404s and saves 500.
   - **Require the current password to change the email or password.** Today
     `/api/admin/profile` doesn't, so a stolen session could lock the owner out.
+  - Redesign, from the settings critique (18/40). The current per-field edit toggles go,
+    and so does the focus bug they cause (`FieldRow` is declared inside the render):
+    - `PageHeader` with no "Account" eyebrow, left-aligned like the other pages; only
+      the form is capped at `max-w-2xl`.
+    - One always-editable `<form>` built from `FormField`/`Input`/`invalidProps`: a
+      Profile `DataCard` (name, and email with "You sign in with this") and a Password
+      `DataCard` (new and confirm, rule shown up front, "Leave blank to keep current").
+    - A "Confirm it's you" section (current password) appears only while the email or
+      password is changed. It's checked with `bcrypt.compare`, the error shows on the field
+      via `setError`, and a wrong password counts toward the lockout.
+    - Discard and Save stay disabled until something changes, and Enter submits. Set
+      `autocomplete` on every field (`name`, `email`, `current-password`, `new-password`).
+    - Mobile: a single column with full-width buttons.
 - [ ] 6.2 After an email or password change, sign out, or refresh the session, so the
   JWT doesn't keep the old email.
 - [ ] 6.3 Login, 433 lines with 8 `useState`s:
@@ -454,9 +554,7 @@ by price" doesn't give the cheapest products overall.
   - Delete dialogs focus Cancel on open, with `role="alertdialog"` and `aria-describedby` on
     the body so "This can't be undone" is announced. Forms focus their first field.
   - A backdrop click doesn't close a form that has unsaved edits.
-  - Below `sm`, the footer is two equal columns (`grid-cols-2`, `h-11`), Cancel left and the
-    action right (the user's choice: keep the action rightmost, no stacking). Long forms keep a
-    sticky footer.
+  - The mobile footer and sheets moved to M.4.
   - Smaller items: a blocked delete shows no dead button (Close + a link to the category's
     products); "Create" vs "Add" wording; a `min-w` on confirm buttons so pending text
     doesn't shift Cancel.

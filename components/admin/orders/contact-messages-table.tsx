@@ -9,21 +9,76 @@ import {
 import { ActionButton } from '@/components/admin/action-button'
 import {
   type Column,
+  actionsColumn,
   AdminTable,
-  expandColumn,
 } from '@/components/admin/admin-table'
 import { DeleteRowButton } from '@/components/admin/delete-row-button'
-import { ExpandableRow } from '@/components/admin/expandable-row'
 import { StatusPill } from '@/components/admin/pill'
 import { formatDateTime } from '@/lib/format'
 
-const columns: Column[] = [
-  expandColumn,
-  { label: 'From' },
-  { label: 'Message' },
-  { label: 'Status' },
-  { label: 'Received' },
-  { label: 'Actions', className: 'text-right' },
+const columns: Column<ContactForm>[] = [
+  {
+    label: 'From',
+    narrow: 'title',
+    cell: message => (
+      <>
+        <p className='font-medium text-foreground'>{message.name}</p>
+        <p className='mt-0.5 text-xs text-muted-foreground'>
+          {[message.phone, message.email].filter(Boolean).join(' · ')}
+        </p>
+      </>
+    ),
+  },
+  {
+    label: 'Message',
+    cell: message => (
+      <p className='line-clamp-2 max-w-md text-muted-foreground'>
+        {message.message}
+      </p>
+    ),
+  },
+  {
+    label: 'Status',
+    narrow: 'summary',
+    cell: message => <StatusPill status={message.status} />,
+  },
+  {
+    label: 'Received',
+    cellClassName: 'font-mono text-xs tabular-nums text-muted-foreground',
+    cell: message => formatDateTime(message.createdAt),
+  },
+  actionsColumn(message => (
+    <DeleteRowButton
+      action={deleteContactMessage.bind(null, { id: message.id })}
+      name={`${message.name}'s message`}
+      noun='message'
+    >
+      {message.status === 'NEW' ? (
+        <ActionButton
+          action={updateContactStatus.bind(null, {
+            id: message.id,
+            status: 'READ',
+          })}
+          label={`Mark ${message.name}'s message read`}
+          success={`${message.name}'s message marked read`}
+        >
+          <MailOpen aria-hidden className='h-3.5 w-3.5' />
+        </ActionButton>
+      ) : null}
+      {message.status !== 'REPLIED' ? (
+        <ActionButton
+          action={updateContactStatus.bind(null, {
+            id: message.id,
+            status: 'REPLIED',
+          })}
+          label={`Mark ${message.name}'s message replied`}
+          success={`${message.name}'s message marked replied`}
+        >
+          <Reply aria-hidden className='h-3.5 w-3.5' />
+        </ActionButton>
+      ) : null}
+    </DeleteRowButton>
+  )),
 ]
 
 /** Messages from the public contact form. */
@@ -33,66 +88,12 @@ export function ContactMessagesTable({
   messages: ContactForm[]
 }) {
   return (
-    <AdminTable columns={columns}>
-      {messages.map(message => (
-        <ExpandableRow
-          key={message.id}
-          colSpan={columns.length}
-          detail={<MessageDetails message={message} />}
-          label={`Full message from ${message.name}`}
-        >
-          <td className='px-4 py-3'>
-            <p className='font-medium text-foreground'>{message.name}</p>
-            <p className='mt-0.5 text-xs text-muted-foreground'>
-              {[message.phone, message.email].filter(Boolean).join(' · ')}
-            </p>
-          </td>
-          <td className='px-4 py-3'>
-            <p className='line-clamp-2 max-w-md text-muted-foreground'>
-              {message.message}
-            </p>
-          </td>
-          <td className='px-4 py-3'>
-            <StatusPill status={message.status} />
-          </td>
-          <td className='px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground'>
-            {formatDateTime(message.createdAt)}
-          </td>
-          <td className='px-4 py-3'>
-            <DeleteRowButton
-              action={deleteContactMessage.bind(null, { id: message.id })}
-              name={`${message.name}'s message`}
-              noun='message'
-            >
-              {message.status === 'NEW' ? (
-                <ActionButton
-                  action={updateContactStatus.bind(null, {
-                    id: message.id,
-                    status: 'READ',
-                  })}
-                  label={`Mark ${message.name}'s message read`}
-                  success={`${message.name}'s message marked read`}
-                >
-                  <MailOpen aria-hidden className='h-3.5 w-3.5' />
-                </ActionButton>
-              ) : null}
-              {message.status !== 'REPLIED' ? (
-                <ActionButton
-                  action={updateContactStatus.bind(null, {
-                    id: message.id,
-                    status: 'REPLIED',
-                  })}
-                  label={`Mark ${message.name}'s message replied`}
-                  success={`${message.name}'s message marked replied`}
-                >
-                  <Reply aria-hidden className='h-3.5 w-3.5' />
-                </ActionButton>
-              ) : null}
-            </DeleteRowButton>
-          </td>
-        </ExpandableRow>
-      ))}
-    </AdminTable>
+    <AdminTable
+      columns={columns}
+      detail={message => <MessageDetails message={message} />}
+      rowLabel={message => `Full message from ${message.name}`}
+      rows={messages}
+    />
   )
 }
 

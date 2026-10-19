@@ -38,7 +38,7 @@ export function QuickOrderStatusSelect({
   return (
     <Select
       aria-label={`Status of ${name}'s request`}
-      className='w-36 py-1.5 text-xs'
+      className='w-36 py-1.5 text-xs pointer-coarse:h-11'
       disabled={pending}
       value={shown}
       onChange={e => change(e.target.value as QuickOrderStatus)}

@@ -10,6 +10,7 @@ export function PageHeader({
   title: string
   icon: LucideIcon
   description: string
+  /** Buttons, primary last; on phones they share rows at equal width. */
   actions?: ReactNode
 }) {
   return (
@@ -21,7 +22,9 @@ export function PageHeader({
         </h1>
         <p className='mt-1 text-sm text-muted-foreground'>{description}</p>
       </div>
-      {actions ? <div className='flex flex-wrap gap-2'>{actions}</div> : null}
+      {actions ? (
+        <div className='flex flex-wrap gap-2 max-sm:*:flex-1'>{actions}</div>
+      ) : null}
     </div>
   )
 }

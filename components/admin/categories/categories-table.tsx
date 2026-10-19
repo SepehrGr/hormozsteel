@@ -7,13 +7,12 @@ import { useState } from 'react'
 import { deleteCategory, updateCategory } from '@/app/admin/categories/actions'
 import {
   type Column,
+  actionsColumn,
   AdminTable,
-  expandColumn,
   NameCell,
   RowActions,
 } from '@/components/admin/admin-table'
 import { CategoryFormDialog } from '@/components/admin/categories/category-form-dialog'
-import { ExpandableRow } from '@/components/admin/expandable-row'
 import { DeleteDialog } from '@/components/ui/delete-dialog'
 import { DialogScope } from '@/components/ui/dialog-scope'
 import { CATEGORY_ICONS, resolveCategoryIcon } from '@/config/category-icons'
@@ -44,32 +43,66 @@ function toFormValues(category: CategoryRow): CategoryFormValues {
   }
 }
 
-const columns: Column[] = [
-  expandColumn,
-  { label: 'Category' },
-  { label: 'Slug' },
-  { label: 'Sub-lines', className: 'text-center' },
-  { label: 'Products', className: 'text-center' },
-  { label: 'Actions', className: 'text-right' },
-]
-
 /** Categories table; the browser owns which row is being edited or deleted. */
 export function CategoriesTable({ categories }: { categories: CategoryRow[] }) {
   const [editing, setEditing] = useState<CategoryRow | null>(null)
   const [deleting, setDeleting] = useState<CategoryRow | null>(null)
 
+  const columns: Column<CategoryRow>[] = [
+    {
+      label: 'Category',
+      narrow: 'title',
+      cell: category => (
+        <NameCell
+          description={category.description}
+          media={
+            <i
+              aria-hidden
+              className={`${resolveCategoryIcon(category.icon || category.slug)} text-lg text-foreground`}
+            />
+          }
+          name={category.name}
+        />
+      ),
+    },
+    {
+      label: 'Slug',
+      cellClassName: 'font-mono text-xs text-muted-foreground',
+      cell: category => category.slug,
+    },
+    {
+      label: 'Sub-lines',
+      className: 'text-center',
+      cellClassName: 'tabular-nums text-muted-foreground',
+      cell: category => category.subcategories.length,
+    },
+    {
+      label: 'Products',
+      className: 'text-center',
+      cellClassName: 'tabular-nums text-foreground',
+      cell: category => category._count.products,
+    },
+    actionsColumn(category => (
+      <RowActions
+        name={category.name}
+        onDelete={() => setDeleting(category)}
+        onEdit={() => setEditing(category)}
+      />
+    )),
+  ]
+
   return (
     <>
-      <AdminTable columns={columns}>
-        {categories.map(category => (
-          <CategoryTableRow
-            key={category.id}
-            category={category}
-            onDelete={() => setDeleting(category)}
-            onEdit={() => setEditing(category)}
-          />
-        ))}
-      </AdminTable>
+      <AdminTable
+        columns={columns}
+        detail={category =>
+          category.subcategories.length > 0 ? (
+            <SubLines subcategories={category.subcategories} />
+          ) : null
+        }
+        rowLabel={category => `Details of ${category.name}`}
+        rows={categories}
+      />
 
       {editing ? (
         <DialogScope onClose={() => setEditing(null)}>
@@ -103,63 +136,22 @@ export function CategoriesTable({ categories }: { categories: CategoryRow[] }) {
   )
 }
 
-function CategoryTableRow({
-  category,
-  onEdit,
-  onDelete,
-}: {
-  category: CategoryRow
-  onEdit: () => void
-  onDelete: () => void
-}) {
+function SubLines({ subcategories }: { subcategories: string[] }) {
   return (
-    <ExpandableRow
-      colSpan={columns.length}
-      detail={
-        category.subcategories.length > 0 ? (
-          <>
-            <p className='mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground'>
-              Sub-lines
-            </p>
-            <ul className='flex flex-wrap gap-2'>
-              {category.subcategories.map(sub => (
-                <li
-                  key={sub}
-                  className='border border-border bg-card px-2.5 py-1 text-xs text-foreground'
-                >
-                  {sub}
-                </li>
-              ))}
-            </ul>
-          </>
-        ) : null
-      }
-      label={`Sub-lines of ${category.name}`}
-    >
-      <td className='px-4 py-3'>
-        <NameCell
-          description={category.description}
-          media={
-            <i
-              aria-hidden
-              className={`${resolveCategoryIcon(category.icon || category.slug)} text-lg text-foreground`}
-            />
-          }
-          name={category.name}
-        />
-      </td>
-      <td className='px-4 py-3 font-mono text-xs text-muted-foreground'>
-        {category.slug}
-      </td>
-      <td className='px-4 py-3 text-center tabular-nums text-muted-foreground'>
-        {category.subcategories.length}
-      </td>
-      <td className='px-4 py-3 text-center tabular-nums text-foreground'>
-        {category._count.products}
-      </td>
-      <td className='px-4 py-3'>
-        <RowActions name={category.name} onDelete={onDelete} onEdit={onEdit} />
-      </td>
-    </ExpandableRow>
+    <>
+      <p className='mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground'>
+        Sub-lines
+      </p>
+      <ul className='flex flex-wrap gap-2'>
+        {subcategories.map(sub => (
+          <li
+            key={sub}
+            className='border border-border bg-card px-2.5 py-1 text-xs text-foreground'
+          >
+            {sub}
+          </li>
+        ))}
+      </ul>
+    </>
   )
 }

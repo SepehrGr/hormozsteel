@@ -4,6 +4,8 @@ import type { ReactNode } from 'react'
 
 import { useEffect, useRef } from 'react'
 
+import { cn } from '@/lib/utils'
+
 interface ModalDialogProps {
   /** Id of the heading that names the dialog. */
   labelledBy: string
@@ -76,7 +78,10 @@ export default function ModalDialog({
     <dialog
       ref={dialogRef}
       aria-labelledby={labelledBy}
-      className={`m-auto border border-border bg-card p-0 text-foreground shadow-sm backdrop:bg-black/50 ${className}`}
+      className={cn(
+        'm-auto border border-border bg-card p-0 text-foreground shadow-sm backdrop:bg-black/50',
+        className,
+      )}
       dir='ltr'
       onClose={onClose}
     >

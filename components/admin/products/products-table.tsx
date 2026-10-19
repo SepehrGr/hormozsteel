@@ -1,5 +1,6 @@
 import type { Column } from '@/components/admin/admin-table'
 import type { ProductDTO } from '@/types/products'
+import type { ComponentProps } from 'react'
 
 import { useOptimistic, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
@@ -8,15 +9,24 @@ import { ArrowDown, ArrowUp } from 'lucide-react'
 
 import { updateProducts } from '@/app/admin/products/actions'
 import {
+  actionsColumn,
   AdminTable,
   RowActions,
-  rowClass,
 } from '@/components/admin/admin-table'
 import { toastResult } from '@/lib/action-toast'
 import { formatUsd } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 const checkboxClass = 'h-4 w-4 cursor-pointer accent-foreground'
+
+/** A checkbox with a 44px touch target around it. */
+function Checkbox(props: ComponentProps<'input'>) {
+  return (
+    <label className='inline-flex cursor-pointer pointer-coarse:-m-3.5 pointer-coarse:p-3.5'>
+      <input className={checkboxClass} type='checkbox' {...props} />
+    </label>
+  )
+}
 
 export default function ProductsTable({
   products,
@@ -43,7 +53,10 @@ export default function ProductsTable({
   const Arrow = dir === 'asc' ? ArrowUp : ArrowDown
 
   /** A header that sorts by `column`: ascending first, a second click flips it. */
-  const sortable = (column: string, label: string): Column => {
+  const sortable = (
+    column: string,
+    label: string,
+  ): Pick<Column<ProductDTO>, 'label' | 'title' | 'sort'> => {
     const active = sort === column
     const next = new URLSearchParams(searchParams)
 
@@ -54,96 +67,106 @@ export default function ProductsTable({
     return {
       label: (
         <Link
-          className='inline-flex items-center gap-1 hover:text-foreground'
+          className='inline-flex items-center gap-1 hover:text-foreground pointer-coarse:-my-3.5 pointer-coarse:py-3.5'
           href={`${pathname}?${next}`}
         >
           {label}
           {active ? <Arrow aria-hidden className='h-3 w-3' /> : null}
         </Link>
       ),
+      title: label,
       sort: active ? (dir === 'asc' ? 'ascending' : 'descending') : undefined,
     }
   }
 
-  const columns: Column[] = [
+  const columns: Column<ProductDTO>[] = [
     {
       label: (
-        <input
+        <Checkbox
           ref={el => {
             if (el) el.indeterminate = selectedIds.length > 0 && !allSelected
           }}
           aria-label='Select all products on this page'
           checked={allSelected}
-          className={checkboxClass}
-          type='checkbox'
           onChange={e => onSelectAll(e.target.checked)}
         />
       ),
       className: 'w-12',
+      narrow: 'summary',
+      narrowHeader: true,
+      cell: product => (
+        <Checkbox
+          aria-label={`Select ${product.name}`}
+          checked={selectedIds.includes(product.id)}
+          onChange={e => onSelect(product.id, e.target.checked)}
+        />
+      ),
     },
-    sortable('name', 'Product'),
-    sortable('brand', 'Mill'),
-    sortable('size', 'Size'),
-    sortable('price', 'Price (USD)'),
-    sortable('inStock', 'Stock'),
-    sortable('category', 'Category'),
-    { label: 'Sub-line' },
-    { label: <span className='sr-only'>Actions</span>, className: 'w-24' },
+    {
+      ...sortable('name', 'Product'),
+      narrow: 'title',
+      narrowHeader: true,
+      cellClassName: 'font-medium text-foreground',
+      cell: product => product.name,
+    },
+    {
+      ...sortable('brand', 'Mill'),
+      cellClassName: 'text-muted-foreground',
+      cell: product => product.brand || '—',
+    },
+    {
+      ...sortable('size', 'Size'),
+      cellClassName: 'font-mono text-xs tabular-nums text-foreground',
+      cell: product => product.size || '—',
+    },
+    {
+      ...sortable('price', 'Price (USD)'),
+      narrow: 'summary',
+      narrowHeader: true,
+      cell: product => <PriceCell product={product} />,
+    },
+    {
+      ...sortable('inStock', 'Stock'),
+      cell: product => (
+        <div>
+          <StockToggle product={product} />
+        </div>
+      ),
+    },
+    {
+      ...sortable('category', 'Category'),
+      cell: product => (
+        <div>
+          <span className='border border-border bg-muted/40 px-2 py-0.5 text-xs text-foreground'>
+            {product.category?.name}
+          </span>
+        </div>
+      ),
+    },
+    {
+      label: 'Sub-line',
+      cellClassName: 'text-muted-foreground',
+      cell: product => product.subcategory,
+    },
+    actionsColumn(product => (
+      <RowActions
+        name={product.name}
+        onDelete={() => onDelete(product)}
+        onEdit={() => onEdit(product)}
+      />
+    )),
   ]
 
   return (
-    <AdminTable className='min-w-[960px]' columns={columns}>
-      {products.map(product => {
-        const selected = selectedIds.includes(product.id)
-
-        return (
-          <tr
-            key={product.id}
-            className={cn(rowClass, selected && 'bg-muted/40')}
-          >
-            <td className='px-4 py-3'>
-              <input
-                aria-label={`Select ${product.name}`}
-                checked={selected}
-                className={checkboxClass}
-                type='checkbox'
-                onChange={e => onSelect(product.id, e.target.checked)}
-              />
-            </td>
-            <td className='px-4 py-3 font-medium text-foreground'>
-              {product.name}
-            </td>
-            <td className='px-4 py-3 text-muted-foreground'>
-              {product.brand || '—'}
-            </td>
-            <td className='px-4 py-3 font-mono text-xs tabular-nums text-foreground'>
-              {product.size || '—'}
-            </td>
-            <td className='px-4 py-3'>
-              <PriceCell product={product} />
-            </td>
-            <td className='px-4 py-3'>
-              <StockToggle product={product} />
-            </td>
-            <td className='px-4 py-3'>
-              <span className='border border-border bg-muted/40 px-2 py-0.5 text-xs text-foreground'>
-                {product.category?.name}
-              </span>
-            </td>
-            <td className='px-4 py-3 text-muted-foreground'>
-              {product.subcategory}
-            </td>
-            <td className='px-4 py-3'>
-              <RowActions
-                name={product.name}
-                onDelete={() => onDelete(product)}
-                onEdit={() => onEdit(product)}
-              />
-            </td>
-          </tr>
-        )
-      })}
-    </AdminTable>
+    <AdminTable
+      wide
+      columns={columns}
+      rowClassName={product =>
+        selectedIds.includes(product.id) && 'bg-muted/40'
+      }
+      rowLabel={product => `Details of ${product.name}`}
+      rows={products}
+    />
   )
 }
 
@@ -179,7 +202,7 @@ function PriceCell({ product }: { product: ProductDTO }) {
   if (draft === null) {
     return (
       <button
-        className='cursor-pointer font-mono text-sm font-semibold tabular-nums text-foreground hover:underline'
+        className='cursor-pointer font-mono text-sm font-semibold tabular-nums text-foreground hover:underline pointer-coarse:-my-3 pointer-coarse:py-3'
         title='Click to edit'
         type='button'
         onClick={() => {
@@ -197,7 +220,7 @@ function PriceCell({ product }: { product: ProductDTO }) {
       // eslint-disable-next-line jsx-a11y/no-autofocus -- focus follows the click that opened this inline editor
       autoFocus
       aria-label={`Unit price of ${product.name}`}
-      className='h-8 w-28 border border-border bg-background px-2 font-mono text-sm font-semibold tabular-nums text-foreground outline-none focus:border-foreground focus:ring-1 focus:ring-foreground'
+      className='h-8 w-28 border border-border bg-background px-2 pointer-coarse:h-11 font-mono text-sm font-semibold tabular-nums text-foreground outline-none focus:border-foreground focus:ring-1 focus:ring-foreground'
       inputMode='decimal'
       min='0'
       step='0.01'
@@ -240,7 +263,7 @@ function StockToggle({ product }: { product: ProductDTO }) {
     <button
       aria-label={`${product.name}: ${inStock ? 'in stock' : 'out of stock'}. Switch`}
       className={cn(
-        'cursor-pointer border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide transition-colors duration-200 ease-out disabled:cursor-wait',
+        'cursor-pointer border px-2 py-0.5 text-[11px] font-medium pointer-coarse:px-3 pointer-coarse:py-2.5 uppercase tracking-wide transition-colors duration-200 ease-out disabled:cursor-wait',
         inStock
           ? 'border-emerald-600/30 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-200'
           : 'border-red-600/30 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200',

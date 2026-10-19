@@ -168,7 +168,7 @@ export default async function OrdersPage({
       </SearchToolbar>
 
       <DataCard
-        icon={tab === 'quick' ? Package : Mail}
+        titleHidden
         title={`${tab === 'quick' ? 'Quote requests' : 'Contact messages'} (${rows})`}
       >
         {rows === 0 ? (

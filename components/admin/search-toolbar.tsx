@@ -62,7 +62,7 @@ export function SearchToolbar({
           <input key={name} name={name} type='hidden' value={value} />
         ))}
         {children}
-        <div className='flex flex-wrap gap-2'>
+        <div className='flex flex-wrap gap-2 max-sm:*:flex-1'>
           <Button type='submit' variant='outline'>
             <Search aria-hidden className='h-4 w-4' />
             Search

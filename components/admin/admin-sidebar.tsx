@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { useState } from 'react'
 import {
   LayoutDashboard,
   Package,
@@ -15,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
+  X,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -32,25 +32,22 @@ const superAdminItems = [
   { title: 'Admin users', href: '/admin/users', icon: Shield },
 ]
 
-interface AdminSidebarProps {
-  collapsed?: boolean
-  onCollapsedChange?: (collapsed: boolean) => void
-}
+/**
+ * The rail from `lg` up, or the phone drawer's contents when `onClose` is set
+ * (the shell renders it inside a `ModalDialog`).
+ */
+type AdminSidebarProps =
+  | { collapsed: boolean; onCollapsedChange: (collapsed: boolean) => void }
+  | { onClose: () => void }
 
-export default function AdminSidebar({
-  collapsed: collapsedProp,
-  onCollapsedChange,
-}: AdminSidebarProps = {}) {
+const iconButtonClass =
+  'flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center border border-border bg-background text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground pointer-coarse:h-11 pointer-coarse:w-11'
+
+export default function AdminSidebar(props: AdminSidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
-  const [internalCollapsed, setInternalCollapsed] = useState(false)
-  const collapsed = collapsedProp ?? internalCollapsed
-  const setCollapsed = (next: boolean | ((v: boolean) => boolean)) => {
-    const value = typeof next === 'function' ? next(collapsed) : next
-
-    if (onCollapsedChange) onCollapsedChange(value)
-    else setInternalCollapsed(value)
-  }
+  const drawer = 'onClose' in props
+  const collapsed = !drawer && props.collapsed
 
   const allItems =
     session?.user?.role === 'SUPER_ADMIN'
@@ -64,12 +61,18 @@ export default function AdminSidebar({
     <aside
       aria-label='Admin sidebar'
       className={cn(
-        'fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-card transition-[width] duration-200 ease-out',
-        collapsed ? 'w-[4.25rem]' : 'w-60',
+        'flex flex-col bg-card',
+        drawer
+          ? 'h-full w-72'
+          : 'fixed inset-y-0 left-0 z-50 hidden border-r border-border transition-[width] duration-200 ease-out lg:flex',
+        !drawer && (collapsed ? 'w-[4.25rem]' : 'w-60'),
       )}
     >
       <div
-        className={`flex h-14 items-center  border-b border-border px-3 ${collapsed ? 'justify-center' : 'justify-between'}`}
+        className={cn(
+          'flex h-14 items-center border-b border-border px-3',
+          collapsed ? 'justify-center' : 'justify-between',
+        )}
       >
         <Link
           className={cn(
@@ -80,28 +83,42 @@ export default function AdminSidebar({
         >
           {!collapsed && (
             <div className='min-w-0'>
-              <p className='truncate text-sm font-semibold tracking-tight text-foreground'>
+              <p
+                className='truncate text-sm font-semibold tracking-tight text-foreground'
+                id={drawer ? 'admin-menu-title' : undefined}
+              >
                 Hormoz Steel
               </p>
-              <p className='font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground'>
+              <p className='font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground'>
                 Admin Panel
               </p>
             </div>
           )}
         </Link>
 
-        <button
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className='flex h-8 w-8 shrink-0 items-center justify-center border border-border bg-background text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground cursor-pointer'
-          type='button'
-          onClick={() => setCollapsed(v => !v)}
-        >
-          {collapsed ? (
-            <ChevronRight className='h-4 w-4' />
-          ) : (
-            <ChevronLeft className='h-4 w-4' />
-          )}
-        </button>
+        {drawer ? (
+          <button
+            aria-label='Close menu'
+            className={iconButtonClass}
+            type='button'
+            onClick={props.onClose}
+          >
+            <X className='h-4 w-4' />
+          </button>
+        ) : (
+          <button
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className={iconButtonClass}
+            type='button'
+            onClick={() => props.onCollapsedChange(!collapsed)}
+          >
+            {collapsed ? (
+              <ChevronRight className='h-4 w-4' />
+            ) : (
+              <ChevronLeft className='h-4 w-4' />
+            )}
+          </button>
+        )}
       </div>
 
       <div className='flex-1 overflow-y-auto px-2 py-4'>
@@ -119,7 +136,7 @@ export default function AdminSidebar({
               <p className='truncate text-sm font-medium text-foreground'>
                 {session?.user?.name || 'Admin'}
               </p>
-              <p className='truncate font-mono text-[10px] uppercase tracking-wide text-muted-foreground'>
+              <p className='truncate font-mono text-[11px] uppercase tracking-wide text-muted-foreground'>
                 {session?.user?.role === 'SUPER_ADMIN'
                   ? 'Super admin'
                   : 'Admin'}
@@ -138,7 +155,7 @@ export default function AdminSidebar({
                 <li key={item.href}>
                   <Link
                     className={cn(
-                      'flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-out',
+                      'flex items-center gap-2.5 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-out pointer-coarse:py-3',
                       collapsed && 'justify-center px-0',
                       active
                         ? 'bg-primary text-primary-foreground'
@@ -146,6 +163,7 @@ export default function AdminSidebar({
                     )}
                     href={item.href}
                     title={collapsed ? item.title : undefined}
+                    onClick={drawer ? props.onClose : undefined}
                   >
                     <Icon className='h-5 w-5 shrink-0' />
                     {!collapsed && <span>{item.title}</span>}
@@ -160,7 +178,7 @@ export default function AdminSidebar({
       {!collapsed && (
         <div className='border-t border-border px-3 py-3'>
           <Link
-            className='text-sm font-medium text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground flex items-center gap-1.5'
+            className='flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground pointer-coarse:min-h-11'
             href='/'
           >
             <ArrowLeft className='h-5 w-5' />

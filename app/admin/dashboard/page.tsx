@@ -10,7 +10,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 
-import { AdminTable, rowClass } from '@/components/admin/admin-table'
+import { AdminTable } from '@/components/admin/admin-table'
 import { prisma } from '@/lib/prisma'
 import { formatUsd, formatDate, formatNumber } from '@/lib/format'
 
@@ -172,35 +172,42 @@ export default async function AdminDashboard() {
           </div>
         ) : (
           <AdminTable
-            className='min-w-[560px]'
             columns={[
-              { label: 'Order' },
-              { label: 'Customer' },
-              { label: 'Lines', className: 'text-center' },
-              { label: 'Total', className: 'text-right' },
-              { label: 'Date', className: 'text-right' },
+              {
+                label: 'Order',
+                narrow: 'title',
+                cellClassName: 'font-mono text-xs font-medium text-foreground',
+                cell: order => `#${order.orderNumber}`,
+              },
+              {
+                label: 'Customer',
+                cellClassName: 'text-foreground',
+                cell: order => order.customer.name,
+              },
+              {
+                label: 'Lines',
+                className: 'text-center',
+                cellClassName: 'tabular-nums text-muted-foreground',
+                cell: order => order.items.length,
+              },
+              {
+                label: 'Total',
+                className: 'text-right',
+                narrow: 'summary',
+                cellClassName: 'font-medium tabular-nums text-foreground',
+                cell: order =>
+                  formatUsd(Number(order.totalAmount), { whole: true }),
+              },
+              {
+                label: 'Date',
+                className: 'text-right',
+                cellClassName: 'text-muted-foreground',
+                cell: order => formatDate(order.createdAt),
+              },
             ]}
-          >
-            {stats.recentOrders.map(order => (
-              <tr key={order.id} className={rowClass}>
-                <td className='px-4 py-3 font-mono text-xs font-medium text-foreground'>
-                  #{order.orderNumber}
-                </td>
-                <td className='px-4 py-3 text-foreground'>
-                  {order.customer.name}
-                </td>
-                <td className='px-4 py-3 text-center tabular-nums text-muted-foreground'>
-                  {order.items.length}
-                </td>
-                <td className='px-4 py-3 text-right font-medium tabular-nums text-foreground'>
-                  {formatUsd(Number(order.totalAmount), { whole: true })}
-                </td>
-                <td className='px-4 py-3 text-right text-muted-foreground'>
-                  {formatDate(order.createdAt)}
-                </td>
-              </tr>
-            ))}
-          </AdminTable>
+            rowLabel={order => `Details of order #${order.orderNumber}`}
+            rows={stats.recentOrders}
+          />
         )}
       </section>
     </div>
