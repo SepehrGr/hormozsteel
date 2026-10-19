@@ -10,6 +10,7 @@ import {
   Mail,
   Shield,
   ChevronDown,
+  Menu,
   Package,
   X,
 } from 'lucide-react'
@@ -32,7 +33,14 @@ function getTimeAgo(date: Date): string {
   return `${diffDays}d ago`
 }
 
-export default function AdminHeader() {
+const iconButtonClass =
+  'relative flex h-8 w-8 cursor-pointer items-center justify-center border border-border bg-card text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground pointer-coarse:h-11 pointer-coarse:w-11'
+
+export default function AdminHeader({
+  onOpenMenu,
+}: {
+  onOpenMenu: () => void
+}) {
   const { data: session } = useSession()
   const router = useRouter()
   const pathname = usePathname()
@@ -55,7 +63,14 @@ export default function AdminHeader() {
   return (
     <>
       <header className='sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:px-6'>
-        <div />
+        <button
+          aria-label='Open menu'
+          className={`${iconButtonClass} lg:invisible`}
+          type='button'
+          onClick={onOpenMenu}
+        >
+          <Menu className='h-4.5 w-4.5' />
+        </button>
 
         <div className='flex items-center justify-end gap-2'>
           {/* Notifications */}
@@ -66,7 +81,7 @@ export default function AdminHeader() {
                   ? `Notifications, ${notificationCount} waiting`
                   : 'Notifications'
               }
-              className='relative flex h-8 w-8 items-center justify-center border border-border bg-card text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground cursor-pointer'
+              className={iconButtonClass}
               type='button'
               onClick={() => {
                 setShowNotifications(v => !v)
@@ -75,21 +90,21 @@ export default function AdminHeader() {
             >
               <Bell className='h-4.5 w-4.5' />
               {notificationCount > 0 && (
-                <span className='absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center bg-red-600 px-1 font-mono text-[10px] font-semibold text-white'>
+                <span className='absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center bg-red-600 px-1 font-mono text-[11px] font-semibold text-white'>
                   {notificationCount > 9 ? '9+' : notificationCount}
                 </span>
               )}
             </button>
 
             {showNotifications && (
-              <div className='absolute right-0 mt-2 w-80 border border-border bg-card shadow-lg'>
+              <div className='fixed inset-x-4 top-14 mt-2 border border-border bg-card shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:w-80'>
                 <div className='flex items-center justify-between border-b border-border px-3 py-2.5'>
-                  <p className='font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+                  <p className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
                     Inbox
                   </p>
                   <button
                     aria-label='Close'
-                    className='cursor-pointer text-muted-foreground hover:text-foreground'
+                    className='flex cursor-pointer items-center justify-center text-muted-foreground hover:text-foreground pointer-coarse:-m-3 pointer-coarse:h-11 pointer-coarse:w-11'
                     type='button'
                     onClick={() => setShowNotifications(false)}
                   >
@@ -163,7 +178,9 @@ export default function AdminHeader() {
             )}
           </div>
 
-          <ThemeSwitch />
+          <ThemeSwitch
+            classNames={{ wrapper: 'pointer-coarse:h-11 pointer-coarse:w-11' }}
+          />
 
           <div className='hidden h-6 w-px bg-border sm:block' />
 
@@ -182,7 +199,7 @@ export default function AdminHeader() {
                   <p className='text-xs font-semibold text-foreground'>
                     {session.user.name || 'User'}
                   </p>
-                  <p className='font-mono text-[10px] uppercase tracking-wide text-muted-foreground'>
+                  <p className='font-mono text-[11px] uppercase tracking-wide text-muted-foreground'>
                     {session.user.role === 'SUPER_ADMIN'
                       ? 'Super admin'
                       : 'Admin'}
@@ -247,7 +264,7 @@ export default function AdminHeader() {
           onClose={() => setShowLogoutModal(false)}
         >
           <div className='border-b border-border px-5 py-3'>
-            <p className='font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
+            <p className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
               Session
             </p>
             <h3

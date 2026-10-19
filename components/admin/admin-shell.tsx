@@ -1,9 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 
 import AdminSidebar from '@/components/admin/admin-sidebar'
 import AdminHeader from '@/components/admin/admin-header'
+import ModalDialog from '@/components/ui/modal-dialog'
+import { cn } from '@/lib/utils'
 
 interface AdminShellProps {
   children: React.ReactNode
@@ -11,6 +14,19 @@ interface AdminShellProps {
 
 export default function AdminShell({ children }: AdminShellProps) {
   const [collapsed, setCollapsed] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const pathname = usePathname()
+
+  useEffect(() => setMenuOpen(false), [pathname])
+
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 1024px)')
+    const onChange = () => desktop.matches && setMenuOpen(false)
+
+    desktop.addEventListener('change', onChange)
+
+    return () => desktop.removeEventListener('change', onChange)
+  }, [])
 
   useEffect(() => {
     const stored = localStorage.getItem('admin-sidebar-collapsed')
@@ -51,13 +67,23 @@ export default function AdminShell({ children }: AdminShellProps) {
           )
         }}
       />
+      {menuOpen ? (
+        <ModalDialog
+          className='m-0 h-dvh max-h-dvh border-y-0 border-l-0 transition-transform duration-200 ease-out starting:-translate-x-full motion-reduce:transition-none'
+          labelledBy='admin-menu-title'
+          onClose={() => setMenuOpen(false)}
+        >
+          <AdminSidebar onClose={() => setMenuOpen(false)} />
+        </ModalDialog>
+      ) : null}
       <div
-        className={`flex min-h-screen flex-1 flex-col transition-[padding] duration-200 ease-out ${
-          collapsed ? 'pl-[4.25rem]' : 'pl-60'
-        }`}
+        className={cn(
+          'flex min-h-screen min-w-0 flex-1 flex-col transition-[padding] duration-200 ease-out',
+          collapsed ? 'lg:pl-[4.25rem]' : 'lg:pl-60',
+        )}
       >
-        <AdminHeader />
-        <main className='flex-1 p-4 md:p-6 md:w-[900px] xl:w-[1100px] 2xl:w-[1400px] max-w-[1600px] mx-auto'>
+        <AdminHeader onOpenMenu={() => setMenuOpen(true)} />
+        <main className='mx-auto w-full min-w-0 max-w-[1400px] flex-1 p-4 md:p-6'>
           {children}
         </main>
       </div>

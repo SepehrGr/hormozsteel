@@ -43,7 +43,7 @@ export function AdminTable({
   children: ReactNode
 }) {
   return (
-    <div className='overflow-x-auto'>
+    <div className='relative overflow-x-auto'>
       <table className={cn('w-full text-sm', className)}>
         <thead>
           <tr className='border-b border-border bg-muted/50 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground'>

@@ -446,12 +446,14 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     products 3); 32px icon buttons (header bell and theme, collapse, `RowActions`); 16px
     checkboxes; 10px table headers and sidebar labels.
   - Login already works at 390px.
-- [ ] M.1 Shell:
-  - `<main>` becomes `w-full max-w-[1600px]` with `min-w-0` on its column, so nothing
-    scrolls sideways at any width.
-  - Below `lg`, the sidebar becomes a drawer opened from a 44px menu button in the header.
-    It closes on Esc, on a backdrop click, and on navigation. The collapsed rail applies only
-    from `lg` up.
+- [x] M.1 Shell:
+  - `<main>` becomes `w-full max-w-[1400px]` with `min-w-0` on its column, so nothing
+    scrolls sideways at any width. `AdminTable`'s scroll box gets `relative`: without it the
+    `sr-only` "Actions" heading (absolutely positioned) escaped it and kept products 893px wide.
+  - Below `lg`, the sidebar becomes a drawer: the same `AdminSidebar` inside `ModalDialog`,
+    opened from a menu button in the header. It closes on Esc, on a backdrop click, on
+    navigation, and when the window widens to `lg`. The collapsed rail applies only from
+    `lg` up.
   - The 10px labels in the sidebar and header go up to the 11px floor, and the header's
     icon buttons get 44px tap targets on touch.
 - [ ] M.2 Headers and toolbars:
