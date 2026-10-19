@@ -396,13 +396,25 @@ by price" doesn't give the cheapest products overall.
     outputs `undefined` for keep. The inline price and stock cells send the same shape.
   - After a bulk edit the rows stay selected; after a bulk delete they leave the selection on
     their own.
-- [ ] 5.8 Excel:
-  - Keep `/api/products/import`, because a file upload suits a route handler.
-  - Export reuses the public `/api/products` GET today. Give it its own auth-guarded
-    `/api/products/export` route that applies the current URL filters, so 7.8 can delete
-    the public GET.
-  - Translate the Persian strings.
-  - Check that both routes require auth.
+- [x] 5.8 Excel:
+  - `lib/product-filters.ts` turns `?q/category/stock/sort/dir` into Prisma's `where` and
+    `orderBy`. The page and the export both use it, so an export is exactly what the page shows
+    (all pages).
+  - `GET /api/products/export` (rate limit + `requireApiAuth`) builds the .xlsx on the server.
+    Export is a plain `<a download>` link carrying the page's filters, so the public
+    `/api/products` GET is no longer used by the admin (7.8 can delete it).
+  - `lib/product-sheet.ts` holds the English column names. Export writes them and import reads
+    them, so an exported file can be edited and imported back.
+  - Import (`useProductExcel` + `ImportExcelButton`): no Persian strings left. Blank cells on an
+    update keep the current value, and the errors name what's missing.
+  - Fixed in `/api/products/import`:
+    - it's rate-limited;
+    - the Mill column now sets the mill (it was dropped), creating one if new;
+    - only a rename gets a new slug (an import used to re-slug every row);
+    - stock is a boolean.
+  - Both routes return 401 when not logged in (checked).
+  - Deleted `header-actions.tsx` and the unused `downloadTemplate`. Export's weight column was
+    always blank (it read `product.weight`); it's now `weightKg`.
 - [ ] 5.9 Cleanup:
   - Delete `/api/products` `POST`, `/api/products/[id]` `PATCH`/`PUT`/`DELETE`, and
     `/api/products/bulk` once unused *(from 8.0)*. Public `GET`s stay.

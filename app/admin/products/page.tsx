@@ -1,7 +1,6 @@
-import type { Prisma } from '@prisma/client'
 import type { ProductDTO } from '@/types/products'
 
-import { Package, PackageCheck, PackageX } from 'lucide-react'
+import { Download, Package, PackageCheck, PackageX } from 'lucide-react'
 
 import { DataCard } from '@/components/admin/data-card'
 import { EmptyState } from '@/components/admin/empty-state'
@@ -12,37 +11,16 @@ import {
   pageParams,
 } from '@/components/admin/pagination'
 import { createProduct } from '@/app/admin/products/actions'
-import HeaderActions from '@/components/admin/products/header-actions'
+import { ImportExcelButton } from '@/components/admin/products/import-excel-button'
 import { ProductFormDialog } from '@/components/admin/products/product-form-dialog'
 import { ProductsWorkspace } from '@/components/admin/products/products-workspace'
 import { SearchToolbar } from '@/components/admin/search-toolbar'
 import { StatsBoard } from '@/components/admin/stats-board'
+import { Button } from '@/components/ui/button'
 import { DialogButton } from '@/components/ui/dialog-button'
 import { Select } from '@/components/ui/field'
+import { productFilters, setOnly } from '@/lib/product-filters'
 import { prisma } from '@/lib/prisma'
-
-type Dir = Prisma.SortOrder
-
-/** Table columns that sort, and the Prisma order for each. */
-const SORTS = {
-  name: (dir: Dir) => ({ name: dir }),
-  brand: (dir: Dir) => ({ manufacturer: { name: dir } }),
-  size: (dir: Dir) => ({ size: dir }),
-  price: (dir: Dir) => ({ price: dir }),
-  inStock: (dir: Dir) => ({ inStock: dir }),
-  category: (dir: Dir) => ({ category: { name: dir } }),
-  createdAt: (dir: Dir) => ({ createdAt: dir }),
-} satisfies Record<string, (dir: Dir) => Prisma.ProductOrderByWithRelationInput>
-
-const isSort = (value: string): value is keyof typeof SORTS =>
-  Object.hasOwn(SORTS, value)
-
-const text = (value: string | string[] | undefined) =>
-  typeof value === 'string' ? value.trim() : ''
-
-/** Drop blank values, so the URL only carries what's set. */
-const setOnly = (values: Record<string, string>) =>
-  Object.fromEntries(Object.entries(values).filter(([, value]) => value))
 
 export default async function ProductsPage({
   searchParams,
@@ -50,34 +28,25 @@ export default async function ProductsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const params = await searchParams
-  const query = text(params.q)
-  const category = text(params.category)
-  const stock = text(params.stock)
-  const sortParam = text(params.sort)
-  const sort = isSort(sortParam) ? sortParam : 'createdAt'
-  const dir: Dir = text(params.dir) === 'asc' ? 'asc' : 'desc'
+  const {
+    query,
+    category,
+    stock,
+    sort,
+    dir,
+    sorting,
+    where,
+    orderBy,
+    params: filterParams,
+  } = productFilters(params)
   const { page, limit, skip } = pageParams(params.page, params.limit)
-
-  const search = { contains: query, mode: 'insensitive' } as const
-  const where: Prisma.ProductWhereInput = {
-    category: category ? { slug: category } : undefined,
-    inStock: stock === 'in' ? true : stock === 'out' ? false : undefined,
-    OR: query
-      ? [
-          { name: search },
-          { description: search },
-          { size: search },
-          { manufacturer: { name: search } },
-        ]
-      : undefined,
-  }
+  const exportHref = `/api/products/export?${new URLSearchParams(filterParams)}`
 
   const [rows, total, stockCounts, categories, manufacturers] =
     await Promise.all([
       prisma.product.findMany({
         where,
-        // id breaks ties, so equal prices don't swap between pages
-        orderBy: [SORTS[sort](dir), { id: 'asc' }],
+        orderBy,
         skip,
         take: limit,
         select: {
@@ -116,15 +85,20 @@ export default async function ProductsPage({
   const countOf = (inStock: boolean) =>
     stockCounts.find(row => row.inStock === inStock)?._count ?? 0
   const filtered = Boolean(query || category || stock)
-  const sorting: Record<string, string> =
-    sort === 'createdAt' && dir === 'desc' ? {} : { sort, dir }
 
   return (
     <div className='space-y-6'>
       <PageHeader
         actions={
           <div className='flex flex-wrap gap-2'>
-            <HeaderActions categories={categories} />
+            <ImportExcelButton categories={categories} />
+            <Button asChild variant='outline'>
+              {/* A plain link: the browser downloads the file the route sends */}
+              <a download href={exportHref}>
+                <Download aria-hidden className='h-4 w-4' />
+                Export Excel
+              </a>
+            </Button>
             <DialogButton label='Add product'>
               <ProductFormDialog
                 action={createProduct}
@@ -218,7 +192,7 @@ export default async function ProductsPage({
           <Pagination
             limit={limit}
             page={page}
-            params={setOnly({ q: query, category, stock, ...sorting })}
+            params={filterParams}
             path='/admin/products'
             total={total}
           />
