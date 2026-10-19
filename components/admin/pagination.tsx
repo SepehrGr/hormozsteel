@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
+import { PageSizeSelect } from '@/components/admin/page-size-select'
 import { cn } from '@/lib/utils'
 
 export const PAGE_SIZES = [10, 20, 50, 100]
@@ -74,19 +75,12 @@ export function Pagination({
 
   return (
     <div className='flex flex-col gap-3 border-t border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between'>
-      <div className='flex items-center gap-1 text-sm text-muted-foreground'>
-        <span className='mr-1'>Per page</span>
-        {PAGE_SIZES.map(size => (
-          <Link
-            key={size}
-            aria-current={size === limit ? 'true' : undefined}
-            className={cn(cell, size === limit ? current : idle)}
-            href={href({ limit: size })}
-          >
-            {size}
-          </Link>
-        ))}
-      </div>
+      <PageSizeSelect
+        hrefs={Object.fromEntries(
+          PAGE_SIZES.map(size => [size, href({ limit: size })]),
+        )}
+        limit={limit}
+      />
 
       <p className='text-sm text-muted-foreground'>
         Showing{' '}
