@@ -81,20 +81,6 @@ export function useProductMutations(refresh: () => Promise<unknown> | void) {
         },
       ),
 
-    createProduct: (payload: Json) =>
-      run('/api/products', 'POST', payload, {
-        title: 'Created',
-        success: 'Product added to catalog',
-        error: 'Could not add product',
-      }),
-
-    updateProduct: (id: string, payload: Json, success = 'Product updated') =>
-      run(`/api/products/${id}`, 'PATCH', payload, {
-        title: 'Updated',
-        success,
-        error: 'Could not update product',
-      }),
-
     deleteProduct: (id: string) =>
       run(`/api/products/${id}`, 'DELETE', undefined, {
         title: 'Deleted',

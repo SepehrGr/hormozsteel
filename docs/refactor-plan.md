@@ -359,10 +359,16 @@ by price" doesn't give the cheapest products overall.
   - Found: Next rejects any sync function inside an exported `'use server'` value (the
     `.refine` arrow broke the whole dev server once a page imported the actions). The bulk
     changes schema moved to `lib/schemas/product.ts` as `productChangesSchema`.
-- [ ] 5.5 One `ProductFormDialog` for add and edit:
-  - the category select drives the sub-line options (`useWatch`);
-  - a manufacturer select.
-  - Delete the Add and Edit modals.
+- [x] 5.5 One `ProductFormDialog` for add and edit, on `useActionForm` + `FormDialog`:
+  - the category select drives the sub-line options (`useWatch`); changing the category
+    clears the sub-line;
+  - a mill select whose blank option means "new mill" and shows a name input. This drops the
+    old `'__custom__'` sentinel; the schema already reads `manufacturerId: ''` + `brand`.
+  - Add is a `DialogButton` on the server page bound to `createProduct`. Edit opens through
+    `DialogScope` in the workspace, bound to `updateProduct`.
+  - Deleted the Add and Edit modals, `MillField`, `ProductFormData`/`emptyProductForm`/
+    `toProductPayload`/`isFormValid`, and `createProduct`/`updateProduct` in
+    `useProductMutations`. `header-actions.tsx` is now only Excel.
 - [ ] 5.6 Single delete, through `ConfirmDialog`. Note in the dialog that order history
   for the product is deleted too (cascade; fixed properly in DB track W3).
 - [ ] 5.7 Bulk update and bulk delete dialogs on the actions. Delete

@@ -11,10 +11,13 @@ import {
   Pagination,
   pageParams,
 } from '@/components/admin/pagination'
+import { createProduct } from '@/app/admin/products/actions'
 import HeaderActions from '@/components/admin/products/header-actions'
+import { ProductFormDialog } from '@/components/admin/products/product-form-dialog'
 import { ProductsWorkspace } from '@/components/admin/products/products-workspace'
 import { SearchToolbar } from '@/components/admin/search-toolbar'
 import { StatsBoard } from '@/components/admin/stats-board'
+import { DialogButton } from '@/components/ui/dialog-button'
 import { Select } from '@/components/ui/field'
 import { prisma } from '@/lib/prisma'
 
@@ -120,10 +123,17 @@ export default async function ProductsPage({
     <div className='space-y-6'>
       <PageHeader
         actions={
-          <HeaderActions
-            categories={categories}
-            manufacturers={manufacturers}
-          />
+          <div className='flex flex-wrap gap-2'>
+            <HeaderActions categories={categories} />
+            <DialogButton label='Add product'>
+              <ProductFormDialog
+                action={createProduct}
+                categories={categories}
+                manufacturers={manufacturers}
+                mode='create'
+              />
+            </DialogButton>
+          </div>
         }
         description='View, edit, and manage catalog line items.'
         icon={Package}

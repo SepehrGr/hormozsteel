@@ -11,18 +11,18 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDisclosure } from '@heroui/modal'
 
+import { updateProduct } from '@/app/admin/products/actions'
 import {
   BulkDeleteModal,
   BulkUpdateModal,
   DeleteSingleModal,
-  EditProductModal,
 } from '@/components/admin/products/modals'
-import ProductsTable from '@/components/admin/products/products-table'
 import {
-  emptyProductForm,
-  isFormValid,
-  toProductPayload,
-} from '@/components/admin/products/types'
+  ProductFormDialog,
+  toProductFormValues,
+} from '@/components/admin/products/product-form-dialog'
+import ProductsTable from '@/components/admin/products/products-table'
+import { DialogScope } from '@/components/ui/dialog-scope'
 import { useProductMutations } from '@/hooks/use-product-mutations'
 
 /** The page's products with selection, row edits and the bulk/edit/delete dialogs. */
@@ -40,19 +40,18 @@ export function ProductsWorkspace({
   dir: 'asc' | 'desc'
 }) {
   const router = useRouter()
-  const { bulkUpdate, bulkDelete, updateProduct, deleteProduct } =
-    useProductMutations(router.refresh)
+  const { bulkUpdate, bulkDelete, deleteProduct } = useProductMutations(
+    router.refresh,
+  )
 
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [bulkUpdateData, setBulkUpdateData] = useState<BulkUpdateData>({})
-  const [editingProduct, setEditingProduct] = useState<ProductDTO | null>(null)
-  const [editProductData, setEditProductData] = useState(emptyProductForm)
+  const [editing, setEditing] = useState<ProductDTO | null>(null)
   const [productToDelete, setProductToDelete] = useState<ProductDTO | null>(
     null,
   )
   const bulkModal = useDisclosure()
   const bulkDeleteModal = useDisclosure()
-  const editModal = useDisclosure()
   const deleteModal = useDisclosure()
 
   const handleBulkUpdate = async () => {
@@ -67,33 +66,6 @@ export function ProductsWorkspace({
     if (await bulkDelete(selectedIds)) {
       setSelectedIds([])
       bulkDeleteModal.onClose()
-    }
-  }
-
-  const handleEditProduct = (product: ProductDTO) => {
-    setEditingProduct(product)
-    setEditProductData({
-      name: product.name,
-      brand: product.brand || '',
-      manufacturerId: product.manufacturerId || '',
-      size: product.size || '',
-      price: product.price,
-      inStock: product.inStock,
-      categoryId: product.categoryId,
-      subcategory: product.subcategory || '',
-      weight: product.weightKg ?? undefined,
-    })
-    editModal.onOpen()
-  }
-
-  const handleSaveEdit = async () => {
-    if (!editingProduct || !isFormValid(editProductData)) return
-
-    if (
-      await updateProduct(editingProduct.id, toProductPayload(editProductData))
-    ) {
-      setEditingProduct(null)
-      editModal.onClose()
     }
   }
 
@@ -147,7 +119,7 @@ export function ProductsWorkspace({
           setProductToDelete(product)
           deleteModal.onOpen()
         }}
-        onEdit={handleEditProduct}
+        onEdit={setEditing}
         onSelect={(id, checked) =>
           setSelectedIds(prev =>
             checked ? [...prev, id] : prev.filter(other => other !== id),
@@ -173,16 +145,17 @@ export function ProductsWorkspace({
         onDelete={handleBulkDelete}
         onOpenChange={bulkDeleteModal.onOpenChange}
       />
-      <EditProductModal
-        categories={categories}
-        editProductData={editProductData}
-        editingProduct={editingProduct}
-        isOpen={editModal.isOpen}
-        manufacturers={manufacturers}
-        setEditProductData={setEditProductData}
-        onOpenChange={editModal.onOpenChange}
-        onSave={handleSaveEdit}
-      />
+      {editing ? (
+        <DialogScope onClose={() => setEditing(null)}>
+          <ProductFormDialog
+            action={values => updateProduct({ id: editing.id, values })}
+            categories={categories}
+            defaultValues={toProductFormValues(editing)}
+            manufacturers={manufacturers}
+            mode='edit'
+          />
+        </DialogScope>
+      ) : null}
       <DeleteSingleModal
         isOpen={deleteModal.isOpen}
         product={productToDelete}
