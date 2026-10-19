@@ -415,13 +415,15 @@ by price" doesn't give the cheapest products overall.
   - Both routes return 401 when not logged in (checked).
   - Deleted `header-actions.tsx` and the unused `downloadTemplate`. Export's weight column was
     always blank (it read `product.weight`); it's now `weightKg`.
-- [ ] 5.9 Cleanup:
-  - Delete `/api/products` `POST`, `/api/products/[id]` `PATCH`/`PUT`/`DELETE`, and
-    `/api/products/bulk` once unused *(from 8.0)*. Public `GET`s stay.
-  - Remove `@heroui/table`, `@heroui/checkbox` and `@heroui/modal` from `package.json` if still
-    unused (nothing imports the first two since 5.4, nor `@heroui/modal` since 5.7).
-  - Delete the dead mutation hooks in `hooks/use-api.ts`: `useCreateProduct`,
-    `useUpdateProduct` and `useDeleteProduct` have no callers.
+- [x] 5.9 Cleanup:
+  - Deleted `/api/products` `POST`, `/api/products/[id]` `PATCH`/`PUT`/`DELETE`, and
+    `/api/products/bulk` *(from 8.0)*. A grep found only the dead hooks calling them. The public
+    `GET`s stay for the shop (7.8 decides).
+  - Deleted the dead `useCreateProduct`, `useUpdateProduct` and `useDeleteProduct` in
+    `hooks/use-api.ts`.
+  - Removed `@heroui/table`, `@heroui/checkbox` and `@heroui/modal` from `package.json`; nothing
+    imports them, and the Tailwind config only uses the theme package.
+  - Phase-end checks: `yarn lint:check`, `yarn build`, `tsc`.
 
 ### Phase 6: Settings, login, leftovers (`refactor/admin-settings`)
 
@@ -510,9 +512,9 @@ So most of this phase is checking that the remaining routes are complete.
 
 - [ ] 8.0 **Security, do early.** These admin handlers have no auth check (found in 1.2;
   `middleware.ts` only guards `/admin` pages, not `/api`):
-  - `products` POST, `products/[id]` PATCH/PUT/DELETE
+  - ~~`products` POST, `products/[id]` PATCH/PUT/DELETE~~ deleted in 5.9, with `products/bulk`
   - ~~`manufacturers` POST, `manufacturers/[id]` PUT/DELETE~~ deleted in 2.7
-  - `contact` GET (lists customer messages), PATCH, DELETE
+  - ~~`contact` GET (lists customer messages), PATCH, DELETE~~ deleted in 4.7
   - `orders` GET (lists orders) and POST
 
   Public on purpose: `contact` POST, `quick-orders` POST, `auth/[...nextauth]`.
