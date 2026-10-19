@@ -167,7 +167,10 @@ function PriceCell({ product }: { product: ProductDTO }) {
     startTransition(async () => {
       setShown(price)
       toastResult(
-        await updateProducts({ ids: [product.id], changes: { price } }),
+        await updateProducts({
+          ids: [product.id],
+          changes: { price: String(price) },
+        }),
         `${product.name} now costs ${formatUsd(price)}`,
       )
     })
@@ -227,7 +230,7 @@ function StockToggle({ product }: { product: ProductDTO }) {
       toastResult(
         await updateProducts({
           ids: [product.id],
-          changes: { inStock: !inStock },
+          changes: { stock: inStock ? 'out' : 'in' },
         }),
         `${product.name} marked ${inStock ? 'out of stock' : 'in stock'}`,
       )

@@ -1,10 +1,3 @@
-/** Fields the bulk-edit modal can push onto every selected product. */
-export interface BulkUpdateData {
-  price?: number
-  inStock?: boolean
-  categoryId?: string
-}
-
 /** A category as the filters and product forms need it. */
 export interface CategoryOption {
   id: string

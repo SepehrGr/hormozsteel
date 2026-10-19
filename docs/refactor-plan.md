@@ -383,12 +383,19 @@ by price" doesn't give the cheapest products overall.
     dialog falls back to a bare "Delete". The orders tables pass "Tom Becker's quote request" /
     "Emma Wright's message" as the name, so neither the question nor the row button reads as
     deleting the customer. (From an impeccable critique of the dialogs, 26/40.)
-- [ ] 5.7 Bulk update and bulk delete dialogs on the actions. Delete
-  `use-product-mutations.ts` and what's left of `modals.tsx`.
-  - Bulk delete on `ConfirmDialog`: "Yes, delete 3 products" / "Deleting 3 products…", the
-    same history/order-lines warning as single delete. That gives it the pending guard it
-    lacks today (a double-click sends two requests).
-  - Bulk update on `FormDialog`: "Apply to 3 products" / "Applying…".
+- [x] 5.7 Bulk update and bulk delete dialogs on the actions. Deleted
+  `use-product-mutations.ts` and `modals.tsx` (the last of the HeroUI modals here).
+  - Bulk delete is the shared `DeleteDialog` with a new `count` prop: title "Delete 3 products",
+    button "Yes, delete 3 products" / "Deleting 3 products…", toast "3 products deleted", and the
+    same history/order-lines warning. Its pending state stops a double-click from sending two
+    requests (checked: one audit row).
+  - Bulk edit is `BulkEditDialog` on `useActionForm` + `FormDialog`, which now takes an optional
+    `submitLabel`/`pendingLabel`: "Apply to 3 products" / "Applying…". Price, stock and
+    category each default to "Keep".
+  - `productChangesSchema` takes the form's shape (`''` = keep, `stock: '' | 'in' | 'out'`) and
+    outputs `undefined` for keep. The inline price and stock cells send the same shape.
+  - After a bulk edit the rows stay selected; after a bulk delete they leave the selection on
+    their own.
 - [ ] 5.8 Excel:
   - Keep `/api/products/import`, because a file upload suits a route handler.
   - Export reuses the public `/api/products` GET today. Give it its own auth-guarded
@@ -399,8 +406,8 @@ by price" doesn't give the cheapest products overall.
 - [ ] 5.9 Cleanup:
   - Delete `/api/products` `POST`, `/api/products/[id]` `PATCH`/`PUT`/`DELETE`, and
     `/api/products/bulk` once unused *(from 8.0)*. Public `GET`s stay.
-  - Remove `@heroui/table` and `@heroui/checkbox` from `package.json` if still unused
-    (nothing imports them since 5.4).
+  - Remove `@heroui/table`, `@heroui/checkbox` and `@heroui/modal` from `package.json` if still
+    unused (nothing imports the first two since 5.4, nor `@heroui/modal` since 5.7).
   - Delete the dead mutation hooks in `hooks/use-api.ts`: `useCreateProduct`,
     `useUpdateProduct` and `useDeleteProduct` have no callers.
 

@@ -1,29 +1,25 @@
 'use client'
 
 import type {
-  BulkUpdateData,
   CategoryOption,
   MillOption,
 } from '@/components/admin/products/types'
 import type { ProductDTO } from '@/types/products'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useDisclosure } from '@heroui/modal'
+import { Pencil, Trash2 } from 'lucide-react'
 
 import { deleteProducts, updateProduct } from '@/app/admin/products/actions'
-import {
-  BulkDeleteModal,
-  BulkUpdateModal,
-} from '@/components/admin/products/modals'
+import { BulkEditDialog } from '@/components/admin/products/bulk-edit-dialog'
 import {
   ProductFormDialog,
   toProductFormValues,
 } from '@/components/admin/products/product-form-dialog'
 import ProductsTable from '@/components/admin/products/products-table'
+import { Button } from '@/components/ui/button'
 import { DeleteDialog } from '@/components/ui/delete-dialog'
 import { DialogScope } from '@/components/ui/dialog-scope'
-import { useProductMutations } from '@/hooks/use-product-mutations'
+import { pluralize } from '@/lib/format'
 
 /** The page's products with selection, row edits and the bulk/edit/delete dialogs. */
 export function ProductsWorkspace({
@@ -39,32 +35,12 @@ export function ProductsWorkspace({
   sort: string
   dir: 'asc' | 'desc'
 }) {
-  const router = useRouter()
-  const { bulkUpdate, bulkDelete } = useProductMutations(router.refresh)
-
   const [checkedIds, setCheckedIds] = useState<string[]>([])
   // Only rows still on the page count, so a deleted row drops out of the selection
   const selectedIds = checkedIds.filter(id => products.some(p => p.id === id))
-  const [bulkUpdateData, setBulkUpdateData] = useState<BulkUpdateData>({})
   const [editing, setEditing] = useState<ProductDTO | null>(null)
   const [deleting, setDeleting] = useState<ProductDTO | null>(null)
-  const bulkModal = useDisclosure()
-  const bulkDeleteModal = useDisclosure()
-
-  const handleBulkUpdate = async () => {
-    if (await bulkUpdate(selectedIds, bulkUpdateData)) {
-      setCheckedIds([])
-      setBulkUpdateData({})
-      bulkModal.onClose()
-    }
-  }
-
-  const handleBulkDelete = async () => {
-    if (await bulkDelete(selectedIds)) {
-      setCheckedIds([])
-      bulkDeleteModal.onClose()
-    }
-  }
+  const [bulk, setBulk] = useState<'edit' | 'delete' | null>(null)
 
   return (
     <>
@@ -77,20 +53,18 @@ export function ProductsWorkspace({
             selected
           </span>
           <div className='flex gap-2'>
-            <button
-              className='border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-              type='button'
-              onClick={bulkModal.onOpen}
-            >
+            <Button size='sm' variant='outline' onClick={() => setBulk('edit')}>
+              <Pencil aria-hidden className='h-3.5 w-3.5' />
               Edit selected
-            </button>
-            <button
-              className='border border-red-600/40 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-800 transition-colors duration-200 ease-out hover:bg-red-100 dark:bg-red-950/40 dark:text-red-200'
-              type='button'
-              onClick={bulkDeleteModal.onOpen}
+            </Button>
+            <Button
+              size='sm'
+              variant='danger-outline'
+              onClick={() => setBulk('delete')}
             >
+              <Trash2 aria-hidden className='h-3.5 w-3.5' />
               Delete selected
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}
@@ -112,21 +86,23 @@ export function ProductsWorkspace({
         }
       />
 
-      <BulkUpdateModal
-        bulkUpdateData={bulkUpdateData}
-        categories={categories}
-        isOpen={bulkModal.isOpen}
-        selectedCount={selectedIds.length}
-        setBulkUpdateData={setBulkUpdateData}
-        onOpenChange={bulkModal.onOpenChange}
-        onUpdate={handleBulkUpdate}
-      />
-      <BulkDeleteModal
-        isOpen={bulkDeleteModal.isOpen}
-        selectedCount={selectedIds.length}
-        onDelete={handleBulkDelete}
-        onOpenChange={bulkDeleteModal.onOpenChange}
-      />
+      {bulk ? (
+        <DialogScope onClose={() => setBulk(null)}>
+          {bulk === 'edit' ? (
+            <BulkEditDialog categories={categories} ids={selectedIds} />
+          ) : (
+            <DeleteDialog
+              action={() => deleteProducts({ ids: selectedIds })}
+              count={selectedIds.length}
+              name={pluralize(selectedIds.length, 'selected product')}
+              noun='product'
+            >
+              Their price history and any order lines that include them are
+              deleted too.
+            </DeleteDialog>
+          )}
+        </DialogScope>
+      ) : null}
       {editing ? (
         <DialogScope onClose={() => setEditing(null)}>
           <ProductFormDialog

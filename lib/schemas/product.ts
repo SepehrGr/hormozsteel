@@ -45,14 +45,27 @@ export type ProductFormValues = z.input<typeof productSchema>
 /** What the actions receive. */
 export type ProductData = z.output<typeof productSchema>
 
-/** What a bulk edit sets on many products, or an inline edit on one. */
+/**
+ * What a bulk edit sets on many products, or an inline edit on one. Input is
+ * the bulk form's shape, where `''` keeps the current value; output has
+ * `undefined` for "keep".
+ */
 // Not in actions.ts: Next rejects a sync function inside an exported 'use server' value
 export const productChangesSchema = z
   .object({
-    price: z.number().positive().optional(),
-    inStock: z.boolean().optional(),
-    categoryId: z.string().min(1).optional(),
+    price: amount('price').default(''),
+    stock: z.enum(['', 'in', 'out']).default(''),
+    categoryId: z.string().default(''),
   })
-  .refine(changes => Object.values(changes).some(v => v !== undefined), {
-    error: 'Choose at least one change.',
+  .refine(({ price, stock, categoryId }) => price || stock || categoryId, {
+    path: ['price'],
+    error: 'Change at least one field',
   })
+  .transform(({ price, stock, categoryId }) => ({
+    price: price ? Number(price) : undefined,
+    inStock: stock ? stock === 'in' : undefined,
+    categoryId: categoryId || undefined,
+  }))
+
+/** What the bulk edit form holds. */
+export type ProductChangesValues = z.input<typeof productChangesSchema>
