@@ -11,10 +11,10 @@ import {
 } from '@/app/admin/manufacturers/actions'
 import {
   type Column,
+  actionsColumn,
   AdminTable,
   NameCell,
   RowActions,
-  rowClass,
 } from '@/components/admin/admin-table'
 import { ManufacturerFormDialog } from '@/components/admin/manufacturers/manufacturer-form-dialog'
 import { DeleteDialog } from '@/components/ui/delete-dialog'
@@ -47,14 +47,6 @@ function toFormValues(manufacturer: ManufacturerRow): ManufacturerFormValues {
   }
 }
 
-const columns: Column[] = [
-  { label: 'Manufacturer' },
-  { label: 'Slug' },
-  { label: 'Contact' },
-  { label: 'Products', className: 'text-center' },
-  { label: 'Actions', className: 'text-right' },
-]
-
 /** Manufacturers table; the browser owns which row is being edited or deleted. */
 export function ManufacturersTable({
   manufacturers,
@@ -64,18 +56,57 @@ export function ManufacturersTable({
   const [editing, setEditing] = useState<ManufacturerRow | null>(null)
   const [deleting, setDeleting] = useState<ManufacturerRow | null>(null)
 
+  const columns: Column<ManufacturerRow>[] = [
+    {
+      label: 'Manufacturer',
+      narrow: 'title',
+      cell: ({ name, description, logo }) => (
+        <NameCell
+          description={description}
+          media={
+            logo ? (
+              // Logos are arbitrary external URLs, which next/image would need allow-listed
+              // eslint-disable-next-line @next/next/no-img-element
+              <img alt='' className='h-full w-full object-cover' src={logo} />
+            ) : (
+              <Factory aria-hidden className='h-4 w-4' />
+            )
+          }
+          name={name}
+        />
+      ),
+    },
+    {
+      label: 'Slug',
+      cellClassName: 'font-mono text-xs text-muted-foreground',
+      cell: manufacturer => manufacturer.slug,
+    },
+    {
+      label: 'Contact',
+      cell: manufacturer => <Contacts manufacturer={manufacturer} />,
+    },
+    {
+      label: 'Products',
+      className: 'text-center',
+      cellClassName: 'tabular-nums text-foreground',
+      cell: manufacturer => manufacturer._count.products,
+    },
+    actionsColumn(manufacturer => (
+      <RowActions
+        name={manufacturer.name}
+        onDelete={() => setDeleting(manufacturer)}
+        onEdit={() => setEditing(manufacturer)}
+      />
+    )),
+  ]
+
   return (
     <>
-      <AdminTable columns={columns}>
-        {manufacturers.map(manufacturer => (
-          <ManufacturerTableRow
-            key={manufacturer.id}
-            manufacturer={manufacturer}
-            onDelete={() => setDeleting(manufacturer)}
-            onEdit={() => setEditing(manufacturer)}
-          />
-        ))}
-      </AdminTable>
+      <AdminTable
+        columns={columns}
+        rowLabel={manufacturer => `Details of ${manufacturer.name}`}
+        rows={manufacturers}
+      />
 
       {editing ? (
         <DialogScope onClose={() => setEditing(null)}>
@@ -104,16 +135,8 @@ export function ManufacturersTable({
   )
 }
 
-function ManufacturerTableRow({
-  manufacturer,
-  onEdit,
-  onDelete,
-}: {
-  manufacturer: ManufacturerRow
-  onEdit: () => void
-  onDelete: () => void
-}) {
-  const { name, slug, description, logo, website, email, phone } = manufacturer
+function Contacts({ manufacturer }: { manufacturer: ManufacturerRow }) {
+  const { website, email, phone } = manufacturer
   const contacts = [
     website && {
       Icon: Globe,
@@ -124,47 +147,19 @@ function ManufacturerTableRow({
     phone && { Icon: Phone, label: 'Phone', text: phone },
   ].filter(contact => !!contact)
 
+  if (contacts.length === 0) {
+    return <span className='text-xs text-muted-foreground'>—</span>
+  }
+
   return (
-    <tr className={rowClass}>
-      <td className='px-4 py-3'>
-        <NameCell
-          description={description}
-          media={
-            logo ? (
-              // Logos are arbitrary external URLs, which next/image would need allow-listed
-              // eslint-disable-next-line @next/next/no-img-element
-              <img alt='' className='h-full w-full object-cover' src={logo} />
-            ) : (
-              <Factory aria-hidden className='h-4 w-4' />
-            )
-          }
-          name={name}
-        />
-      </td>
-      <td className='px-4 py-3 font-mono text-xs text-muted-foreground'>
-        {slug}
-      </td>
-      <td className='px-4 py-3'>
-        {contacts.length > 0 ? (
-          <ul className='flex flex-col gap-0.5 text-xs text-muted-foreground'>
-            {contacts.map(({ Icon, label, text }) => (
-              <li key={label} className='flex items-center gap-1.5'>
-                <Icon aria-hidden className='h-3 w-3 shrink-0' />
-                <span className='sr-only'>{label}: </span>
-                <span className='max-w-[12rem] truncate'>{text}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <span className='text-xs text-muted-foreground'>—</span>
-        )}
-      </td>
-      <td className='px-4 py-3 text-center tabular-nums text-foreground'>
-        {manufacturer._count.products}
-      </td>
-      <td className='px-4 py-3'>
-        <RowActions name={name} onDelete={onDelete} onEdit={onEdit} />
-      </td>
-    </tr>
+    <ul className='flex flex-col gap-0.5 text-xs text-muted-foreground'>
+      {contacts.map(({ Icon, label, text }) => (
+        <li key={label} className='flex items-center gap-1.5'>
+          <Icon aria-hidden className='h-3 w-3 shrink-0' />
+          <span className='sr-only'>{label}: </span>
+          <span className='max-w-[12rem] truncate'>{text}</span>
+        </li>
+      ))}
+    </ul>
   )
 }

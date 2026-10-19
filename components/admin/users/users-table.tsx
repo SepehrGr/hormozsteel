@@ -4,9 +4,9 @@ import { UserRound } from 'lucide-react'
 
 import {
   type Column,
+  actionsColumn,
   AdminTable,
   NameCell,
-  rowClass,
 } from '@/components/admin/admin-table'
 import { Pill } from '@/components/admin/pill'
 import { UserActions } from '@/components/admin/users/user-actions'
@@ -25,15 +25,6 @@ export interface UserRow {
   lockedUntil: Date | null
 }
 
-const columns: Column[] = [
-  { label: 'User' },
-  { label: 'Role' },
-  { label: 'Status' },
-  { label: 'Last login' },
-  { label: 'Created' },
-  { label: 'Actions', className: 'text-right' },
-]
-
 /** Admin accounts with their role, status, and lockout. */
 export function UsersTable({
   users,
@@ -43,46 +34,65 @@ export function UsersTable({
   /** The signed-in admin, whose own row can't change its role or status. */
   currentUserId: string
 }) {
-  return (
-    <AdminTable columns={columns}>
-      {users.map(user => (
-        <tr key={user.id} className={rowClass}>
-          <td className='px-4 py-3'>
-            <NameCell
-              description={user.email}
-              media={<UserRound aria-hidden className='h-4 w-4' />}
-              name={user.name}
-            />
-          </td>
-          <td className='px-4 py-3'>
-            <Pill tone={user.role === 'SUPER_ADMIN' ? 'strong' : 'neutral'}>
-              {ROLE_LABELS[user.role]}
+  const columns: Column<UserRow>[] = [
+    {
+      label: 'User',
+      narrow: 'title',
+      cell: user => (
+        <NameCell
+          description={user.email}
+          media={<UserRound aria-hidden className='h-4 w-4' />}
+          name={user.name}
+        />
+      ),
+    },
+    {
+      label: 'Role',
+      narrow: 'summary',
+      cell: user => (
+        <Pill tone={user.role === 'SUPER_ADMIN' ? 'strong' : 'neutral'}>
+          {ROLE_LABELS[user.role]}
+        </Pill>
+      ),
+    },
+    {
+      label: 'Status',
+      cell: user => (
+        <div>
+          <div className='flex flex-wrap items-center gap-1'>
+            <Pill tone={user.isActive ? 'success' : 'neutral'}>
+              {user.isActive ? 'Active' : 'Inactive'}
             </Pill>
-          </td>
-          <td className='px-4 py-3'>
-            <div className='flex flex-wrap items-center gap-1'>
-              <Pill tone={user.isActive ? 'success' : 'neutral'}>
-                {user.isActive ? 'Active' : 'Inactive'}
-              </Pill>
-              {user.lockedUntil ? <Pill tone='danger'>Locked</Pill> : null}
-            </div>
-            {user.lockedUntil ? (
-              <p className='mt-1 text-xs text-muted-foreground'>
-                Until {formatDateTime(user.lockedUntil)}
-              </p>
-            ) : null}
-          </td>
-          <td className='px-4 py-3 text-muted-foreground'>
-            {formatDateTime(user.lastLogin)}
-          </td>
-          <td className='px-4 py-3 text-muted-foreground'>
-            {formatDateTime(user.createdAt)}
-          </td>
-          <td className='px-4 py-3'>
-            <UserActions isSelf={user.id === currentUserId} user={user} />
-          </td>
-        </tr>
-      ))}
-    </AdminTable>
+            {user.lockedUntil ? <Pill tone='danger'>Locked</Pill> : null}
+          </div>
+          {user.lockedUntil ? (
+            <p className='mt-1 text-xs text-muted-foreground'>
+              Until {formatDateTime(user.lockedUntil)}
+            </p>
+          ) : null}
+        </div>
+      ),
+    },
+    {
+      label: 'Last login',
+      cellClassName: 'text-muted-foreground',
+      cell: user => formatDateTime(user.lastLogin),
+    },
+    {
+      label: 'Created',
+      cellClassName: 'text-muted-foreground',
+      cell: user => formatDateTime(user.createdAt),
+    },
+    actionsColumn(user => (
+      <UserActions isSelf={user.id === currentUserId} user={user} />
+    )),
+  ]
+
+  return (
+    <AdminTable
+      columns={columns}
+      rowLabel={user => `Details of ${user.name}`}
+      rows={users}
+    />
   )
 }

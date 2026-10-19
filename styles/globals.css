@@ -166,6 +166,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Inside AdminTable, while its box is narrower than its columns need. */
+@custom-variant narrow {
+  @container admin-table (width < 45rem) {
+    @slot;
+  }
+  @container admin-table (width < 60rem) {
+    :where([data-wide]) & {
+      @slot;
+    }
+  }
+}
+
 @config "../tailwind.config.js";
 
 @theme inline {

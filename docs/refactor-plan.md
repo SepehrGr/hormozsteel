@@ -465,8 +465,21 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
   - `SearchToolbar`: Search and Clear fill the row on phones.
   - `Pagination`: 44px cells on touch. Below `sm` the page numbers give way to
     "Page 3 of 8" between Previous and Next, because seven 44px cells don't fit in the card.
-- [ ] M.3 `AdminTable` as an accordion on narrow screens (the user's choice: never scroll a
-  table sideways):
+    The per-page links became a native `<select>` (`PageSizeSelect`, the user's call): phones
+    open their own picker, and desktop browsers open it upward when there's no room below.
+- [x] M.3 `AdminTable` as an accordion on narrow screens (the user's choice: never scroll a
+  table sideways). As built:
+  - `AdminTable` draws every row from `columns` (`cell`, `narrow: 'title' | 'summary'`,
+    `narrowHeader`), plus `rows`, `rowLabel`, `detail` and `rowClassName` (the user's pick
+    over a `data-label` on each hand-written cell). `actionsColumn()` is the shared last
+    column.
+  - A `narrow:` variant in `globals.css` (container queries: 45rem, or 60rem with `wide`)
+    replaces the table min-widths. `AdminRow` replaces `ExpandableRow`.
+  - The products select-all and sort links stay as a header bar on narrow screens.
+  - Known duplicate: an open narrow quote request shows its specs in the field and again in
+    the details panel.
+
+  The plan, for reference:
   - The switch follows the table's own width through a container query (`@container`,
     built into Tailwind 4), not the viewport, so it holds with the sidebar open or closed.
   - It uses the same markup, restyled. No second mobile table (the public
