@@ -1,215 +1,142 @@
+import type { PriceDirection, QuickOrderStatus } from '@prisma/client'
+
+import { Inbox, LayoutDashboard, LineChart, Mail, Package } from 'lucide-react'
 import Link from 'next/link'
-import {
-  Package,
-  FolderTree,
-  Building2,
-  ShoppingCart,
-  Users,
-  Clock,
-  DollarSign,
-  ArrowRight,
-} from 'lucide-react'
 
-import { AdminTable } from '@/components/admin/admin-table'
+import { ActivityFeed } from '@/components/admin/dashboard/activity-feed'
+import { PriceBoard } from '@/components/admin/dashboard/price-board'
+import { RequestDesk } from '@/components/admin/dashboard/request-desk'
+import { PageHeader } from '@/components/admin/page-header'
+import { StatsBoard } from '@/components/admin/stats-board'
+import { Button } from '@/components/ui/button'
+import { formatRelative, pluralize } from '@/lib/format'
 import { prisma } from '@/lib/prisma'
-import { formatUsd, formatDate, formatNumber } from '@/lib/format'
+import { sum } from '@/lib/utils'
 
-async function getDashboardStats() {
+const OPEN: QuickOrderStatus[] = ['PENDING', 'CONFIRMED', 'PROCESSING']
+
+export default async function DashboardPage() {
   const [
-    totalProducts,
-    totalCategories,
-    totalManufacturers,
-    totalOrders,
-    totalCustomers,
-    pendingOrders,
-    totalRevenue,
-    recentOrders,
+    productCount,
+    outOfStock,
+    directions,
+    requestCounts,
+    newMessages,
+    requests,
+    priceChangeCount,
+    changes,
+    logs,
   ] = await Promise.all([
     prisma.product.count(),
-    prisma.category.count(),
-    prisma.manufacturer.count(),
-    prisma.order.count(),
-    prisma.customer.count(),
-    prisma.order.count({ where: { status: 'PENDING' } }),
-    prisma.order.aggregate({ _sum: { totalAmount: true } }),
-    prisma.order.findMany({
-      take: 5,
+    prisma.product.count({ where: { inStock: false } }),
+    prisma.product.groupBy({ by: ['priceDirection'], _count: true }),
+    prisma.quickOrder.groupBy({ by: ['status'], _count: true }),
+    prisma.contactForm.count({ where: { status: 'NEW' } }),
+    prisma.quickOrder.findMany({
       orderBy: { createdAt: 'desc' },
-      include: {
-        customer: true,
-        items: {
-          include: {
-            product: true,
-          },
-        },
+      take: 5,
+      select: {
+        id: true,
+        customerName: true,
+        companyName: true,
+        city: true,
+        productSpecs: true,
+        quantity: true,
+        status: true,
+        createdAt: true,
+      },
+    }),
+    prisma.priceHistory.count(),
+    prisma.priceHistory.findMany({
+      orderBy: { changedAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        oldPrice: true,
+        newPrice: true,
+        direction: true,
+        changedAt: true,
+        product: { select: { name: true, unit: true } },
+      },
+    }),
+    prisma.adminLog.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 6,
+      select: {
+        id: true,
+        action: true,
+        resourceType: true,
+        resourceId: true,
+        details: true,
+        userId: true,
+        userName: true,
+        createdAt: true,
       },
     }),
   ])
 
-  return {
-    totalProducts,
-    totalCategories,
-    totalManufacturers,
-    totalOrders,
-    totalCustomers,
-    pendingOrders,
-    totalRevenue: totalRevenue._sum.totalAmount || 0,
-    recentOrders,
-  }
-}
+  const countOf = (status: QuickOrderStatus) =>
+    requestCounts.find(row => row.status === status)?._count ?? 0
+  const openRequests = sum(OPEN, countOf)
+  const split: Record<PriceDirection, number> = { UP: 0, STABLE: 0, DOWN: 0 }
 
-export default async function AdminDashboard() {
-  const stats = await getDashboardStats()
-
-  const statCards = [
-    {
-      title: 'Products',
-      value: formatNumber(stats.totalProducts),
-      icon: Package,
-      href: '/admin/products',
-    },
-    {
-      title: 'Categories',
-      value: formatNumber(stats.totalCategories),
-      icon: FolderTree,
-      href: '/admin/categories',
-    },
-    {
-      title: 'Manufacturers',
-      value: formatNumber(stats.totalManufacturers),
-      icon: Building2,
-      href: '/admin/manufacturers',
-    },
-    {
-      title: 'Orders',
-      value: formatNumber(stats.totalOrders),
-      icon: ShoppingCart,
-      href: '/admin/orders',
-    },
-    {
-      title: 'Customers',
-      value: formatNumber(stats.totalCustomers),
-      icon: Users,
-      href: '/admin/orders',
-    },
-    {
-      title: 'Pending',
-      value: formatNumber(stats.pendingOrders),
-      icon: Clock,
-      href: '/admin/orders',
-    },
-    {
-      title: 'Revenue',
-      value: formatUsd(Number(stats.totalRevenue), { whole: true }),
-      icon: DollarSign,
-      href: '/admin/orders',
-    },
-  ]
+  for (const row of directions) split[row.priceDirection] = row._count
 
   return (
     <div className='space-y-6'>
-      <div className='flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between'>
-        <div>
-          <p className='font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
-            Overview
-          </p>
-          <h1 className='text-2xl font-semibold tracking-tight text-foreground'>
-            Dashboard
-          </h1>
-          <p className='mt-1 text-sm text-muted-foreground'>
-            Catalog and desk snapshot for the Hormoz Steel demo.
-          </p>
+      <PageHeader
+        actions={
+          <Button asChild>
+            <Link href='/admin/products'>Update prices</Link>
+          </Button>
+        }
+        description='Open requests, price moves and recent changes in one place.'
+        icon={LayoutDashboard}
+        title='Dashboard'
+      />
+
+      <StatsBoard
+        stats={[
+          {
+            label: 'Open requests',
+            value: openRequests,
+            detail: `${countOf('PENDING')} waiting for a reply`,
+            icon: Inbox,
+            href: '/admin/orders',
+          },
+          {
+            label: 'New messages',
+            value: newMessages,
+            detail: newMessages ? 'Not read yet' : 'All read',
+            icon: Mail,
+            href: '/admin/orders?tab=contact&status=NEW',
+          },
+          {
+            label: 'Products',
+            value: productCount,
+            detail: `${outOfStock} out of stock`,
+            icon: Package,
+            href: outOfStock ? '/admin/products?stock=out' : '/admin/products',
+          },
+          {
+            label: 'Prices updated',
+            value: changes[0]
+              ? formatRelative(changes[0].changedAt, { narrow: true })
+              : '—',
+            detail: `${pluralize(priceChangeCount, 'change')} logged`,
+            icon: LineChart,
+            href: '/admin/products',
+          },
+        ]}
+      />
+
+      <div className='grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]'>
+        <RequestDesk requests={requests} />
+        <div className='lg:col-start-2 lg:row-span-2 lg:row-start-1'>
+          <PriceBoard changes={changes} split={split} />
         </div>
-        <Link
-          className='inline-flex items-center gap-1.5 text-sm font-medium text-foreground underline-offset-4 transition-colors duration-200 ease-out hover:underline'
-          href='/admin/products'
-        >
-          Manage products
-          <ArrowRight className='h-3.5 w-3.5' />
-        </Link>
+        <ActivityFeed logs={logs} />
       </div>
-
-      <div className='grid grid-cols-2 gap-px overflow-hidden border border-border bg-border sm:grid-cols-3 lg:grid-cols-4'>
-        {statCards.map(stat => {
-          const Icon = stat.icon
-
-          return (
-            <Link
-              key={stat.title}
-              className='group bg-card px-4 py-4 transition-colors duration-200 ease-out hover:bg-muted'
-              href={stat.href}
-            >
-              <div className='flex items-start justify-between gap-2'>
-                <p className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
-                  {stat.title}
-                </p>
-                <Icon className='h-4 w-4 text-muted-foreground transition-colors duration-200 ease-out group-hover:text-amber-800 dark:group-hover:text-amber-500' />
-              </div>
-              <p className='mt-2 font-mono text-2xl font-semibold tabular-nums tracking-tight text-foreground'>
-                {stat.value}
-              </p>
-            </Link>
-          )
-        })}
-      </div>
-
-      <section className='border border-border bg-card'>
-        <div className='flex items-center justify-between border-b border-border px-4 py-3'>
-          <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
-            Recent orders
-          </h2>
-          <Link
-            className='text-xs font-medium text-muted-foreground underline-offset-4 transition-colors duration-200 ease-out hover:text-foreground hover:underline'
-            href='/admin/orders'
-          >
-            View all
-          </Link>
-        </div>
-
-        {stats.recentOrders.length === 0 ? (
-          <div className='px-4 py-12 text-center text-sm text-muted-foreground'>
-            No orders yet. Quote requests from the public site will appear here.
-          </div>
-        ) : (
-          <AdminTable
-            columns={[
-              {
-                label: 'Order',
-                narrow: 'title',
-                cellClassName: 'font-mono text-xs font-medium text-foreground',
-                cell: order => `#${order.orderNumber}`,
-              },
-              {
-                label: 'Customer',
-                cellClassName: 'text-foreground',
-                cell: order => order.customer.name,
-              },
-              {
-                label: 'Lines',
-                className: 'text-center',
-                cellClassName: 'tabular-nums text-muted-foreground',
-                cell: order => order.items.length,
-              },
-              {
-                label: 'Total',
-                className: 'text-right',
-                narrow: 'summary',
-                cellClassName: 'font-medium tabular-nums text-foreground',
-                cell: order =>
-                  formatUsd(Number(order.totalAmount), { whole: true }),
-              },
-              {
-                label: 'Date',
-                className: 'text-right',
-                cellClassName: 'text-muted-foreground',
-                cell: order => formatDate(order.createdAt),
-              },
-            ]}
-            rowLabel={order => `Details of order #${order.orderNumber}`}
-            rows={stats.recentOrders}
-          />
-        )}
-      </section>
     </div>
   )
 }

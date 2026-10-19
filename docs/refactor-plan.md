@@ -558,8 +558,20 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
 - [x] 6.4 Delete the orphaned `app/admin/categories/[id]/page.tsx` (363 lines, unlinked,
   34 Persian strings). Then delete `POST`/`PATCH`/`DELETE` in `app/api/categories/**`,
   which no longer have callers. `GET` stays for the public pages.
-- [ ] 6.5 Dashboard (already a server page): swap its hand-written stats and cards for
-  `StatsBoard`/`DataCard` where they repeat.
+- [x] 6.5 Dashboard redesign (already a server page), from `/impeccable`, inside the
+  existing admin look:
+  - Drop the `Order` tiles (orders, customers, pending, revenue) and "Recent orders".
+    The table has 0 rows: the public form saves `QuickOrder`, and only the uncalled
+    `POST /api/orders` writes `Order` (8.0 deletes it, W3 decides the models).
+  - `PageHeader` (no eyebrow) and a `StatsBoard` row: open requests, new messages,
+    products (with out of stock), last price update. `StatsBoard` gains `href` and
+    `detail`, so each tile opens its filtered list.
+  - Desk: the latest quote requests with status pills, each linking into the inbox.
+  - Price board: an up / flat / down split of the catalog, then the latest
+    `PriceHistory` changes (old → new, ▲/▼ percent, how long ago).
+  - Recent activity: the first `AdminLog` viewer. It shows `userName`, plus "(deleted)"
+    when `userId` is null, and a readable line built from each row's `details`.
+  - Two columns on desktop, one on phones, and an empty state per panel.
 - [ ] 6.6 Delete `/api/admin/profile` once unused. Fix the `requireAuth` vs
   `requireSuperAdmin` placement in layouts, if any remain.
 
