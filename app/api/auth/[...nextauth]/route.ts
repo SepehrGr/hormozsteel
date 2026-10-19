@@ -3,15 +3,16 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { authOptions } from '@/lib/auth'
 import { checkRateLimit, getClientIP } from '@/lib/rate-limit'
-import { prisma } from '@/lib/prisma'
 
 const handler = NextAuth(authOptions)
 
-// Wrap the handler to add rate limiting for sign-in requests
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ nextauth: string[] }> },
-) {
+type Context = { params: Promise<{ nextauth: string[] }> }
+
+const forward = async (request: NextRequest, { params }: Context) =>
+  handler(request as any, { params: await params } as any)
+
+/** Rate-limits sign-in attempts; every other POST goes straight to NextAuth. */
+export async function POST(request: NextRequest, context: Context) {
   const pathname = request.nextUrl.pathname
 
   // Only sign-in posts a form; the session update posts JSON
@@ -19,103 +20,29 @@ export async function POST(
     !pathname.includes('/signin') &&
     !pathname.includes('/callback/credentials')
   ) {
-    return handler(request as any, { params: await params } as any)
+    return forward(request, context)
   }
 
-  // Clone request to read body without consuming original
-  const clonedRequest = request.clone()
-  const formData = await clonedRequest.formData()
-  const email = formData.get('email')?.toString()
-  const password = formData.get('password')?.toString()
+  // A clone, so NextAuth can still read the body
+  const form = await request.clone().formData()
 
-  // A sign-in request carries email and password (login attempt)
-  const isSignIn = email && password
-
-  if (isSignIn) {
-    const ip = getClientIP(request)
-    const rateLimit = checkRateLimit(ip)
+  if (form.get('email') && form.get('password')) {
+    const rateLimit = checkRateLimit(getClientIP(request))
 
     if (rateLimit.isLimited) {
-      // Redirect to login page with rate limit error
-      const loginUrl = new URL('/admin/login', request.url)
+      // signIn() reads the error code from this url, as NextAuth sends it
+      const url = new URL('/admin/login', request.url)
 
-      loginUrl.searchParams.set('error', 'RateLimitExceeded')
-      loginUrl.searchParams.set(
-        'minutes',
-        rateLimit.remainingMinutes.toString(),
+      url.searchParams.set(
+        'error',
+        `RateLimitExceeded:${rateLimit.remainingMinutes}`,
       )
 
-      return NextResponse.redirect(loginUrl)
+      return NextResponse.json({ url: url.toString() }, { status: 429 })
     }
   }
 
-  // Recreate the request body for NextAuth since we read from clone
-  const body = new URLSearchParams()
-
-  for (const [key, value] of formData.entries()) {
-    body.append(key, value.toString())
-  }
-
-  // Create a new NextRequest preserving all properties
-  const reconstructedRequest = new NextRequest(request.url, {
-    method: request.method,
-    headers: new Headers(request.headers),
-    body: body.toString(),
-  })
-
-  // Preserve nextUrl which NextAuth needs
-  Object.defineProperty(reconstructedRequest, 'nextUrl', {
-    value: request.nextUrl,
-    writable: false,
-    enumerable: true,
-  })
-
-  // Await params before passing to NextAuth
-  const resolvedParams = await params
-  const response = await handler(
-    reconstructedRequest as any,
-    { params: resolvedParams } as any,
-  )
-
-  // Check if response is a redirect to error page - might be AccountLocked
-  if (response instanceof Response && response.status === 307) {
-    const location = response.headers.get('location')
-
-    if (location?.includes('error=CredentialsSignin') && email) {
-      // Check if account is locked and get remaining minutes
-      try {
-        const user = await prisma.user.findUnique({
-          where: { email },
-          select: { lockedUntil: true },
-        })
-
-        if (user?.lockedUntil && user.lockedUntil > new Date()) {
-          const remainingMs = user.lockedUntil.getTime() - Date.now()
-          const remainingMinutes = Math.ceil(remainingMs / (60 * 1000))
-
-          // Update the redirect URL to include AccountLocked error and minutes
-          const loginUrl = new URL('/admin/login', request.url)
-
-          loginUrl.searchParams.set('error', 'AccountLocked')
-          loginUrl.searchParams.set('minutes', remainingMinutes.toString())
-
-          return NextResponse.redirect(loginUrl)
-        }
-      } catch (error) {
-        // If error querying DB, just return the original response
-        console.error('Error checking account lockout:', error)
-      }
-    }
-  }
-
-  return response
+  return forward(request, context)
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ nextauth: string[] }> },
-) {
-  const resolvedParams = await params
-
-  return handler(request as any, { params: resolvedParams } as any)
-}
+export const GET = forward

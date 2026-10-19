@@ -34,6 +34,14 @@ const userFields = z.object({
   isActive: z.boolean(),
 })
 
+/** The sign-in form. No length rule: that's for setting a password, not typing one. */
+export const loginSchema = z.object({
+  email: userFields.shape.email,
+  password: z.string().min(1, 'Enter your password'),
+})
+
+export type LoginValues = z.input<typeof loginSchema>
+
 /** Adding an admin: the password is required. */
 export const createUserSchema = userFields.extend({ password: passwordSchema })
 

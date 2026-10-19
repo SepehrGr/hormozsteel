@@ -85,10 +85,6 @@ export const authOptions: NextAuthOptions = {
             throw new Error('USER_NOT_FOUND')
           }
 
-          if (!user.isActive) {
-            throw new Error('USER_INACTIVE')
-          }
-
           const check = await checkPassword(user, credentials.password)
 
           // Encode minutes in error message (NextAuth will pass this through)
@@ -96,6 +92,8 @@ export const authOptions: NextAuthOptions = {
             throw new Error(`AccountLocked:${check.minutes}`)
           }
           if (check.status === 'wrong') throw new Error('WRONG_PASSWORD')
+          // After the password, so it doesn't reveal that the account exists
+          if (!user.isActive) throw new Error('USER_INACTIVE')
 
           await prisma.user.update({
             where: { id: user.id },

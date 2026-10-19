@@ -543,11 +543,18 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
   - Fixed on the way: the NextAuth POST wrapper parsed every body as a form, so
     `update()` (JSON) got a 500; the `redirect` callback sent relative callback URLs to
     `/`, so Sign out never reached `/admin/login`.
-- [ ] 6.3 Login, 433 lines with 8 `useState`s:
+- [x] 6.3 Login, 433 lines with 8 `useState`s:
   - The form moves to RHF + zod.
   - It stays a client component, because NextAuth's `signIn` runs in the browser.
   - Move the lockout and rate-limit error messages into a pure function in `lib/`, and
     split out the visual side panel.
+  - Done as: a server `page.tsx` (session check + redirect, the static layout) and a
+    client `LoginForm`; `loginErrorMessage` in `lib/login-errors.ts`; `loginSchema`.
+  - `callbackUrl` is honoured, for same-site paths only.
+  - Fixes: the rate limit answered with a redirect that `signIn()` can't read, so its
+    message never showed (now JSON 429 with `RateLimitExceeded:<minutes>`); an unknown
+    email and an inactive account no longer reveal that an account exists; login no
+    longer lowercases the email (stored as typed).
 - [ ] 6.4 Delete the orphaned `app/admin/categories/[id]/page.tsx` (363 lines, unlinked,
   34 Persian strings). Then delete `POST`/`PATCH`/`DELETE` in `app/api/categories/**`,
   which no longer have callers. `GET` stays for the public pages.
