@@ -320,44 +320,110 @@ by price" doesn't give the cheapest products overall.
   `priceDirection` stay consistent.
 - Slugs come from `generateUniqueSlug`.
 
-- [ ] 5.1 `lib/schemas/product.ts`, built from `ProductFormData`:
+- [x] 5.1 `lib/schemas/product.ts`, built from `ProductFormData`:
   - name, brand, `manufacturerId`, size, price, `inStock`, `categoryId`, subcategory,
-    weight.
-  - The server also checks that the subcategory belongs to the chosen category.
-- [ ] 5.2 `app/admin/products/actions.ts`:
-  - create, update, delete;
-  - `updatePrice`, through `price-updater`;
-  - `toggleStock`, `bulkUpdate`, `bulkDelete`.
+    weight. Price and weight are strings in the form and numbers in the output
+    (`weight` → `weightKg`). The mill is a picked `manufacturerId` or a typed `brand`.
+  - The server also checks that the subcategory belongs to the chosen category. That
+    needs the database, so it lives in the 5.2 actions, not the schema.
+- [x] 5.2 `app/admin/products/actions.ts`:
+  - `createProduct`, `updateProduct`;
+  - `updateProducts({ ids, changes })` for price, stock and category. Inline price edit and
+    the stock toggle send one id, so there's no separate `updatePrice`/`toggleStock`;
+  - `deleteProducts({ ids })` for single and bulk delete.
+  - Prices go through `setProductPrice(tx, …)`, split out of `price-updater`, which now
+    skips unchanged prices instead of writing a STABLE history row.
+    `generateUniqueSlug` and `resolveManufacturerId` take a `db` client, like `logAdminAction`.
+  - Only a rename gets a new slug. Seeded slugs don't follow the name, so regenerating
+    on every save would move product URLs.
+  - The server checks that the sub-line belongs to the category. A bulk category change
+    clears sub-lines the new category doesn't have.
   - Revalidate `/admin/products`, `/admin/dashboard`, and the public `/products` layout.
-- [ ] 5.3 Server page with every filter in the URL: `?q`, `?category`, `?stock`, `?page`,
+- [x] 5.3 Server page with every filter in the URL: `?q`, `?category`, `?stock`, `?page`,
   `?limit`, `?sort`, `?dir`.
-  - Prisma does the `where`, `orderBy`, `skip` and `take`. This fixes the sort bug and
-    removes SWR from this page.
-  - `filters.tsx` becomes inputs inside `SearchToolbar`; `pagination.tsx` renders links.
-- [ ] 5.4 The table island:
-  - checkbox selection;
-  - column sorting as links;
-  - inline price edit and stock toggle with `useOptimistic`.
-- [ ] 5.5 One `ProductFormDialog` for add and edit:
-  - the category select drives the sub-line options (`useWatch`);
-  - a manufacturer select.
-  - Delete the Add and Edit modals.
-- [ ] 5.6 Single delete, through `ConfirmDialog`. Note in the dialog that order history
-  for the product is deleted too (cascade; fixed properly in DB track W3).
-- [ ] 5.7 Bulk update and bulk delete dialogs on the actions. Delete
-  `use-product-mutations.ts` and what's left of `modals.tsx`.
-- [ ] 5.8 Excel:
-  - Keep `/api/products/import`, because a file upload suits a route handler.
-  - Export reuses the public `/api/products` GET today. Give it its own auth-guarded
-    `/api/products/export` route that applies the current URL filters, so 7.8 can delete
-    the public GET.
-  - Translate the Persian strings.
-  - Check that both routes require auth.
-- [ ] 5.9 Cleanup:
-  - Delete `/api/products` `POST`, `/api/products/[id]` `PATCH`/`PUT`/`DELETE`, and
-    `/api/products/bulk` once unused *(from 8.0)*. Public `GET`s stay.
-  - Delete the dead mutation hooks in `hooks/use-api.ts`: `useCreateProduct`,
-    `useUpdateProduct` and `useDeleteProduct` have no callers.
+  - Prisma does the `where`, `orderBy` (plus `id` as a tie-break), `skip` and `take`.
+    This fixes the sort bug and removes SWR from this page.
+  - `filters.tsx` became two selects inside `SearchToolbar`. Pagination is now the shared
+    `components/admin/pagination.tsx` (`Pagination` links and `pageParams`), ready for the
+    orders inbox.
+  - Two client islands for now. `header-actions.tsx` has Add and Excel;
+    `products-workspace.tsx` has selection, the bulk bar, and the edit/delete/bulk
+    modals, on the old API hooks with `router.refresh()`. 5.4–5.8 take them apart.
+    Sorting pushes `?sort&dir` with `router.push` for now.
+- [x] 5.4 The table island, rebuilt on the shared `AdminTable` (dropped HeroUI `Table`):
+  - checkbox selection with native checkboxes; select-all goes indeterminate when only some rows are selected;
+  - column sorting as links (`?sort&dir`, page reset; a second click flips the order).
+    `Column.sort` sets `aria-sort` on the header;
+  - inline price edit (`PriceCell`) and stock toggle (`StockToggle`) call `updateProducts`
+    with one id, through `useOptimistic`.
+  - Found: Next rejects any sync function inside an exported `'use server'` value (the
+    `.refine` arrow broke the whole dev server once a page imported the actions). The bulk
+    changes schema moved to `lib/schemas/product.ts` as `productChangesSchema`.
+- [x] 5.5 One `ProductFormDialog` for add and edit, on `useActionForm` + `FormDialog`:
+  - the category select drives the sub-line options (`useWatch`); changing the category
+    clears the sub-line;
+  - a mill select whose blank option means "new mill" and shows a name input. This drops the
+    old `'__custom__'` sentinel; the schema already reads `manufacturerId: ''` + `brand`.
+  - Add is a `DialogButton` on the server page bound to `createProduct`. Edit opens through
+    `DialogScope` in the workspace, bound to `updateProduct`.
+  - Deleted the Add and Edit modals, `MillField`, `ProductFormData`/`emptyProductForm`/
+    `toProductPayload`/`isFormValid`, and `createProduct`/`updateProduct` in
+    `useProductMutations`. `header-actions.tsx` is now only Excel.
+- [x] 5.6 Single delete, through the shared `DeleteDialog` (on `ConfirmDialog`) and
+  `deleteProducts({ ids: [id] })`. The dialog notes that price history and order lines go
+  too (cascade; fixed properly in DB track W3).
+  - The old product modals put Delete first and left-aligned. The shared footer is Cancel
+    then Delete, right-aligned, and the old bulk-delete modal got the same order until 5.7
+    replaces it.
+  - The workspace counts only selected ids still on the page, so a deleted row leaves the
+    selection on its own.
+  - Deleted `DeleteSingleModal` and `deleteProduct` in `useProductMutations`.
+  - Delete buttons name their object: `DeleteDialog` passes "Yes, delete the {noun}" /
+    "Deleting the {noun}…". `confirmLabel`/`pendingLabel` are required on `ConfirmDialog`, so no
+    dialog falls back to a bare "Delete". The orders tables pass "Tom Becker's quote request" /
+    "Emma Wright's message" as the name, so neither the question nor the row button reads as
+    deleting the customer. (From an impeccable critique of the dialogs, 26/40.)
+- [x] 5.7 Bulk update and bulk delete dialogs on the actions. Deleted
+  `use-product-mutations.ts` and `modals.tsx` (the last of the HeroUI modals here).
+  - Bulk delete is the shared `DeleteDialog` with a new `count` prop: title "Delete 3 products",
+    button "Yes, delete 3 products" / "Deleting 3 products…", toast "3 products deleted", and the
+    same history/order-lines warning. Its pending state stops a double-click from sending two
+    requests (checked: one audit row).
+  - Bulk edit is `BulkEditDialog` on `useActionForm` + `FormDialog`, which now takes an optional
+    `submitLabel`/`pendingLabel`: "Apply to 3 products" / "Applying…". Price, stock and
+    category each default to "Keep".
+  - `productChangesSchema` takes the form's shape (`''` = keep, `stock: '' | 'in' | 'out'`) and
+    outputs `undefined` for keep. The inline price and stock cells send the same shape.
+  - After a bulk edit the rows stay selected; after a bulk delete they leave the selection on
+    their own.
+- [x] 5.8 Excel:
+  - `lib/product-filters.ts` turns `?q/category/stock/sort/dir` into Prisma's `where` and
+    `orderBy`. The page and the export both use it, so an export is exactly what the page shows
+    (all pages).
+  - `GET /api/products/export` (rate limit + `requireApiAuth`) builds the .xlsx on the server.
+    Export is a plain `<a download>` link carrying the page's filters, so the public
+    `/api/products` GET is no longer used by the admin (7.8 can delete it).
+  - `lib/product-sheet.ts` holds the English column names. Export writes them and import reads
+    them, so an exported file can be edited and imported back.
+  - Import (`useProductExcel` + `ImportExcelButton`): no Persian strings left. Blank cells on an
+    update keep the current value, and the errors name what's missing.
+  - Fixed in `/api/products/import`:
+    - it's rate-limited;
+    - the Mill column now sets the mill (it was dropped), creating one if new;
+    - only a rename gets a new slug (an import used to re-slug every row);
+    - stock is a boolean.
+  - Both routes return 401 when not logged in (checked).
+  - Deleted `header-actions.tsx` and the unused `downloadTemplate`. Export's weight column was
+    always blank (it read `product.weight`); it's now `weightKg`.
+- [x] 5.9 Cleanup:
+  - Deleted `/api/products` `POST`, `/api/products/[id]` `PATCH`/`PUT`/`DELETE`, and
+    `/api/products/bulk` *(from 8.0)*. A grep found only the dead hooks calling them. The public
+    `GET`s stay for the shop (7.8 decides).
+  - Deleted the dead `useCreateProduct`, `useUpdateProduct` and `useDeleteProduct` in
+    `hooks/use-api.ts`.
+  - Removed `@heroui/table`, `@heroui/checkbox` and `@heroui/modal` from `package.json`; nothing
+    imports them, and the Tailwind config only uses the theme package.
+  - Phase-end checks: `yarn lint:check`, `yarn build`, `tsc`.
 
 ### Phase 6: Settings, login, leftovers (`refactor/admin-settings`)
 
@@ -382,6 +448,18 @@ by price" doesn't give the cheapest products overall.
   `StatsBoard`/`DataCard` where they repeat.
 - [ ] 6.6 Delete `/api/admin/profile` once unused. Fix the `requireAuth` vs
   `requireSuperAdmin` placement in layouts, if any remain.
+
+- [ ] 6.7 Dialog pass (shared `components/ui/dialogs.tsx`, `modal-dialog.tsx`), from the
+  dialog critique:
+  - Delete dialogs focus Cancel on open, with `role="alertdialog"` and `aria-describedby` on
+    the body so "This can't be undone" is announced. Forms focus their first field.
+  - A backdrop click doesn't close a form that has unsaved edits.
+  - Below `sm`, the footer is two equal columns (`grid-cols-2`, `h-11`), Cancel left and the
+    action right (the user's choice: keep the action rightmost, no stacking). Long forms keep a
+    sticky footer.
+  - Smaller items: a blocked delete shows no dead button (Close + a link to the category's
+    products); "Create" vs "Add" wording; a `min-w` on confirm buttons so pending text
+    doesn't shift Cancel.
 
 ## Phase 7: Public side
 
@@ -434,9 +512,9 @@ So most of this phase is checking that the remaining routes are complete.
 
 - [ ] 8.0 **Security, do early.** These admin handlers have no auth check (found in 1.2;
   `middleware.ts` only guards `/admin` pages, not `/api`):
-  - `products` POST, `products/[id]` PATCH/PUT/DELETE
+  - ~~`products` POST, `products/[id]` PATCH/PUT/DELETE~~ deleted in 5.9, with `products/bulk`
   - ~~`manufacturers` POST, `manufacturers/[id]` PUT/DELETE~~ deleted in 2.7
-  - `contact` GET (lists customer messages), PATCH, DELETE
+  - ~~`contact` GET (lists customer messages), PATCH, DELETE~~ deleted in 4.7
   - `orders` GET (lists orders) and POST
 
   Public on purpose: `contact` POST, `quick-orders` POST, `auth/[...nextauth]`.

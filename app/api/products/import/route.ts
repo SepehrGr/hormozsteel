@@ -1,17 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { prisma } from '@/lib/prisma'
-import { getAuthSession, logAdminAction } from '@/lib/admin-auth'
+import { logAdminAction, requireApiAuth } from '@/lib/admin-auth'
 import { updateProductPrice } from '@/lib/price-updater'
+import { resolveManufacturerId } from '@/lib/product-dto'
+import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
 import { generateUniqueSlug } from '@/lib/slug-generator'
 
 export async function POST(request: NextRequest) {
-  try {
-    const session = await getAuthSession()
+  const limited = checkApiRateLimitAndRespond(request, 20, 15 * 60 * 1000)
 
-    if (!session || !session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  if (limited) return limited
+
+  const { session, error } = await requireApiAuth()
+
+  if (error) return error
+
+  try {
     const body = await request.json()
     const { products } = body
 
@@ -68,18 +73,16 @@ export async function POST(request: NextRequest) {
           ) {
             updateData.weightKg = Number(row.weightKg)
           }
-          if (row.manufacturerId !== undefined && row.manufacturerId !== '') {
-            updateData.manufacturerId = row.manufacturerId
+          if (row.brand) {
+            updateData.manufacturerId = await resolveManufacturerId({
+              brand: row.brand,
+            })
           }
           if (row.price !== undefined && row.price !== null) {
             updateData.price = Number(row.price)
           }
-          if (row.inStock !== undefined) {
-            updateData.inStock =
-              row.inStock === true ||
-              row.inStock === 'موجود' ||
-              row.inStock === 'true'
-          }
+          if (row.inStock !== undefined)
+            updateData.inStock = row.inStock === true
           if (row.categoryId !== undefined && row.categoryId !== '') {
             // Validate category exists
             const category = await prisma.category.findUnique({
@@ -99,8 +102,8 @@ export async function POST(request: NextRequest) {
             updateData.subcategory = row.subcategory
           }
 
-          // Update slug if name changed
-          if (updateData.name) {
+          // A slug is the public URL: only a rename gets a new one
+          if (updateData.name && updateData.name !== existingProduct.name) {
             updateData.slug = await generateUniqueSlug(updateData.name, row.id)
           }
 
@@ -177,17 +180,16 @@ export async function POST(request: NextRequest) {
               price: Number(row.price),
               categoryId: row.categoryId,
               subcategory: row.subcategory || null,
-              manufacturerId: row.manufacturerId || null,
+              manufacturerId: row.brand
+                ? await resolveManufacturerId({ brand: row.brand })
+                : null,
               weightKg:
                 row.weight !== undefined &&
                 row.weight !== null &&
                 row.weight !== ''
                   ? Number(row.weight)
                   : undefined,
-              inStock:
-                row.inStock === true ||
-                row.inStock === 'موجود' ||
-                row.inStock === 'true',
+              inStock: row.inStock !== false,
               slug: uniqueSlug,
             },
           })

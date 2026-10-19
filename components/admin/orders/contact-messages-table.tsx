@@ -61,7 +61,7 @@ export function ContactMessagesTable({
           <td className='px-4 py-3'>
             <DeleteRowButton
               action={deleteContactMessage.bind(null, { id: message.id })}
-              name={message.name}
+              name={`${message.name}'s message`}
               noun='message'
             >
               {message.status === 'NEW' ? (

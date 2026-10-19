@@ -69,7 +69,7 @@ export function QuickOrdersTable({ orders }: { orders: QuickOrder[] }) {
           <td className='px-4 py-3'>
             <DeleteRowButton
               action={deleteQuickOrder.bind(null, { id: order.id })}
-              name={order.customerName}
+              name={`${order.customerName}'s quote request`}
               noun='quote request'
             />
           </td>

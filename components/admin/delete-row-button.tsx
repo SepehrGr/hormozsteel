@@ -15,7 +15,7 @@ import { DialogScope } from '@/components/ui/dialog-scope'
  * delete action already bound to the row:
  *
  * ```tsx
- * <DeleteRowButton noun='quote request' name={order.customerName}
+ * <DeleteRowButton noun='quote request' name={`${order.customerName}'s quote request`}
  *   action={deleteQuickOrder.bind(null, { id: order.id })} />
  * ```
  */

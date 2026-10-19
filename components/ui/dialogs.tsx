@@ -97,6 +97,8 @@ function DialogFooter({
 export function FormDialog({
   mode,
   noun,
+  submitLabel,
+  pendingLabel,
   onClose,
   onSubmit,
   pending,
@@ -105,19 +107,24 @@ export function FormDialog({
   mode: FormMode
   /** Lowercase, as in "Add category". */
   noun: string
+  /** Overrides the mode's wording, e.g. "Apply to 3 products". */
+  submitLabel?: string
+  pendingLabel?: string
   onSubmit: FormEventHandler<HTMLFormElement>
 }) {
-  const { title, submitLabel, pendingLabel, Icon } = formModeCopy(mode, noun)
+  const copy = formModeCopy(mode, noun)
 
   return (
-    <DialogFrame pending={pending} title={title} onClose={onClose}>
+    <DialogFrame pending={pending} title={copy.title} onClose={onClose}>
       {/* noValidate: zod owns validation and renders its own messages */}
       <form noValidate onSubmit={onSubmit}>
         <div className='space-y-4 px-5 py-5'>{children}</div>
         <DialogFooter pending={pending} onCancel={onClose}>
           <Button disabled={pending} type='submit'>
-            <Icon aria-hidden className='h-4 w-4' />
-            {pending ? pendingLabel : submitLabel}
+            <copy.Icon aria-hidden className='h-4 w-4' />
+            {pending
+              ? (pendingLabel ?? copy.pendingLabel)
+              : (submitLabel ?? copy.submitLabel)}
           </Button>
         </DialogFooter>
       </form>
@@ -131,15 +138,16 @@ export function ConfirmDialog({
   onClose,
   onConfirm,
   pending,
-  confirmLabel = 'Delete',
-  pendingLabel = 'Deleting…',
+  confirmLabel,
+  pendingLabel,
   confirmIcon,
   confirmDisabled,
   children,
 }: FrameProps & {
   onConfirm: () => void
-  confirmLabel?: string
-  pendingLabel?: string
+  /** Names the action and its object, e.g. "Yes, delete the product". */
+  confirmLabel: string
+  pendingLabel: string
   confirmIcon?: ReactNode
   /** Blocks only the confirm button (e.g. the action can't succeed); Cancel stays usable. */
   confirmDisabled?: boolean

@@ -8,10 +8,10 @@ import { Trash2 } from 'lucide-react'
 import { useCloseDialog } from '@/components/ui/dialog-scope'
 import { ConfirmDialog } from '@/components/ui/dialogs'
 import { toastResult } from '@/lib/action-toast'
-import { capitalize } from '@/lib/format'
+import { capitalize, pluralize } from '@/lib/format'
 
 /**
- * Confirm, then delete one row. Mount only while open.
+ * Confirm, then delete one row, or `count` rows at once. Mount only while open.
  *
  * ```tsx
  * <DeleteDialog noun='category' name={row.name}
@@ -22,13 +22,16 @@ import { capitalize } from '@/lib/format'
  */
 export function DeleteDialog({
   noun,
+  count,
   name,
   action,
   blocked,
   children,
 }: {
-  /** Lowercase, as in "Delete category". */
+  /** Lowercase and singular, as in "Delete category". */
   noun: string
+  /** Set for a bulk delete: "Delete 3 products", "Yes, delete 3 products". */
+  count?: number
   /** The row's name, shown in the question. */
   name: string
   /** A call to the delete Server Action. */
@@ -40,20 +43,24 @@ export function DeleteDialog({
 }) {
   const close = useCloseDialog()
   const [pending, startTransition] = useTransition()
+  const what = count === undefined ? noun : pluralize(count, noun)
+  const object = count === undefined ? `the ${noun}` : what
 
   const confirm = () =>
     startTransition(async () => {
       const result = await action()
 
-      if (toastResult(result, `${capitalize(noun)} deleted`)) close()
+      if (toastResult(result, `${capitalize(what)} deleted`)) close()
     })
 
   return (
     <ConfirmDialog
       confirmDisabled={blocked}
       confirmIcon={<Trash2 aria-hidden className='h-4 w-4' />}
+      confirmLabel={`Yes, delete ${object}`}
       pending={pending}
-      title={`Delete ${noun}`}
+      pendingLabel={`Deleting ${object}…`}
+      title={`Delete ${what}`}
       onClose={close}
       onConfirm={confirm}
     >

@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ProductUnit, Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
 import { prisma } from '@/lib/prisma'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
-import {
-  productInclude,
-  toProductDTO,
-  resolveManufacturerId,
-} from '@/lib/product-dto'
+import { productInclude, toProductDTO } from '@/lib/product-dto'
 
 export async function GET(request: NextRequest) {
   const rateLimitResponse = checkApiRateLimitAndRespond(request)
@@ -116,106 +112,6 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: 'Failed to fetch products',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
-  }
-}
-
-export async function POST(request: NextRequest) {
-  const rateLimitResponse = checkApiRateLimitAndRespond(
-    request,
-    50,
-    15 * 60 * 1000,
-  )
-
-  if (rateLimitResponse) return rateLimitResponse
-
-  try {
-    const body = await request.json()
-
-    if (!body.name || !body.categoryId || body.price == null) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'name, categoryId, and price are required',
-        },
-        { status: 400 },
-      )
-    }
-
-    const slug =
-      body.slug ||
-      body.name
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .trim()
-
-    const categoryExists = await prisma.category.findUnique({
-      where: { id: body.categoryId },
-    })
-
-    if (!categoryExists) {
-      return NextResponse.json(
-        { success: false, error: 'Category not found' },
-        { status: 400 },
-      )
-    }
-
-    const existing = await prisma.product.findUnique({ where: { slug } })
-
-    if (existing) {
-      return NextResponse.json(
-        { success: false, error: 'Product with this name already exists' },
-        { status: 400 },
-      )
-    }
-
-    const unit =
-      typeof body.unit === 'string' && body.unit.toUpperCase() in ProductUnit
-        ? (body.unit.toUpperCase() as ProductUnit)
-        : ProductUnit.KG
-
-    // Form still sends free-text "brand"; map to Manufacturer relation
-    const manufacturerId = await resolveManufacturerId({
-      manufacturerId: body.manufacturerId,
-      brand: body.brand,
-    })
-
-    const product = await prisma.product.create({
-      data: {
-        name: body.name,
-        slug,
-        description: body.description ?? null,
-        size: body.size || '',
-        unit,
-        price: Number(body.price),
-        weightKg: body.weightKg ?? body.weight ?? null,
-        inStock: body.inStock ?? true,
-        images: body.images || [],
-        subcategory: body.subcategory ?? null,
-        specs: body.specs ?? body.specifications ?? null,
-        features: body.features || [],
-        applications: body.applications || [],
-        categoryId: body.categoryId,
-        manufacturerId,
-      },
-      include: productInclude,
-    })
-
-    return NextResponse.json(
-      { success: true, data: toProductDTO(product) },
-      { status: 201 },
-    )
-  } catch (error) {
-    console.error('Error creating product:', error)
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to create product',
         details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 },

@@ -1,31 +1,13 @@
-/** Fields the bulk-edit modal can push onto every selected product. */
-export interface BulkUpdateData {
-  price?: number
-  inStock?: boolean
-  categoryId?: string
-}
-
-/** Shape of the add/edit product forms. */
-export interface ProductFormData {
+/** A category as the filters and product forms need it. */
+export interface CategoryOption {
+  id: string
   name: string
-  brand: string
-  manufacturerId?: string
-  size: string
-  price: number
-  inStock: boolean
-  categoryId: string
-  subcategory: string
-  weight?: number
+  slug: string
+  subcategories: string[]
 }
 
-export const emptyProductForm: ProductFormData = {
-  name: '',
-  brand: '',
-  manufacturerId: '',
-  size: '',
-  price: 0,
-  inStock: true,
-  categoryId: '',
-  subcategory: '',
-  weight: undefined,
+/** A mill (manufacturer) as the product forms need it. */
+export interface MillOption {
+  id: string
+  name: string
 }
