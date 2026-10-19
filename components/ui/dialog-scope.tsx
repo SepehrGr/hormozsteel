@@ -6,9 +6,12 @@ import { createContext, use } from 'react'
 
 const CloseDialog = createContext<(() => void) | null>(null)
 
+/** Close the dialog this component is rendered in; null outside one. */
+export const useMaybeCloseDialog = () => use(CloseDialog)
+
 /** Close the dialog this component is rendered in. */
 export function useCloseDialog() {
-  const close = use(CloseDialog)
+  const close = useMaybeCloseDialog()
 
   if (!close) {
     throw new Error(

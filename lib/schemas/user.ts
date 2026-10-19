@@ -50,3 +50,27 @@ export const updateUserSchema = userFields
 
 /** What the add and edit forms hold; both schemas take this same shape. */
 export type UserFormValues = z.input<typeof updateUserSchema>
+
+/**
+ * Your own profile on /admin/settings. The action decides whether
+ * `currentPassword` is needed: only the server knows if the email changed.
+ */
+export const profileSchema = userFields
+  .pick({ name: true, email: true })
+  .extend({
+    password: z.union([z.literal(''), passwordSchema]),
+    confirmPassword: z.string(),
+    currentPassword: z.string(),
+  })
+  .refine(v => v.password === v.confirmPassword, {
+    error: "The passwords don't match",
+    path: ['confirmPassword'],
+  })
+  .transform(({ name, email, password, currentPassword }) => ({
+    name,
+    email,
+    password: password || undefined,
+    currentPassword,
+  }))
+
+export type ProfileFormValues = z.input<typeof profileSchema>

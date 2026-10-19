@@ -513,7 +513,7 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
 
 ### Phase 6: Settings, login, leftovers (`refactor/admin-settings`)
 
-- [ ] 6.1 Settings, which today is a 352-line client page with 7 `useState`s and per-field
+- [x] 6.1 Settings, which today is a 352-line client page with 7 `useState`s and per-field
   edit toggles:
   - A server page reads the profile with Prisma.
   - One RHF + zod form, reusing `passwordSchema` from 3.1.

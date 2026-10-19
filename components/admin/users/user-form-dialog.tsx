@@ -3,7 +3,7 @@
 import type { ActionResult } from '@/lib/actions'
 
 import { type FormMode, FormDialog } from '@/components/ui/dialogs'
-import { FormField, Input, Select } from '@/components/ui/field'
+import { fieldHintId, FormField, Input, Select } from '@/components/ui/field'
 import { useActionForm } from '@/hooks/use-action-form'
 import {
   type UserFormValues,
@@ -70,22 +70,23 @@ export function UserFormDialog({
         />
       </FormField>
 
-      <FormField error={errors.role?.message} id='user-role' label='Role'>
+      <FormField
+        error={errors.role?.message}
+        hint={
+          isSelf
+            ? "You can't change your own role or deactivate yourself."
+            : undefined
+        }
+        id='user-role'
+        label='Role'
+      >
         {isSelf ? (
-          <>
-            <Input
-              readOnly
-              aria-describedby='user-role-self'
-              id='user-role'
-              value={ROLE_LABELS[defaultValues.role]}
-            />
-            <p
-              className='mt-1 text-xs text-muted-foreground'
-              id='user-role-self'
-            >
-              You can&apos;t change your own role or deactivate yourself.
-            </p>
-          </>
+          <Input
+            readOnly
+            aria-describedby={fieldHintId('user-role')}
+            id='user-role'
+            value={ROLE_LABELS[defaultValues.role]}
+          />
         ) : (
           <Select {...field('role')}>
             {ROLES.map(role => (

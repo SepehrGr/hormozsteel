@@ -6,7 +6,7 @@ import type { ActionResult } from '@/lib/actions'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { get, useForm } from 'react-hook-form'
 
-import { useCloseDialog } from '@/components/ui/dialog-scope'
+import { useMaybeCloseDialog } from '@/components/ui/dialog-scope'
 import { formModeCopy } from '@/components/ui/dialogs'
 import { invalidProps } from '@/components/ui/field'
 import { toastResult } from '@/lib/action-toast'
@@ -14,6 +14,7 @@ import { toastResult } from '@/lib/action-toast'
 /**
  * A react-hook-form form inside a `<FormDialog>` that saves through a Server
  * Action: validates with `schema`, toasts the result, closes on success.
+ * On a page, pass `onSuccess` and submit with the returned `onSubmit`.
  *
  * ```tsx
  * const { field, formState, dialog } = useActionForm({
@@ -32,6 +33,7 @@ export function useActionForm<T extends FieldValues>({
   action,
   mode,
   noun,
+  onSuccess,
 }: {
   /** Checked in the browser; the action checks again and transforms. */
   schema: z.ZodType<unknown, T>
@@ -41,8 +43,10 @@ export function useActionForm<T extends FieldValues>({
   mode: FormMode
   /** Lowercase; also prefixes each field's id (`category-name`). */
   noun: string
+  /** Runs after a save instead of closing the dialog. */
+  onSuccess?: (values: T) => void
 }) {
-  const close = useCloseDialog()
+  const close = useMaybeCloseDialog()
   const form = useForm<T>({
     // raw: submit the form's own values; the action does the transforming
     resolver: zodResolver(schema, undefined, { raw: true }),
@@ -54,16 +58,21 @@ export function useActionForm<T extends FieldValues>({
   const onSubmit = form.handleSubmit(async values => {
     const result = await action(values)
 
-    if (toastResult(result, successMessage, form.setError)) close()
+    if (!toastResult(result, successMessage, form.setError)) return
+    if (onSuccess) onSuccess(values)
+    else close?.()
   })
 
-  /** Id, error wiring and registration for the control of field `name`. */
-  const field = (name: Path<T>) => {
+  /**
+   * Id, error wiring and registration for the control of field `name`;
+   * `hint: true` when its `<FormField>` has a hint.
+   */
+  const field = (name: Path<T>, { hint = false } = {}) => {
     const id = `${noun}-${name}`
 
     return {
       id,
-      ...invalidProps(id, get(errors, name)?.message),
+      ...invalidProps(id, get(errors, name)?.message, hint),
       ...form.register(name),
     }
   }
@@ -71,7 +80,14 @@ export function useActionForm<T extends FieldValues>({
   return {
     ...form,
     field,
+    onSubmit,
     /** Spread onto `<FormDialog>`. */
-    dialog: { mode, noun, pending: isSubmitting, onClose: close, onSubmit },
+    dialog: {
+      mode,
+      noun,
+      pending: isSubmitting,
+      onClose: () => close?.(),
+      onSubmit,
+    },
   }
 }

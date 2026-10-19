@@ -88,6 +88,10 @@ function DialogFrame({
   )
 }
 
+/** Cancel + action buttons: right-aligned, stacked full width on phones (action on top). */
+export const buttonRowClass =
+  'flex flex-col-reverse gap-2 max-sm:*:h-11 sm:flex-row sm:justify-end'
+
 function DialogFooter({
   onCancel,
   pending,
@@ -99,7 +103,12 @@ function DialogFooter({
 }) {
   return (
     // Phones stack the buttons, action on top; the DOM keeps Cancel first for tab order
-    <div className='sticky bottom-0 flex flex-col-reverse gap-2 border-t border-border bg-card px-5 py-4 max-sm:*:h-11 sm:flex-row sm:justify-end'>
+    <div
+      className={cn(
+        buttonRowClass,
+        'sticky bottom-0 border-t border-border bg-card px-5 py-4',
+      )}
+    >
       <Button disabled={pending} variant='outline' onClick={onCancel}>
         Cancel
       </Button>

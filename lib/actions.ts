@@ -23,8 +23,18 @@ export type ActionResult<T = void> =
       fieldErrors?: Record<string, string[] | undefined>
     }
 
-/** Throw from a handler for an expected failure; its message reaches the user. */
-export class ActionError extends Error {}
+/**
+ * Throw from a handler for an expected failure; its message reaches the user,
+ * and also shows under `field` when given.
+ */
+export class ActionError extends Error {
+  constructor(
+    message: string,
+    readonly field?: string,
+  ) {
+    super(message)
+  }
+}
 
 interface ActionContext {
   session: Session
@@ -104,7 +114,13 @@ export function adminAction<S extends z.ZodType, T>(
     } catch (error) {
       unstable_rethrow(error)
       if (error instanceof ActionError) {
-        return { success: false, error: error.message }
+        return {
+          success: false,
+          error: error.message,
+          fieldErrors: error.field
+            ? { [error.field]: [error.message] }
+            : undefined,
+        }
       }
       console.error('Server action failed:', error)
 
