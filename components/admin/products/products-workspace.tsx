@@ -7,7 +7,7 @@ import type {
 import type { ProductDTO } from '@/types/products'
 
 import { useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, X } from 'lucide-react'
 
 import { deleteProducts, updateProduct } from '@/app/admin/products/actions'
 import { BulkEditDialog } from '@/components/admin/products/bulk-edit-dialog'
@@ -44,47 +44,69 @@ export function ProductsWorkspace({
 
   return (
     <>
-      {selectedIds.length > 0 ? (
-        <div className='flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2 text-sm max-sm:py-3'>
-          <span className='text-muted-foreground max-sm:basis-full'>
-            <span className='font-medium tabular-nums text-foreground'>
-              {selectedIds.length}
-            </span>{' '}
-            selected
-          </span>
-          <div className='flex gap-2 max-sm:flex-1 max-sm:*:h-11 max-sm:*:flex-1'>
-            <Button size='sm' variant='outline' onClick={() => setBulk('edit')}>
-              <Pencil aria-hidden className='h-3.5 w-3.5' />
-              Edit selected
-            </Button>
-            <Button
-              size='sm'
-              variant='danger-outline'
-              onClick={() => setBulk('delete')}
-            >
-              <Trash2 aria-hidden className='h-3.5 w-3.5' />
-              Delete selected
-            </Button>
+      {/* Below sm the bulk bar is a dock pinned to the screen bottom; from sm up it sticks under the header */}
+      <div className='flex flex-col'>
+        {selectedIds.length > 0 ? (
+          <div className='sticky z-20 max-sm:pointer-events-none max-sm:bottom-0 sm:top-14 sm:bg-card max-sm:order-last max-sm:p-3 max-sm:transition-transform max-sm:duration-300 max-sm:ease-out max-sm:starting:translate-y-full motion-reduce:transition-none'>
+            <div className='flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2 text-sm max-sm:pointer-events-auto max-sm:justify-start max-sm:border max-sm:border-foreground/15 max-sm:bg-card max-sm:p-2 max-sm:shadow-[0_12px_32px_-12px_rgb(0_0_0/0.7)] max-sm:dark:bg-muted'>
+              <Button
+                aria-label='Unselect all'
+                className='h-11 w-11 sm:hidden'
+                size='icon'
+                title='Unselect all'
+                variant='outline'
+                onClick={() => setCheckedIds([])}
+              >
+                <X aria-hidden className='h-4 w-4' />
+              </Button>
+              <p
+                aria-live='polite'
+                className='flex items-baseline gap-1.5 text-muted-foreground'
+              >
+                <span className='font-medium tabular-nums text-foreground max-sm:font-mono max-sm:text-base max-sm:font-semibold'>
+                  {selectedIds.length}
+                </span>
+                selected
+              </p>
+              <div className='flex gap-2 max-sm:grid max-sm:basis-full max-sm:grid-cols-2 max-sm:*:h-11 max-sm:*:px-3'>
+                <Button
+                  size='sm'
+                  variant='outline'
+                  onClick={() => setBulk('edit')}
+                >
+                  <Pencil aria-hidden className='h-3.5 w-3.5' />
+                  Edit selected
+                </Button>
+                <Button
+                  size='sm'
+                  variant='danger-outline'
+                  onClick={() => setBulk('delete')}
+                >
+                  <Trash2 aria-hidden className='h-3.5 w-3.5' />
+                  Delete selected
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      <ProductsTable
-        dir={dir}
-        products={products}
-        selectedIds={selectedIds}
-        sort={sort}
-        onDelete={setDeleting}
-        onEdit={setEditing}
-        onSelect={(id, checked) =>
-          setCheckedIds(prev =>
-            checked ? [...prev, id] : prev.filter(other => other !== id),
-          )
-        }
-        onSelectAll={checked =>
-          setCheckedIds(checked ? products.map(p => p.id) : [])
-        }
-      />
+        <ProductsTable
+          dir={dir}
+          products={products}
+          selectedIds={selectedIds}
+          sort={sort}
+          onDelete={setDeleting}
+          onEdit={setEditing}
+          onSelect={(id, checked) =>
+            setCheckedIds(prev =>
+              checked ? [...prev, id] : prev.filter(other => other !== id),
+            )
+          }
+          onSelectAll={checked =>
+            setCheckedIds(checked ? products.map(p => p.id) : [])
+          }
+        />
+      </div>
 
       {bulk ? (
         <DialogScope onClose={() => setBulk(null)}>

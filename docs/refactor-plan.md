@@ -504,6 +504,9 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
   products bulk bar, filters and import/export. On every page the document is no wider than
   the viewport at 390, 768, 1024, 1280 and 1536px (40 of 40 page and width pairs). Fixed:
   - Products bulk bar: the count gets its own line, and the two buttons share the row at 44px.
+    Then, at the user's request: below `sm` it's a dock pinned to the screen bottom (an
+    "Unselect all" ✕ and the count, then equal-width Edit/Delete selected across the bar). From
+    `sm` up it stays the bar above the table, sticky under the header.
   - 44px touch targets for the order status select, the products sort links, the inline price
     button and input, and the stock toggle.
   - Left for 6.5: the dashboard's "Manage products" and "View all" links (20px and 16px).
