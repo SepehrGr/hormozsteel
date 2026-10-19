@@ -131,15 +131,16 @@ export function ConfirmDialog({
   onClose,
   onConfirm,
   pending,
-  confirmLabel = 'Delete',
-  pendingLabel = 'Deleting…',
+  confirmLabel,
+  pendingLabel,
   confirmIcon,
   confirmDisabled,
   children,
 }: FrameProps & {
   onConfirm: () => void
-  confirmLabel?: string
-  pendingLabel?: string
+  /** Names the action and its object, e.g. "Yes, delete the product". */
+  confirmLabel: string
+  pendingLabel: string
   confirmIcon?: ReactNode
   /** Blocks only the confirm button (e.g. the action can't succeed); Cancel stays usable. */
   confirmDisabled?: boolean

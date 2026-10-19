@@ -52,7 +52,9 @@ export function DeleteDialog({
     <ConfirmDialog
       confirmDisabled={blocked}
       confirmIcon={<Trash2 aria-hidden className='h-4 w-4' />}
+      confirmLabel={`Yes, delete the ${noun}`}
       pending={pending}
+      pendingLabel={`Deleting the ${noun}…`}
       title={`Delete ${noun}`}
       onClose={close}
       onConfirm={confirm}

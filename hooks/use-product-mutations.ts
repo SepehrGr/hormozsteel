@@ -80,12 +80,5 @@ export function useProductMutations(refresh: () => Promise<unknown> | void) {
           error: 'Could not delete products',
         },
       ),
-
-    deleteProduct: (id: string) =>
-      run(`/api/products/${id}`, 'DELETE', undefined, {
-        title: 'Deleted',
-        success: 'Product removed from catalog',
-        error: 'Could not delete product',
-      }),
   }
 }

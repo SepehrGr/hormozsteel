@@ -369,10 +369,26 @@ by price" doesn't give the cheapest products overall.
   - Deleted the Add and Edit modals, `MillField`, `ProductFormData`/`emptyProductForm`/
     `toProductPayload`/`isFormValid`, and `createProduct`/`updateProduct` in
     `useProductMutations`. `header-actions.tsx` is now only Excel.
-- [ ] 5.6 Single delete, through `ConfirmDialog`. Note in the dialog that order history
-  for the product is deleted too (cascade; fixed properly in DB track W3).
+- [x] 5.6 Single delete, through the shared `DeleteDialog` (on `ConfirmDialog`) and
+  `deleteProducts({ ids: [id] })`. The dialog notes that price history and order lines go
+  too (cascade; fixed properly in DB track W3).
+  - The old product modals put Delete first and left-aligned. The shared footer is Cancel
+    then Delete, right-aligned, and the old bulk-delete modal got the same order until 5.7
+    replaces it.
+  - The workspace counts only selected ids still on the page, so a deleted row leaves the
+    selection on its own.
+  - Deleted `DeleteSingleModal` and `deleteProduct` in `useProductMutations`.
+  - Delete buttons name their object: `DeleteDialog` passes "Yes, delete the {noun}" /
+    "Deleting the {noun}…". `confirmLabel`/`pendingLabel` are required on `ConfirmDialog`, so no
+    dialog falls back to a bare "Delete". The orders tables pass "Tom Becker's quote request" /
+    "Emma Wright's message" as the name, so neither the question nor the row button reads as
+    deleting the customer. (From an impeccable critique of the dialogs, 26/40.)
 - [ ] 5.7 Bulk update and bulk delete dialogs on the actions. Delete
   `use-product-mutations.ts` and what's left of `modals.tsx`.
+  - Bulk delete on `ConfirmDialog`: "Yes, delete 3 products" / "Deleting 3 products…", the
+    same history/order-lines warning as single delete. That gives it the pending guard it
+    lacks today (a double-click sends two requests).
+  - Bulk update on `FormDialog`: "Apply to 3 products" / "Applying…".
 - [ ] 5.8 Excel:
   - Keep `/api/products/import`, because a file upload suits a route handler.
   - Export reuses the public `/api/products` GET today. Give it its own auth-guarded
@@ -411,6 +427,18 @@ by price" doesn't give the cheapest products overall.
   `StatsBoard`/`DataCard` where they repeat.
 - [ ] 6.6 Delete `/api/admin/profile` once unused. Fix the `requireAuth` vs
   `requireSuperAdmin` placement in layouts, if any remain.
+
+- [ ] 6.7 Dialog pass (shared `components/ui/dialogs.tsx`, `modal-dialog.tsx`), from the
+  dialog critique:
+  - Delete dialogs focus Cancel on open, with `role="alertdialog"` and `aria-describedby` on
+    the body so "This can't be undone" is announced. Forms focus their first field.
+  - A backdrop click doesn't close a form that has unsaved edits.
+  - Below `sm`, the footer is two equal columns (`grid-cols-2`, `h-11`), Cancel left and the
+    action right (the user's choice: keep the action rightmost, no stacking). Long forms keep a
+    sticky footer.
+  - Smaller items: a blocked delete shows no dead button (Close + a link to the category's
+    products); "Create" vs "Add" wording; a `min-w` on confirm buttons so pending text
+    doesn't shift Cancel.
 
 ## Phase 7: Public side
 

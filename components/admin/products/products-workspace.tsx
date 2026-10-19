@@ -11,17 +11,17 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDisclosure } from '@heroui/modal'
 
-import { updateProduct } from '@/app/admin/products/actions'
+import { deleteProducts, updateProduct } from '@/app/admin/products/actions'
 import {
   BulkDeleteModal,
   BulkUpdateModal,
-  DeleteSingleModal,
 } from '@/components/admin/products/modals'
 import {
   ProductFormDialog,
   toProductFormValues,
 } from '@/components/admin/products/product-form-dialog'
 import ProductsTable from '@/components/admin/products/products-table'
+import { DeleteDialog } from '@/components/ui/delete-dialog'
 import { DialogScope } from '@/components/ui/dialog-scope'
 import { useProductMutations } from '@/hooks/use-product-mutations'
 
@@ -40,23 +40,20 @@ export function ProductsWorkspace({
   dir: 'asc' | 'desc'
 }) {
   const router = useRouter()
-  const { bulkUpdate, bulkDelete, deleteProduct } = useProductMutations(
-    router.refresh,
-  )
+  const { bulkUpdate, bulkDelete } = useProductMutations(router.refresh)
 
-  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [checkedIds, setCheckedIds] = useState<string[]>([])
+  // Only rows still on the page count, so a deleted row drops out of the selection
+  const selectedIds = checkedIds.filter(id => products.some(p => p.id === id))
   const [bulkUpdateData, setBulkUpdateData] = useState<BulkUpdateData>({})
   const [editing, setEditing] = useState<ProductDTO | null>(null)
-  const [productToDelete, setProductToDelete] = useState<ProductDTO | null>(
-    null,
-  )
+  const [deleting, setDeleting] = useState<ProductDTO | null>(null)
   const bulkModal = useDisclosure()
   const bulkDeleteModal = useDisclosure()
-  const deleteModal = useDisclosure()
 
   const handleBulkUpdate = async () => {
     if (await bulkUpdate(selectedIds, bulkUpdateData)) {
-      setSelectedIds([])
+      setCheckedIds([])
       setBulkUpdateData({})
       bulkModal.onClose()
     }
@@ -64,20 +61,8 @@ export function ProductsWorkspace({
 
   const handleBulkDelete = async () => {
     if (await bulkDelete(selectedIds)) {
-      setSelectedIds([])
+      setCheckedIds([])
       bulkDeleteModal.onClose()
-    }
-  }
-
-  const handleConfirmDelete = async () => {
-    if (!productToDelete) return
-
-    const deletedId = productToDelete.id
-
-    if (await deleteProduct(deletedId)) {
-      setSelectedIds(prev => prev.filter(id => id !== deletedId))
-      setProductToDelete(null)
-      deleteModal.onClose()
     }
   }
 
@@ -115,18 +100,15 @@ export function ProductsWorkspace({
         products={products}
         selectedIds={selectedIds}
         sort={sort}
-        onDelete={product => {
-          setProductToDelete(product)
-          deleteModal.onOpen()
-        }}
+        onDelete={setDeleting}
         onEdit={setEditing}
         onSelect={(id, checked) =>
-          setSelectedIds(prev =>
+          setCheckedIds(prev =>
             checked ? [...prev, id] : prev.filter(other => other !== id),
           )
         }
         onSelectAll={checked =>
-          setSelectedIds(checked ? products.map(p => p.id) : [])
+          setCheckedIds(checked ? products.map(p => p.id) : [])
         }
       />
 
@@ -156,12 +138,18 @@ export function ProductsWorkspace({
           />
         </DialogScope>
       ) : null}
-      <DeleteSingleModal
-        isOpen={deleteModal.isOpen}
-        product={productToDelete}
-        onConfirm={handleConfirmDelete}
-        onOpenChange={deleteModal.onOpenChange}
-      />
+      {deleting ? (
+        <DialogScope onClose={() => setDeleting(null)}>
+          <DeleteDialog
+            action={() => deleteProducts({ ids: [deleting.id] })}
+            name={deleting.name}
+            noun='product'
+          >
+            Its price history and any order lines that include it are deleted
+            too.
+          </DeleteDialog>
+        </DialogScope>
+      ) : null}
     </>
   )
 }

@@ -49,3 +49,6 @@ bun.lockb
 /graft/
 .ignore
 .mcp.json
+
+# impeccable critique snapshots
+.impeccable/

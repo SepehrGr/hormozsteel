@@ -1,6 +1,7 @@
 import { Trash2, CheckCircle2, X } from 'lucide-react'
 
 import ModalDialog from '@/components/ui/modal-dialog'
+import { pluralize } from '@/lib/format'
 
 const productFieldClass =
   'mt-1.5 w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground tabular-nums placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground disabled:cursor-not-allowed disabled:opacity-50'
@@ -208,96 +209,21 @@ export function BulkDeleteModal({
         </p>
       </div>
 
-      <div className='flex justify-start gap-2 border-t border-border px-5 py-4'>
+      <div className='flex justify-end gap-2 border-t border-border px-5 py-4'>
+        <button
+          className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
+          type='button'
+          onClick={close}
+        >
+          Cancel
+        </button>
         <button
           className='inline-flex items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 dark:bg-red-600'
           type='button'
           onClick={onDelete}
         >
           <Trash2 className='h-4 w-4' />
-          Delete {selectedCount} product{selectedCount > 1 && 's'}
-        </button>
-        <button
-          className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-          type='button'
-          onClick={close}
-        >
-          Cancel
-        </button>
-      </div>
-    </ModalDialog>
-  )
-}
-
-/**
- * Single product delete confirmation — board-style modal.
- */
-export function DeleteSingleModal({
-  isOpen,
-  onOpenChange,
-  product,
-  onConfirm,
-}: any) {
-  if (!isOpen) return null
-
-  const close = () => onOpenChange(false)
-
-  return (
-    <ModalDialog
-      className='w-full max-w-md'
-      labelledBy='delete-product-title'
-      onClose={close}
-    >
-      <div className='flex items-center justify-between border-b border-border px-5 py-3'>
-        <h2
-          className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
-          id='delete-product-title'
-        >
-          Delete product
-        </h2>
-        <button
-          aria-label='Close'
-          className='flex h-8 w-8 items-center justify-center border border-border bg-background text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-          type='button'
-          onClick={close}
-        >
-          <X className='h-4 w-4' />
-        </button>
-      </div>
-
-      <div className='space-y-3 px-5 py-5'>
-        <p className='text-sm text-muted-foreground'>
-          Delete{' '}
-          <span className='font-medium text-foreground'>
-            {product?.name || 'this product'}
-          </span>
-          ?
-        </p>
-        {(product?.size || product?.brand) && (
-          <p className='text-xs text-muted-foreground'>
-            {[product.brand, product.size].filter(Boolean).join(' · ')}
-          </p>
-        )}
-        <p className='border border-red-600/30 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-100'>
-          This cannot be undone. The line will be removed from the catalog.
-        </p>
-      </div>
-
-      <div className='flex justify-start gap-2 border-t border-border px-5 py-4'>
-        <button
-          className='inline-flex items-center gap-2 bg-red-700 px-4 py-2 text-sm font-medium text-white transition-opacity duration-200 ease-out hover:opacity-90 dark:bg-red-600'
-          type='button'
-          onClick={onConfirm}
-        >
-          <Trash2 className='h-4 w-4' />
-          Yes, delete the product
-        </button>
-        <button
-          className='border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-          type='button'
-          onClick={close}
-        >
-          Cancel
+          Yes, delete {pluralize(selectedCount, 'product')}
         </button>
       </div>
     </ModalDialog>
