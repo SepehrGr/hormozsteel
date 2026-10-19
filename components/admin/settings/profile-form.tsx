@@ -3,6 +3,7 @@
 import type { ProfileFormValues } from '@/lib/schemas/user'
 
 import { KeyRound, Save, ShieldCheck, UserRound } from 'lucide-react'
+import { signOut, useSession } from 'next-auth/react'
 
 import { updateProfile } from '@/app/admin/settings/actions'
 import { DataCard } from '@/components/admin/data-card'
@@ -19,6 +20,7 @@ export function ProfileForm({
 }: {
   profile: Pick<ProfileFormValues, 'name' | 'email'>
 }) {
+  const { update } = useSession()
   const {
     field,
     watch,
@@ -31,8 +33,15 @@ export function ProfileForm({
     action: updateProfile,
     mode: 'edit',
     noun: 'profile',
-    onSuccess: ({ name, email }) =>
-      reset({ name: name.trim(), email: email.trim(), ...noPasswords }),
+    onSuccess: ({ name, email, password }) => {
+      if (password || email.trim() !== profile.email) {
+        void signOut({ callbackUrl: '/admin/login' })
+
+        return
+      }
+      reset({ name: name.trim(), email: profile.email, ...noPasswords })
+      void update()
+    },
   })
 
   const needsCurrentPassword = Boolean(dirtyFields.email || watch('password'))
@@ -96,7 +105,7 @@ export function ProfileForm({
           <div className='p-4'>
             <FormField
               error={errors.currentPassword?.message}
-              hint='Needed to change your email or password.'
+              hint="Needed to change your email or password. You'll be signed out after saving."
               id='profile-currentPassword'
               label='Current password'
             >

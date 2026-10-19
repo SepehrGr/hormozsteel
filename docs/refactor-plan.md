@@ -534,8 +534,15 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     - Discard and Save stay disabled until something changes, and Enter submits. Set
       `autocomplete` on every field (`name`, `email`, `current-password`, `new-password`).
     - Mobile: a single column with full-width buttons.
-- [ ] 6.2 After an email or password change, sign out, or refresh the session, so the
+- [x] 6.2 After an email or password change, sign out, or refresh the session, so the
   JWT doesn't keep the old email.
+  - Email or password change: sign out this session (other sessions keep their 6-hour JWT).
+  - The `jwt` callback re-reads `name`/`email` with `role`/`isActive`; the `session`
+    callback copies them, since next-auth builds `session.user` from the cookie as it was.
+    A name change calls `useSession().update()`, so the header updates without a reload.
+  - Fixed on the way: the NextAuth POST wrapper parsed every body as a form, so
+    `update()` (JSON) got a 500; the `redirect` callback sent relative callback URLs to
+    `/`, so Sign out never reached `/admin/login`.
 - [ ] 6.3 Login, 433 lines with 8 `useState`s:
   - The form moves to RHF + zod.
   - It stays a client component, because NextAuth's `signIn` runs in the browser.

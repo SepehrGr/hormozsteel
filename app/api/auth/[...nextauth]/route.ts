@@ -12,21 +12,24 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ nextauth: string[] }> },
 ) {
+  const pathname = request.nextUrl.pathname
+
+  // Only sign-in posts a form; the session update posts JSON
+  if (
+    !pathname.includes('/signin') &&
+    !pathname.includes('/callback/credentials')
+  ) {
+    return handler(request as any, { params: await params } as any)
+  }
+
   // Clone request to read body without consuming original
   const clonedRequest = request.clone()
   const formData = await clonedRequest.formData()
   const email = formData.get('email')?.toString()
   const password = formData.get('password')?.toString()
 
-  // Check if this is a sign-in request by checking:
-  // 1. Pathname contains signin or callback/credentials
-  // 2. Request body contains email and password (login attempt)
-  const pathname = request.nextUrl.pathname
-  const isSignIn =
-    (pathname.includes('/signin') ||
-      pathname.includes('/callback/credentials')) &&
-    email &&
-    password
+  // A sign-in request carries email and password (login attempt)
+  const isSignIn = email && password
 
   if (isSignIn) {
     const ip = getClientIP(request)

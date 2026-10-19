@@ -147,7 +147,7 @@ export const authOptions: NextAuthOptions = {
       const account = token.sub
         ? await prisma.user.findUnique({
             where: { id: token.sub },
-            select: { role: true, isActive: true },
+            select: { role: true, isActive: true, name: true, email: true },
           })
         : null
 
@@ -156,6 +156,8 @@ export const authOptions: NextAuthOptions = {
       }
 
       token.role = account.role
+      token.name = account.name
+      token.email = account.email
 
       return token
     },
@@ -163,13 +165,17 @@ export const authOptions: NextAuthOptions = {
       if (token && session.user) {
         session.user.id = token.sub!
         session.user.role = token.role as 'ADMIN' | 'SUPER_ADMIN'
+        // next-auth fills these from the cookie as it was, before `jwt` ran
+        session.user.name = token.name
+        session.user.email = token.email
       }
 
       return session
     },
     async redirect({ url, baseUrl }) {
       // Only allow redirects to the same origin
-      if (url.startsWith(baseUrl)) return url
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      if (new URL(url).origin === baseUrl) return url
 
       return baseUrl
     },
