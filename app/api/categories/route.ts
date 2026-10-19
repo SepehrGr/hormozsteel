@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { logAdminAction, requireApiAuth } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
-import { isValidSlug, slugify } from '@/lib/slug'
 
 export async function GET(request: NextRequest) {
   const rateLimitResponse = checkApiRateLimitAndRespond(request)
@@ -39,74 +37,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       { success: false, error: 'Failed to fetch categories' },
-      { status: 500 },
-    )
-  }
-}
-
-export async function POST(request: NextRequest) {
-  const rateLimitResponse = checkApiRateLimitAndRespond(
-    request,
-    50,
-    15 * 60 * 1000,
-  )
-
-  if (rateLimitResponse) return rateLimitResponse
-
-  const { session, error: authError } = await requireApiAuth()
-
-  if (authError) return authError
-
-  try {
-    const body = await request.json()
-
-    if (!body.name) {
-      return NextResponse.json(
-        { success: false, error: 'Name is required' },
-        { status: 400 },
-      )
-    }
-
-    const slug =
-      body.slug !== undefined ? body.slug : slugify(String(body.name))
-
-    if (!isValidSlug(slug)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            'Slug is required and may only contain lowercase letters, numbers, and single hyphens',
-        },
-        { status: 400 },
-      )
-    }
-
-    const category = await prisma.category.create({
-      data: {
-        name: body.name,
-        slug,
-        description: body.description ?? null,
-        icon: body.icon ?? null,
-        sortOrder: body.sortOrder ?? 0,
-        subcategories: body.subcategories || [],
-      },
-    })
-
-    await logAdminAction(
-      session.user.id,
-      'CREATE',
-      'Category',
-      category.id,
-      { name: category.name },
-      request,
-    )
-
-    return NextResponse.json({ success: true, data: category }, { status: 201 })
-  } catch (error) {
-    console.error('Error creating category:', error)
-
-    return NextResponse.json(
-      { success: false, error: 'Failed to create category' },
       { status: 500 },
     )
   }

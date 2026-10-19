@@ -555,7 +555,7 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     message never showed (now JSON 429 with `RateLimitExceeded:<minutes>`); an unknown
     email and an inactive account no longer reveal that an account exists; login no
     longer lowercases the email (stored as typed).
-- [ ] 6.4 Delete the orphaned `app/admin/categories/[id]/page.tsx` (363 lines, unlinked,
+- [x] 6.4 Delete the orphaned `app/admin/categories/[id]/page.tsx` (363 lines, unlinked,
   34 Persian strings). Then delete `POST`/`PATCH`/`DELETE` in `app/api/categories/**`,
   which no longer have callers. `GET` stays for the public pages.
 - [ ] 6.5 Dashboard (already a server page): swap its hand-written stats and cards for
