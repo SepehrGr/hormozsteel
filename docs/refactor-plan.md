@@ -597,14 +597,16 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
 
 ## Phase 7: Public side
 
-- [ ] 7.0 `lib/data/`: data-access functions for the public reads that more than one
+- [x] 7.0 `lib/data/`: data-access functions for the public reads that more than one
   place needs:
-  - `getCategories()`, `getCategoryProducts(slug)`, `getProduct(slug)`;
-  - `getManufacturers()`, `getLatestPrices()`.
-  - Each returns DTOs (`toProductDTO`) and starts with `import 'server-only'`. Next ships
-    a copy of that package; check the build accepts it before running
-    `yarn add server-only`.
+  - `catalog.ts`: `getCategories()`, `getCategory(slug)`, `getCategoryProducts(slug, subcategory?)`,
+    `getManufacturers()`, `getManufacturer(slug)`; `prices.ts`: `getLatestPrices()`.
+  - No `getProduct(slug)`: no public page shows one product (`[productId]` is a subcategory).
+  - Each is wrapped in React `cache()`, returns DTOs (`toProductDTO`) and starts with
+    `import 'server-only'`, which resolves to Next's bundled copy (no `yarn add`).
   - Admin pages keep their one-off queries inline and move them here only if reused.
+  - Found: `/manufacturers/[postId]` 500s on `<Button as={NextLink}>` (a function prop into
+    a HeroUI client component); fixed in 7.5.
 - [ ] 7.1 `order-request-modal.tsx` and `weight-calculator-modal.tsx`: untangle the effects
   and move the forms to RHF + zod.
 - [ ] 7.2 Catalog pages:

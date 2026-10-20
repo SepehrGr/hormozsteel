@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { Factory } from 'lucide-react'
 
 import { BlogPostCard, BlogPost } from '@/components/content/blog-post'
-import { prisma } from '@/lib/prisma'
+import { getManufacturers } from '@/lib/data/catalog'
 
 export const metadata: Metadata = {
   title: 'تولید کنندگان',
@@ -10,13 +10,9 @@ export const metadata: Metadata = {
     'آخرین مطالب و اخبار در مورد صنعت فولاد و تولیدکنندگان فولاد ایران',
 }
 
-async function getManufacturers() {
+async function getPosts() {
   try {
-    const manufacturers = await prisma.manufacturer.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
+    const manufacturers = await getManufacturers()
 
     return manufacturers.map(manufacturer => ({
       id: manufacturer.slug,
@@ -36,7 +32,7 @@ async function getManufacturers() {
 }
 
 export default async function ManufacturersPage() {
-  const posts: BlogPost[] = await getManufacturers()
+  const posts: BlogPost[] = await getPosts()
 
   return (
     <main className='relative'>

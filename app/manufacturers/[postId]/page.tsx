@@ -16,63 +16,7 @@ import NextLink from 'next/link'
 import { Button } from '@heroui/button'
 import { Card, CardBody, CardHeader } from '@heroui/card'
 
-import { prisma } from '@/lib/prisma'
-
-async function getManufacturer(slug: string) {
-  try {
-    const manufacturer = await prisma.manufacturer.findUnique({
-      where: { slug },
-    })
-
-    return manufacturer
-  } catch (error) {
-    console.error('Error fetching manufacturer:', error)
-
-    return null
-  }
-}
-
-async function getRelatedManufacturers(currentSlug: string, limit = 3) {
-  try {
-    const manufacturers = await prisma.manufacturer.findMany({
-      where: {
-        slug: {
-          not: currentSlug,
-        },
-      },
-      take: limit,
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
-
-    return manufacturers
-  } catch (error) {
-    console.error('Error fetching related manufacturers:', error)
-
-    return []
-  }
-}
-
-async function getAllManufacturers() {
-  try {
-    const manufacturers = await prisma.manufacturer.findMany({
-      orderBy: {
-        name: 'asc',
-      },
-      select: {
-        slug: true,
-        name: true,
-      },
-    })
-
-    return manufacturers
-  } catch (error) {
-    console.error('Error fetching all manufacturers:', error)
-
-    return []
-  }
-}
+import { getManufacturer, getManufacturers } from '@/lib/data/catalog'
 
 export async function generateMetadata({
   params,
@@ -110,8 +54,10 @@ export default async function ManufacturerDetailPage({
     notFound()
   }
 
-  const relatedManufacturers = await getRelatedManufacturers(manufacturer.slug)
-  const allManufacturers = await getAllManufacturers()
+  const allManufacturers = await getManufacturers()
+  const relatedManufacturers = allManufacturers
+    .filter(m => m.slug !== manufacturer.slug)
+    .slice(0, 3)
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('fa-IR', {

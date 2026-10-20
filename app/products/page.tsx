@@ -1,16 +1,14 @@
 import Link from 'next/link'
 import { ArrowRight, ChevronRight } from 'lucide-react'
 
-import { prisma } from '@/lib/prisma'
 import { resolveCategoryIcon } from '@/config/category-icons'
+import { getCategories } from '@/lib/data/catalog'
 
 /** Category index changes only when categories do — refreshed hourly. */
 export const revalidate = 3600
 
 export default async function ProductsPage() {
-  const categories = await prisma.category.findMany({
-    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-  })
+  const categories = await getCategories()
 
   return (
     <div className='w-full'>

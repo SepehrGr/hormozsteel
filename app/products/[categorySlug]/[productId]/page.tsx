@@ -1,8 +1,7 @@
-import { cache } from 'react'
 import { notFound } from 'next/navigation'
 
 import UnifiedProductPage from '@/components/products/unified-product-page'
-import { prisma } from '@/lib/prisma'
+import { getCategories, getCategory } from '@/lib/data/catalog'
 import { subcategorySlug } from '@/types/products'
 
 interface PageProps {
@@ -16,9 +15,7 @@ interface PageProps {
 export const revalidate = 3600
 
 export async function generateStaticParams() {
-  const categories = await prisma.category.findMany({
-    select: { slug: true, subcategories: true },
-  })
+  const categories = await getCategories()
 
   return categories.flatMap(category =>
     category.subcategories.map(sub => ({
@@ -27,10 +24,6 @@ export async function generateStaticParams() {
     })),
   )
 }
-
-const getCategory = cache((slug: string) =>
-  prisma.category.findUnique({ where: { slug } }),
-)
 
 function findSubcategory(subcategories: string[], productId: string) {
   return subcategories.find(

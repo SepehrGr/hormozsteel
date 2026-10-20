@@ -1,12 +1,11 @@
 import Link from 'next/link'
-import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import { ChevronRight } from 'lucide-react'
 
 import CategoryProducts from '@/components/products/category-products'
 import ProductsSidebar from '@/components/products/products-sidebar'
 import { resolveCategoryIcon } from '@/config/category-icons'
-import { prisma } from '@/lib/prisma'
+import { getCategories, getCategory } from '@/lib/data/catalog'
 
 interface PageProps {
   params: Promise<{
@@ -18,20 +17,10 @@ interface PageProps {
 export const revalidate = 3600
 
 export async function generateStaticParams() {
-  const categories = await prisma.category.findMany({ select: { slug: true } })
+  const categories = await getCategories()
 
   return categories.map(category => ({ categorySlug: category.slug }))
 }
-
-const getCategory = cache((slug: string) =>
-  prisma.category.findUnique({ where: { slug } }),
-)
-
-const getCategories = cache(() =>
-  prisma.category.findMany({
-    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-  }),
-)
 
 export async function generateMetadata({ params }: PageProps) {
   const { categorySlug } = await params
