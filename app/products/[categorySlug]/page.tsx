@@ -31,11 +31,11 @@ export async function generateMetadata({ params }: PageProps) {
   const category = await getCategory(categorySlug)
 
   if (!category) {
-    return { title: 'Category not found · Hormoz Steel' }
+    return { title: 'Category not found' }
   }
 
   return {
-    title: `${category.name} prices · Hormoz Steel`,
+    title: `${category.name} prices`,
     description: `${category.description ?? category.name}. USD unit prices from the Hormoz Steel catalog.`,
   }
 }

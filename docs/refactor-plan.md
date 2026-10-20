@@ -606,7 +606,7 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     `import 'server-only'`, which resolves to Next's bundled copy (no `yarn add`).
   - Admin pages keep their one-off queries inline and move them here only if reused.
   - Found: `/manufacturers/[postId]` 500s on `<Button as={NextLink}>` (a function prop into
-    a HeroUI client component); fixed in 7.5.
+    a HeroUI client component); 7.5 deleted the page.
 - [x] 7.1 `order-request-modal.tsx` and `weight-calculator-modal.tsx`: untangle the effects
   and move the forms to RHF + zod.
   - Both sit on the exported `DialogFrame` (+ `DialogFooter`) and mount only while open.
@@ -640,14 +640,22 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
   - Also fixed the contact map: CARTO tiles now need an API key (they served an
     "API key required" image), so it uses OSM's tiles; the zoom/attribution styles moved
     to unlayered CSS, since leaflet.css always beat the layered Tailwind classes.
-- [ ] 7.5 `about/page.tsx` and `manufacturers/[postId]`: move content into `config/` and
+- [x] 7.5 `about/page.tsx` and `manufacturers/[postId]`: move content into `config/` and
   split the sections.
-  - Also: page titles repeat the brand ("Rebar prices · Hormoz Steel · Hormoz Steel").
-    Pages add "· Hormoz Steel" and the root layout's title template adds it again.
+  - About: content in `config/about.ts`, sections in `components/about/about-sections.tsx`
+    (`Band` + `SectionIntro` for the repeated chrome); the closing band is a shared
+    `CtaStrip`, also used by `/products`. `about/layout.tsx` deleted (a wrapper and a
+    second `metadata`).
+  - `/manufacturers` and `/manufacturers/[slug]` deleted with `BlogPostCard`,
+    `public/images/blog` and `getManufacturer(s)`: an unlinked Persian leftover.
+  - Page titles no longer repeat the brand: the product pages added "· Hormoz Steel" on
+    top of the root layout's title template.
 - [ ] 7.6 Calculators: pure formulas in `lib/weight.ts`, with one `tsx --test` check. Also drop the
   `formatPrice` prop; every caller passes `formatUsd`.
 - [ ] 7.7 Sweep out the Persian, RTL and `dir='ltr'` leftovers (including the `shamsh` and
   `qooti` keys in `config/category-icons.ts`, shown as icon names in the category form).
+  - Also: `contact/layout.tsx` is only a wrapper + `metadata`; move the metadata into the
+    (now server) page and delete the layout, as 7.5 did for about.
 - [ ] 7.8 Delete the public GET routes that 7.2–7.3 leave without callers (grep first):
   - `/api/products`, `/api/products/[id]`
   - `/api/categories`, `/api/categories/[id]`

@@ -14,7 +14,7 @@ export const manufacturerSchema = z
     name: z.string().trim().min(1, 'Name is required').max(120),
     slug: z.string().trim(),
     description: z.string().trim().max(1000),
-    // Rendered as a link on /manufacturers/[slug], so only http(s) is allowed
+    // A website, so only http(s) is allowed
     // Messages sit on the formats: a failed union reports its closest option's error
     website: blankOr(
       z.url({

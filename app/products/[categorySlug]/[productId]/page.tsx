@@ -41,14 +41,14 @@ export async function generateMetadata({ params }: PageProps) {
   const category = await getCategory(categorySlug)
 
   if (!category) {
-    return { title: 'Product not found · Hormoz Steel' }
+    return { title: 'Product not found' }
   }
 
   const subcategory = findSubcategory(category.subcategories, productId)
   const title = subcategory ? `${subcategory} ${category.name}` : category.name
 
   return {
-    title: `${title} prices · Hormoz Steel`,
+    title: `${title} prices`,
     description: `USD unit prices for ${title}. ${category.description ?? category.name}.`,
   }
 }

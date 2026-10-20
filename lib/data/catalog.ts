@@ -45,11 +45,3 @@ export const getCategoryProducts = cache(
     }))
   },
 )
-
-export const getManufacturers = cache(() =>
-  prisma.manufacturer.findMany({ orderBy: { name: 'asc' } }),
-)
-
-export const getManufacturer = cache((slug: string) =>
-  prisma.manufacturer.findUnique({ where: { slug } }),
-)

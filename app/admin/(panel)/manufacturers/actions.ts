@@ -11,9 +11,7 @@ const manufacturerId = z.string().min(1)
 /** Throw away cached copies of every page that shows manufacturers. */
 function revalidateManufacturerPages() {
   revalidatePath('/admin/manufacturers')
-  // /manufacturers is built once and kept until revalidated (no `revalidate`
-  // time), and product pages show the mill name and are cached for an hour.
-  revalidatePath('/manufacturers', 'layout')
+  // Product pages show the mill name and are cached for an hour
   revalidatePath('/products', 'layout')
 }
 

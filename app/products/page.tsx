@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, ChevronRight } from 'lucide-react'
 
+import CtaStrip from '@/components/content/cta-strip'
 import { resolveCategoryIcon } from '@/config/category-icons'
 import { getCategories } from '@/lib/data/catalog'
 
@@ -132,35 +133,12 @@ export default async function ProductsPage() {
         </div>
       </section>
 
-      {/* CTA strip */}
-      <section className='border-b border-border bg-muted/40'>
-        <div className='mx-auto flex max-w-7xl flex-col gap-6 px-4 py-12 sm:flex-row sm:items-center sm:justify-between md:px-6 md:py-14'>
-          <div>
-            <h2 className='text-xl font-semibold tracking-tight text-foreground sm:text-2xl'>
-              Need help shortlisting sizes?
-            </h2>
-            <p className='mt-2 max-w-lg text-sm text-muted-foreground'>
-              Share tonnage, grade, and delivery city — sales will reply with a
-              firm quote against the catalog board.
-            </p>
-          </div>
-          <div className='flex flex-wrap gap-3'>
-            <Link
-              className='inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
-              href='/contact'
-            >
-              Contact sales
-              <ArrowRight className='h-4 w-4' />
-            </Link>
-            <Link
-              className='inline-flex items-center border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted'
-              href='/weight/rebar'
-            >
-              Weight calculators
-            </Link>
-          </div>
-        </div>
-      </section>
+      <CtaStrip
+        body='Share tonnage, grade, and delivery city — sales will reply with a firm quote against the catalog board.'
+        primary={{ href: '/contact', label: 'Contact sales' }}
+        secondary={{ href: '/weight/rebar', label: 'Weight calculators' }}
+        title='Need help shortlisting sizes?'
+      />
     </div>
   )
 }
