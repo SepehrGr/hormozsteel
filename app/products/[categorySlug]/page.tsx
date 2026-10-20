@@ -1,12 +1,15 @@
 import Link from 'next/link'
-import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import { ChevronRight } from 'lucide-react'
 
 import CategoryProducts from '@/components/products/category-products'
 import ProductsSidebar from '@/components/products/products-sidebar'
 import { resolveCategoryIcon } from '@/config/category-icons'
-import { prisma } from '@/lib/prisma'
+import {
+  getCategories,
+  getCategory,
+  getCategoryProducts,
+} from '@/lib/data/catalog'
 
 interface PageProps {
   params: Promise<{
@@ -18,40 +21,31 @@ interface PageProps {
 export const revalidate = 3600
 
 export async function generateStaticParams() {
-  const categories = await prisma.category.findMany({ select: { slug: true } })
+  const categories = await getCategories()
 
   return categories.map(category => ({ categorySlug: category.slug }))
 }
-
-const getCategory = cache((slug: string) =>
-  prisma.category.findUnique({ where: { slug } }),
-)
-
-const getCategories = cache(() =>
-  prisma.category.findMany({
-    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-  }),
-)
 
 export async function generateMetadata({ params }: PageProps) {
   const { categorySlug } = await params
   const category = await getCategory(categorySlug)
 
   if (!category) {
-    return { title: 'Category not found · Hormoz Steel' }
+    return { title: 'Category not found' }
   }
 
   return {
-    title: `${category.name} prices · Hormoz Steel`,
+    title: `${category.name} prices`,
     description: `${category.description ?? category.name}. USD unit prices from the Hormoz Steel catalog.`,
   }
 }
 
 export default async function CategoryPage({ params }: PageProps) {
   const { categorySlug } = await params
-  const [category, categories] = await Promise.all([
+  const [category, categories, products] = await Promise.all([
     getCategory(categorySlug),
     getCategories(),
+    getCategoryProducts(categorySlug),
   ])
 
   if (!category) {
@@ -143,7 +137,7 @@ export default async function CategoryPage({ params }: PageProps) {
         <div className='mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10'>
           <div className='grid grid-cols-1 gap-8 lg:grid-cols-12'>
             <div className='lg:col-span-9'>
-              <CategoryProducts category={category} />
+              <CategoryProducts category={category} products={products} />
             </div>
             <div className='lg:col-span-3'>
               <ProductsSidebar

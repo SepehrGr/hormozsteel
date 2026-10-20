@@ -1,13 +1,7 @@
 import { z } from 'zod'
 
+import { blankOr } from '@/lib/schemas/fields'
 import { isValidSlug, slugify } from '@/lib/slug'
-
-/** Blank, or a value in `format`; surrounding spaces are ignored. */
-const blankOr = (format: z.ZodType<string, string>) =>
-  z
-    .string()
-    .trim()
-    .pipe(z.union([z.literal(''), format]))
 
 /**
  * The rules for a manufacturer (mill), shared by the admin form and its
@@ -20,7 +14,7 @@ export const manufacturerSchema = z
     name: z.string().trim().min(1, 'Name is required').max(120),
     slug: z.string().trim(),
     description: z.string().trim().max(1000),
-    // Rendered as a link on /manufacturers/[slug], so only http(s) is allowed
+    // A website, so only http(s) is allowed
     // Messages sit on the formats: a failed union reports its closest option's error
     website: blankOr(
       z.url({

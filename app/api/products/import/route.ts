@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 
 import { prisma } from '@/lib/prisma'
 import { logAdminAction, requireApiAuth } from '@/lib/admin-auth'
 import { updateProductPrice } from '@/lib/price-updater'
-import { resolveManufacturerId } from '@/lib/product-dto'
+import { resolveManufacturerId } from '@/lib/manufacturer'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
 import { generateUniqueSlug } from '@/lib/slug-generator'
 
@@ -219,6 +220,8 @@ export async function POST(request: NextRequest) {
       console.error('Failed to log admin action:', logError)
       // Continue anyway - logging failure shouldn't fail the import
     }
+
+    revalidatePath('/products', 'layout')
 
     return NextResponse.json({ success: true, results }, { status: 200 })
   } catch (error) {

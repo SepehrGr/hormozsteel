@@ -164,17 +164,17 @@ export const PRODUCT_CATEGORIES: Array<{
     subcategories: ['Fence', 'Welded', 'Galvanized'],
   },
   {
-    id: 'shamsh',
+    id: 'billet',
     name: 'Billets',
-    slug: 'shamsh',
+    slug: 'billet',
     description: 'Steel and alloy billets',
     icon: 'icon-bullion',
     subcategories: ['Carbon', 'Alloy'],
   },
   {
-    id: 'qooti',
+    id: 'tube',
     name: 'Tubes',
-    slug: 'qooti',
+    slug: 'tube',
     description: 'Square and rectangular hollow sections',
     icon: 'icon-profil',
     subcategories: ['Industrial', 'Column'],
@@ -251,6 +251,3 @@ export const BEAM_SIZES = [
   'HEA 140',
   'HEB 120',
 ]
-
-/** Empty fallback when API is down — prefer live seed data. */
-export const SAMPLE_PRODUCTS: Product[] = []

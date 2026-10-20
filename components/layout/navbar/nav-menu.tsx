@@ -13,17 +13,7 @@ import Link from 'next/link'
 import { Fragment } from 'react'
 
 import { PRODUCT_NAV } from '@/types/products'
-
-const weightData = [
-  { href: '/weight/beam', label: 'Beam weight' },
-  { href: '/weight/rebar', label: 'Rebar weight' },
-  { href: '/weight/billet', label: 'Billet weight' },
-  { href: '/weight/pipe', label: 'Pipe weight' },
-  { href: '/weight/stud', label: 'Channel weight' },
-  { href: '/weight/angle', label: 'Angle weight' },
-  { href: '/weight/square-tube', label: 'Square tube weight' },
-  { href: '/weight/sheet', label: 'Sheet weight' },
-]
+import { WEIGHT_CALCULATOR_LINKS } from '@/config/weight-calculators'
 
 const triggerClass =
   'inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-foreground transition-colors duration-200 ease-out hover:bg-muted cursor-pointer'
@@ -135,7 +125,7 @@ export default function NavMenu() {
           leaveTo='opacity-0 translate-y-1'
         >
           <MenuItems className='absolute left-0 z-50 mt-1 w-56 origin-top-left border border-border bg-card py-1 shadow-sm focus:outline-none dark:shadow-none'>
-            {weightData.map(item => (
+            {WEIGHT_CALCULATOR_LINKS.map(item => (
               <MenuItem key={item.href}>
                 {({ focus }) => (
                   <Link

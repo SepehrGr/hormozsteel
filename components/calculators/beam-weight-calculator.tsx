@@ -10,6 +10,7 @@ import {
   STEEL_DENSITIES,
 } from './calculator-ui'
 
+import { flangedSectionKg } from '@/lib/weight'
 import { FormField, Input, Select } from '@/components/ui/field'
 
 export default function BeamWeightCalculator() {
@@ -31,9 +32,7 @@ export default function BeamWeightCalculator() {
     const d = parseFloat(density)
 
     if (!l || !h || !fw || !wt || !ft || !d) return
-    const area = h * wt + 2 * fw * ft
-
-    setResult(Math.round(((area * l * d) / 1000) * 100) / 100)
+    setResult(flangedSectionKg(h, wt, fw, ft, l, d))
   }
 
   const resetForm = () => {
@@ -46,7 +45,7 @@ export default function BeamWeightCalculator() {
   }
 
   return (
-    <div className='space-y-6' dir='ltr'>
+    <div className='space-y-6'>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
         <FormField id='beamType' label='Section family'>
           <Select

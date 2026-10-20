@@ -12,8 +12,8 @@ export const CATEGORY_ICONS = {
   wire: 'icon-wire',
 
   mesh: 'icon-grating',
-  shamsh: 'icon-bullion',
-  qooti: 'icon-profil',
+  billet: 'icon-bullion',
+  tube: 'icon-profil',
   'raw-materials': 'icon-stainless-steel',
 } as const
 

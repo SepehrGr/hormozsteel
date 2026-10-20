@@ -7,12 +7,13 @@ import {
   CalculatorResult,
   FormulaNote,
   DensitySelect,
-  computeLinePrice,
   STEEL_DENSITIES,
+  type PriceProps,
 } from './calculator-ui'
 
 import { FormField, Input, Select } from '@/components/ui/field'
 import { formatUsd } from '@/lib/format'
+import { linePrice, sheetKg, type SheetType } from '@/lib/weight'
 
 const SHEET_TYPES = [
   { value: 'black', label: 'Hot-rolled / black' },
@@ -23,22 +24,13 @@ const SHEET_TYPES = [
   { value: 'aluminum', label: 'Aluminum' },
   { value: 'chequered', label: 'Chequered / floor plate' },
   { value: 'hardox', label: 'Abrasion plate (Hardox-type)' },
-] as const
-
-interface Props {
-  productPrice?: number
-  productUnit?: 'kg' | 'ton' | 'piece'
-  includeVAT?: boolean
-  formatPrice?: (price: number) => string
-}
+] as const satisfies readonly { value: SheetType; label: string }[]
 
 export default function SheetWeightCalculator({
   productPrice,
   productUnit = 'kg',
-  includeVAT = false,
-  formatPrice = formatUsd,
-}: Props) {
-  const [sheetType, setSheetType] = useState('black')
+}: PriceProps) {
+  const [sheetType, setSheetType] = useState<SheetType>('black')
   const [length, setLength] = useState('')
   const [width, setWidth] = useState('')
   const [thickness, setThickness] = useState('')
@@ -53,25 +45,10 @@ export default function SheetWeightCalculator({
     const d = parseFloat(density)
 
     if (!l || !w || !t || !d) return
+    const weight = sheetKg(sheetType, l, w, t, d)
 
-    let weight = l * w * t * d
-
-    if (sheetType === 'chequered') {
-      const x = t <= 3 ? 0.3 : 0.4
-
-      weight = (x + t) * l * w * d
-    } else if (sheetType === 'hardox') {
-      weight = (0.3 + t) * l * w * d
-    } else if (sheetType === 'aluminum') {
-      weight = l * w * t * 2.73
-    }
-
-    const rounded = Math.round(weight * 100) / 100
-
-    setResult(rounded)
-    setTotalPrice(
-      computeLinePrice(rounded, productPrice, productUnit, includeVAT),
-    )
+    setResult(weight)
+    setTotalPrice(linePrice(weight, productPrice, productUnit))
   }
 
   const resetForm = () => {
@@ -86,13 +63,13 @@ export default function SheetWeightCalculator({
     SHEET_TYPES.find(t => t.value === sheetType)?.label ?? sheetType
 
   return (
-    <div className='space-y-6' dir='ltr'>
+    <div className='space-y-6'>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
         <FormField id='sheetType' label='Sheet type'>
           <Select
             id='sheetType'
             value={sheetType}
-            onChange={e => setSheetType(e.target.value)}
+            onChange={e => setSheetType(e.target.value as SheetType)}
           >
             {SHEET_TYPES.map(t => (
               <option key={t.value} value={t.value}>
@@ -161,11 +138,7 @@ export default function SheetWeightCalculator({
               {sheetType === 'aluminum' ? '2.73' : density}
             </p>
           }
-          priceLabel={
-            totalPrice != null
-              ? `${formatPrice(totalPrice)}${includeVAT ? ' incl. tax' : ''}`
-              : undefined
-          }
+          priceLabel={totalPrice != null ? formatUsd(totalPrice) : undefined}
           totalPrice={totalPrice}
           weightKg={result}
         />

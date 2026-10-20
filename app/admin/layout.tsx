@@ -5,12 +5,10 @@ interface AdminLayoutProps {
 /**
  * Shell for all /admin routes.
  * Login renders its own full-viewport board; other admin pages sit on the same
- * theme tokens as the public site (English LTR portfolio demo).
+ * theme tokens as the public site.
  */
 export default async function AdminLayout({ children }: AdminLayoutProps) {
   return (
-    <div className='min-h-screen bg-background text-foreground' dir='ltr'>
-      {children}
-    </div>
+    <div className='min-h-screen bg-background text-foreground'>{children}</div>
   )
 }

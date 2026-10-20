@@ -11,7 +11,11 @@ import {
   requireSuperAdmin,
 } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
-import { checkApiRateLimit, getClientIP } from '@/lib/rate-limit'
+import {
+  checkApiRateLimit,
+  checkSubmitRateLimit,
+  getClientIP,
+} from '@/lib/rate-limit'
 
 /** Same envelope the API routes use, so clients handle both alike. */
 export type ActionResult<T = void> =
@@ -35,6 +39,19 @@ export class ActionError extends Error {
     super(message)
   }
 }
+
+const TOO_MANY = {
+  success: false,
+  error: 'Too many requests. Try again later.',
+} as const
+
+/** The result for input that failed `schema`, with each field's messages. */
+const invalidInput = (error: z.ZodError) =>
+  ({
+    success: false,
+    error: 'Check the highlighted fields.',
+    fieldErrors: z.flattenError(error).fieldErrors,
+  }) as const
 
 interface ActionContext {
   session: Session
@@ -79,18 +96,12 @@ export function adminAction<S extends z.ZodType, T>(
     const requestHeaders = await headers()
 
     if (checkApiRateLimit(getClientIP(requestHeaders)).isLimited) {
-      return { success: false, error: 'Too many requests. Try again later.' }
+      return TOO_MANY
     }
 
     const parsed = schema.safeParse(input)
 
-    if (!parsed.success) {
-      return {
-        success: false,
-        error: 'Check the highlighted fields.',
-        fieldErrors: z.flattenError(parsed.error).fieldErrors,
-      }
-    }
+    if (!parsed.success) return invalidInput(parsed.error)
 
     try {
       const data = await prisma.$transaction(tx =>
@@ -125,6 +136,40 @@ export function adminAction<S extends z.ZodType, T>(
       console.error('Server action failed:', error)
 
       return { success: false, error: prismaErrorMessage(error) }
+    }
+  }
+}
+
+/**
+ * Wrap a public form's write (no login) for use as a Server Action:
+ * rate limit (the tighter form counter) → zod parse → handler.
+ *
+ * ```ts
+ * 'use server'
+ * export const sendContactMessage = publicAction(contactSchema, async data =>
+ *   prisma.contactForm.create({ data, select: { id: true } }),
+ * )
+ * ```
+ */
+export function publicAction<S extends z.ZodType, T>(
+  schema: S,
+  handler: (input: z.output<S>) => Promise<T>,
+) {
+  return async (input: z.input<S>): Promise<ActionResult<T>> => {
+    if (checkSubmitRateLimit(getClientIP(await headers())).isLimited) {
+      return TOO_MANY
+    }
+
+    const parsed = schema.safeParse(input)
+
+    if (!parsed.success) return invalidInput(parsed.error)
+
+    try {
+      return { success: true, data: await handler(parsed.data) }
+    } catch (error) {
+      console.error('Public action failed:', error)
+
+      return { success: false, error: 'Could not send. Please try again.' }
     }
   }
 }

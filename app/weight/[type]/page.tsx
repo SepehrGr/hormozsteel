@@ -3,61 +3,21 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 
-import SheetWeightCalculator from '@/components/calculators/sheet-weight-calculator'
-import BeamWeightCalculator from '@/components/calculators/beam-weight-calculator'
-import RebarWeightCalculator from '@/components/calculators/rebar-weight-calculator'
-import BilletWeightCalculator from '@/components/calculators/billet-weight-calculator'
-import PipeWeightCalculator from '@/components/calculators/pipe-weight-calculator'
-import StudWeightCalculator from '@/components/calculators/stud-weight-calculator'
-import AngleWeightCalculator from '@/components/calculators/angle-weight-calculator'
-import SquareTubeWeightCalculator from '@/components/calculators/square-tube-weight-calculator'
+import WeightCalculator from '@/components/calculators/weight-calculator'
+import {
+  WEIGHT_CALCULATORS,
+  type WeightCalculatorType,
+} from '@/config/weight-calculators'
 
 type WeightPageProps = {
   params: Promise<{ type: string }>
 }
 
-const WEIGHT_CALCULATORS = {
-  rebar: {
-    title: 'Rebar weight',
-    description: 'Ribbed and plain bar by diameter and bar length.',
-  },
-  beam: {
-    title: 'Beam weight',
-    description: 'IPE / INP / HE-style sections from flange and web dims.',
-  },
-  sheet: {
-    title: 'Sheet weight',
-    description: 'Plate and coil sheet by length, width, and thickness.',
-  },
-  pipe: {
-    title: 'Pipe weight',
-    description: 'Round pipe from OD, wall thickness, and length.',
-  },
-  angle: {
-    title: 'Angle weight',
-    description: 'Equal and unequal leg angles.',
-  },
-  stud: {
-    title: 'Channel weight',
-    description: 'U-channel / stud sections from flange and web dims.',
-  },
-  'square-tube': {
-    title: 'Hollow section weight',
-    description: 'SHS / RHS tubes by section size and wall thickness.',
-  },
-  billet: {
-    title: 'Billet weight',
-    description: 'Square billet section × length.',
-  },
-} as const
-
-type CalcKey = keyof typeof WEIGHT_CALCULATORS
-
 export async function generateMetadata({
   params,
 }: WeightPageProps): Promise<Metadata> {
   const { type } = await params
-  const info = WEIGHT_CALCULATORS[type as CalcKey]
+  const info = WEIGHT_CALCULATORS[type as WeightCalculatorType]
 
   if (!info) return { title: 'Weight calculator' }
 
@@ -71,43 +31,16 @@ export async function generateStaticParams() {
   return Object.keys(WEIGHT_CALCULATORS).map(type => ({ type }))
 }
 
-function renderCalculator(type: string) {
-  switch (type) {
-    case 'sheet':
-      return <SheetWeightCalculator />
-    case 'beam':
-      return <BeamWeightCalculator />
-    case 'rebar':
-      return <RebarWeightCalculator />
-    case 'billet':
-      return <BilletWeightCalculator />
-    case 'pipe':
-      return <PipeWeightCalculator />
-    case 'stud':
-      return <StudWeightCalculator />
-    case 'angle':
-      return <AngleWeightCalculator />
-    case 'square-tube':
-      return <SquareTubeWeightCalculator />
-    default:
-      return (
-        <p className='text-sm text-muted-foreground'>
-          Calculator not available.
-        </p>
-      )
-  }
-}
-
 export default async function WeightCalculatorPage({
   params,
 }: WeightPageProps) {
   const { type } = await params
-  const calculatorInfo = WEIGHT_CALCULATORS[type as CalcKey]
+  const calculatorInfo = WEIGHT_CALCULATORS[type as WeightCalculatorType]
 
   if (!calculatorInfo) notFound()
 
   return (
-    <div className='w-full' dir='ltr'>
+    <div className='w-full'>
       <header className='border-b border-border bg-background'>
         <div className='mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-12'>
           <p className='mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
@@ -132,9 +65,9 @@ export default async function WeightCalculatorPage({
               </div>
               <div className='bg-card px-3 py-2.5'>
                 <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
-                  Layout
+                  Inputs
                 </dt>
-                <dd className='text-sm font-medium text-foreground'>LTR</dd>
+                <dd className='text-sm font-medium text-foreground'>mm · m</dd>
               </div>
             </dl>
           </div>
@@ -154,7 +87,7 @@ export default async function WeightCalculatorPage({
               </span>
             </div>
             <div className='px-5 py-6 md:px-6 md:py-8'>
-              {renderCalculator(type)}
+              <WeightCalculator type={type as WeightCalculatorType} />
             </div>
           </div>
 
@@ -182,7 +115,7 @@ export default async function WeightCalculatorPage({
                         scroll={false}
                       >
                         <span className='block text-sm font-medium text-foreground'>
-                          {info.title}
+                          {info.label}
                         </span>
                         <span className='mt-0.5 block text-xs leading-snug text-muted-foreground'>
                           {info.description}

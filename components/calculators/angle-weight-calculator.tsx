@@ -9,6 +9,7 @@ import {
   DensitySelect,
 } from './calculator-ui'
 
+import { angleKg } from '@/lib/weight'
 import { FormField, Input } from '@/components/ui/field'
 
 export default function AngleWeightCalculator() {
@@ -27,10 +28,7 @@ export default function AngleWeightCalculator() {
     const d = parseFloat(density)
 
     if (!w1 || !t || !l || !d) return
-    const weight =
-      w2 === w1 ? (d * l * t * w1 * 2) / 1000 : (d * l * t * (w1 + w2)) / 1000
-
-    setResult(Math.round(weight * 100) / 100)
+    setResult(angleKg(w1, w2, t, l, d))
   }
 
   const resetForm = () => {
@@ -42,7 +40,7 @@ export default function AngleWeightCalculator() {
   }
 
   return (
-    <div className='space-y-6' dir='ltr'>
+    <div className='space-y-6'>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
         <FormField id='wing1' label='Leg A (mm)'>
           <Input
@@ -114,8 +112,11 @@ export default function AngleWeightCalculator() {
       )}
 
       <FormulaNote
-        formula='Equal: W = ρ × L × t × a × 2 ÷ 1000 · Unequal: W = ρ × L × t × (a+b) ÷ 1000'
-        notes={['Legs and thickness in mm, length in m']}
+        formula='W = (a + b − t) × t × L × ρ ÷ 1000'
+        notes={[
+          'Legs and thickness in mm, length in m',
+          'The corner square is counted once; root fillets are ignored',
+        ]}
       />
     </div>
   )

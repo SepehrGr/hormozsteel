@@ -45,7 +45,6 @@ export default function RootLayout({
           'min-h-screen bg-background font-sans text-foreground antialiased',
           geistSans.className,
         )}
-        dir='ltr'
       >
         <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>
           <ConditionalLayout>{children}</ConditionalLayout>

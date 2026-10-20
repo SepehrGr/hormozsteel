@@ -19,19 +19,9 @@ import NavMenu from './nav-menu'
 
 import { siteConfig } from '@/config/site'
 import { PRODUCT_NAV } from '@/types/products'
+import { WEIGHT_CALCULATOR_LINKS } from '@/config/weight-calculators'
 import { ThemeSwitch } from '@/components/layout/theme-switch'
 import { Logo } from '@/components/icons'
-
-const weightData = [
-  { href: '/weight/beam', label: 'Beam weight' },
-  { href: '/weight/rebar', label: 'Rebar weight' },
-  { href: '/weight/billet', label: 'Billet weight' },
-  { href: '/weight/pipe', label: 'Pipe weight' },
-  { href: '/weight/stud', label: 'Channel weight' },
-  { href: '/weight/angle', label: 'Angle weight' },
-  { href: '/weight/square-tube', label: 'Square tube weight' },
-  { href: '/weight/sheet', label: 'Sheet weight' },
-]
 
 const mobileLinkClass =
   'block w-full pl-8 py-3 text-sm text-muted-foreground transition-colors duration-150 ease-out hover:bg-muted hover:text-foreground'
@@ -188,7 +178,7 @@ export const Navbar = () => {
 
           <NavbarMenuItem className='list-none p-0'>
             <MobileAccordion title='Calculators'>
-              {weightData.map(item => (
+              {WEIGHT_CALCULATOR_LINKS.map(item => (
                 <NextLink
                   key={item.href}
                   className={mobileLinkClass}

@@ -211,16 +211,12 @@ export function checkApiRateLimitAndRespond(
   )
 }
 
-/** The same guard for public form posts, on their own tighter counter. */
-export function checkSubmitRateLimitAndRespond(
-  request: Request,
-): Response | null {
-  return tooManyRequests(
-    checkRateLimitWithConfig(
-      getClientIP(request),
-      submitRateLimitMap,
-      SUBMIT_MAX_ATTEMPTS,
-      SUBMIT_WINDOW_MS,
-    ),
+/** Public form submissions, on their own tighter counter. */
+export function checkSubmitRateLimit(ip: string) {
+  return checkRateLimitWithConfig(
+    ip,
+    submitRateLimitMap,
+    SUBMIT_MAX_ATTEMPTS,
+    SUBMIT_WINDOW_MS,
   )
 }

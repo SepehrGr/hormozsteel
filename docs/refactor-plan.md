@@ -597,17 +597,22 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
 
 ## Phase 7: Public side
 
-- [ ] 7.0 `lib/data/`: data-access functions for the public reads that more than one
+- [x] 7.0 `lib/data/`: data-access functions for the public reads that more than one
   place needs:
-  - `getCategories()`, `getCategoryProducts(slug)`, `getProduct(slug)`;
-  - `getManufacturers()`, `getLatestPrices()`.
-  - Each returns DTOs (`toProductDTO`) and starts with `import 'server-only'`. Next ships
-    a copy of that package; check the build accepts it before running
-    `yarn add server-only`.
+  - `catalog.ts`: `getCategories()`, `getCategory(slug)`, `getCategoryProducts(slug, subcategory?)`,
+    `getManufacturers()`, `getManufacturer(slug)`; `prices.ts`: `getLatestPrices()`.
+  - No `getProduct(slug)`: no public page shows one product (`[productId]` is a subcategory).
+  - Each is wrapped in React `cache()`, returns DTOs (`toProductDTO`) and starts with
+    `import 'server-only'`, which resolves to Next's bundled copy (no `yarn add`).
   - Admin pages keep their one-off queries inline and move them here only if reused.
-- [ ] 7.1 `order-request-modal.tsx` and `weight-calculator-modal.tsx`: untangle the effects
+  - Found: `/manufacturers/[postId]` 500s on `<Button as={NextLink}>` (a function prop into
+    a HeroUI client component); 7.5 deleted the page.
+- [x] 7.1 `order-request-modal.tsx` and `weight-calculator-modal.tsx`: untangle the effects
   and move the forms to RHF + zod.
-- [ ] 7.2 Catalog pages:
+  - Both sit on the exported `DialogFrame` (+ `DialogFooter`) and mount only while open.
+  - `lib/schemas/quick-order.ts` is parsed by the form (`useActionForm`, posting through a
+    fetch wrapper) and by `/api/quick-orders`, which now returns only the new id.
+- [x] 7.2 Catalog pages:
   - `app/products/[categorySlug]/**` already query Prisma on the server (cached for an
     hour). Then `category-products.tsx` and `product-page.tsx` download the whole
     category again in the browser (`useProducts({ limit: 1000 })`, `useCategories()`).
@@ -615,24 +620,65 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     in-memory state in the client island.
   - Drop `useProducts`/`useCategories`.
   - Then split the two components (513 and 302 lines) into sections.
-- [ ] 7.3 `product-slider.tsx` (`/api/latest-prices`) and `moment-news/page.tsx`
+  - Done: shared `product-boards.tsx` (`ProductBoards` = mill tables + both dialogs,
+    `NoMatches`), server `product-notes.tsx` passed in as `children`, `UnifiedProductPage`
+    deleted, `getCategoryProducts` selects only the board's columns. The Excel import now
+    revalidates `/products` (the boards are baked into the hourly-cached HTML).
+- [x] 7.3 `product-slider.tsx` (`/api/latest-prices`) and `moment-news/page.tsx`
   (`/api/moment-news`): fetch on the server and pass the data down as props.
-- [ ] 7.4 `contact/page.tsx`: RHF + zod. Optionally switch it, and the order-request
+  - `getLatestPrices()` in `lib/data/prices.ts` (card fields only, `updated` formatted on
+    the server so it hydrates the same everywhere); the home page `revalidate = 60`.
+  - `/moment-news` deleted with its route and `moment-jalaali`: an unlinked leftover of
+    the Persian site. `/api/latest-prices` deleted too (no callers left).
+- [x] 7.4 `contact/page.tsx`: RHF + zod. Optionally switch it, and the order-request
   modal, from the API POST to a public Server Action. That would be rate-limited and
   zod-validated like `adminAction`, but without the login check.
-- [ ] 7.5 `about/page.tsx` and `manufacturers/[postId]`: move content into `config/` and
+  - Done: `publicAction` in `lib/actions.ts` (submit rate limit → zod → handler);
+    `app/actions.ts` has `sendContactMessage` and `requestQuote`. `/api/contact` and
+    `/api/quick-orders` deleted. The contact page is a server page with a client
+    `ContactForm`. `blankOr` and `phone()` shared in `lib/schemas/fields.ts`.
+  - Also fixed the contact map: CARTO tiles now need an API key (they served an
+    "API key required" image), so it uses OSM's tiles; the zoom/attribution styles moved
+    to unlayered CSS, since leaflet.css always beat the layered Tailwind classes.
+- [x] 7.5 `about/page.tsx` and `manufacturers/[postId]`: move content into `config/` and
   split the sections.
-- [ ] 7.6 Calculators: pure formulas in `lib/weight.ts`, with one `tsx --test` check. Also drop the
+  - About: content in `config/about.ts`, sections in `components/about/about-sections.tsx`
+    (`Band` + `SectionIntro` for the repeated chrome); the closing band is a shared
+    `CtaStrip`, also used by `/products`. `about/layout.tsx` deleted (a wrapper and a
+    second `metadata`).
+  - `/manufacturers` and `/manufacturers/[slug]` deleted with `BlogPostCard`,
+    `public/images/blog` and `getManufacturer(s)`: an unlinked Persian leftover.
+  - Page titles no longer repeat the brand: the product pages added "· Hormoz Steel" on
+    top of the root layout's title template.
+- [x] 7.6 Calculators: pure formulas in `lib/weight.ts`, with one `tsx --test` check. Also drop the
   `formatPrice` prop; every caller passes `formatUsd`.
-- [ ] 7.7 Sweep out the Persian, RTL and `dir='ltr'` leftovers (including the `shamsh` and
+  - `lib/weight.test.ts` (`yarn test`) checks against steel-table values. It caught three
+    wrong formulas: rebar was 4× too heavy (d²π, not πd²/4); angle and hollow section
+    counted their corners twice.
+  - One `WeightCalculator({ type })` replaces the page's and the modal's switch; titles come
+    from `config/weight-calculators.ts`. `includeVAT` (never set) dropped with `formatPrice`.
+  - `linePrice` won't price a per-piece or per-metre product by weight (it used to treat
+    METER as kg).
+- [x] 7.7 Sweep out the Persian, RTL and `dir='ltr'` leftovers (including the `shamsh` and
   `qooti` keys in `config/category-icons.ts`, shown as icon names in the category form).
-- [ ] 7.8 Delete the public GET routes that 7.2–7.3 leave without callers (grep first):
+  - Also: `contact/layout.tsx` is only a wrapper + `metadata`; move the metadata into the
+    (now server) page and delete the layout, as 7.5 did for about.
+  - Also: the calculator modal still picks its calculator by Persian keywords too.
+  - Done: no Arabic-script text or `dir='ltr'` left in the source. `shamsh`/`qooti` became
+    `billet`/`tube` (the DB already used those; the navbar and footer linked to 404s).
+    Deleted the disabled `FloatingOrderButton`, the unused Shamsh/Qooti icons, dead Radix
+    menubar and Swiper pagination CSS, and `contact/layout.tsx`. Slugs no longer allow
+    Persian letters; the product table reads `priceDirection` only.
+- [x] 7.8 Delete the public GET routes that 7.2–7.3 leave without callers (grep first):
   - `/api/products`, `/api/products/[id]`
   - `/api/categories`, `/api/categories/[id]`
   - `/api/manufacturers`, `/api/manufacturers/[id]`
-  - `/api/latest-prices`, `/api/moment-news`
 
   Excel export must already have its own route by now (5.8).
+  - Done, with the `useManufacturers`/`useManufacturer` hooks that called the mill routes.
+    `toProductDTO`, `mapDirectionToLegacy` and `productInclude` died with them;
+    `lib/product-dto.ts` is now `lib/manufacturer.ts` (`resolveManufacturerId`, using
+    `slugify`, as `generateUniqueSlug` now does too).
 
 ## Phase 8: API and hooks cleanup
 

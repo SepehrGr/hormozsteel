@@ -138,8 +138,8 @@ Do **not** store system emoji in the DB.
 | pipe | `icon-pipe` |
 | wire | `icon-Wire-products` |
 | mesh | `icon-grating` |
-| shamsh | `icon-bullion` |
-| qooti | `icon-profil` |
+| billet | `icon-bullion` |
+| tube | `icon-profil` |
 
 ---
 
@@ -185,33 +185,21 @@ Do **not** store system emoji in the DB.
 | `/products/[categorySlug]` | Category products |
 | `/about`, `/contact` | Static pages |
 | `/weight/[type]` | Weight calculators |
-| `/moment-news` | Price change feed |
 
 ---
 
 ## API overview
 
+Pages read with Prisma on the server and write through Server Actions, so only a
+few route handlers remain:
+
 | Method | Path | Notes |
 |--------|------|--------|
-| GET/POST | `/api/products` | List (filters, pagination) / create |
-| GET/PATCH/DELETE | `/api/products/[id]` | Single product |
-| POST | `/api/products/import` | Bulk import (auth) |
-| GET/POST | `/api/categories` | Categories |
-| GET/PATCH/DELETE | `/api/categories/[id]` | Single category |
-| GET/POST | `/api/manufacturers` | Manufacturers |
-| GET | `/api/latest-prices` | Home price slider |
-| GET | `/api/moment-news` | Price history feed |
-| GET/POST | `/api/orders`, `/api/contact`, `/api/quick-orders` | CRM-ish endpoints |
+| GET | `/api/products/export` | Excel export (auth) |
+| POST | `/api/products/import` | Excel import (auth) |
+| GET | `/api/admin/notifications` | Admin bell poll (auth) |
+| GET/POST | `/api/orders` | Legacy order endpoints (no auth yet) |
 | * | `/api/auth/[...nextauth]` | NextAuth |
-
-Example:
-
-```bash
-# After yarn dev
-curl "http://localhost:3000/api/products?category=rebar&limit=5"
-curl "http://localhost:3000/api/categories"
-curl "http://localhost:3000/api/latest-prices"
-```
 
 ---
 

@@ -1,5 +1,3 @@
-'use client'
-
 import type { Product } from '@/types/products'
 
 import { useMemo } from 'react'
@@ -17,21 +15,17 @@ interface ProductTableProps {
   products: Product[]
   onOrder: (product: Product) => void
   onCalculate: (product: Product) => void
-  formatPrice?: (price: number) => string
 }
 
 function directionMeta(product: Product) {
-  const raw = product.priceHistory?.changeType || product.priceDirection || ''
-  const t = String(raw).toLowerCase()
-
-  if (t === 'up' || t === 'increase' || t === 'افزایش') {
+  if (product.priceDirection === 'UP') {
     return {
       label: 'Up',
       className: 'text-emerald-600 dark:text-emerald-400',
       Icon: TrendingUp,
     }
   }
-  if (t === 'down' || t === 'decrease' || t === 'کاهش') {
+  if (product.priceDirection === 'DOWN') {
     return {
       label: 'Down',
       className: 'text-red-600 dark:text-red-400',
@@ -50,7 +44,6 @@ export default function ProductTable({
   products,
   onOrder,
   onCalculate,
-  formatPrice: customFormatPrice,
 }: ProductTableProps) {
   const sortedProducts = useMemo(() => {
     return [...products].sort((a, b) => {
@@ -66,8 +59,6 @@ export default function ProductTable({
       return a.size.localeCompare(b.size)
     })
   }, [products])
-
-  const formatPrice = customFormatPrice || formatUsd
 
   if (products.length === 0) {
     return (
@@ -136,7 +127,7 @@ export default function ProductTable({
                     {weight}
                   </td>
                   <td className='px-3 py-3 text-right font-semibold tabular-nums text-foreground'>
-                    {product.price > 0 ? formatPrice(product.price) : 'Quote'}
+                    {product.price > 0 ? formatUsd(product.price) : 'Quote'}
                     <div className='text-[10px] font-normal uppercase tracking-wide text-muted-foreground'>
                       / {String(product.unit || 'KG').toLowerCase()}
                     </div>
@@ -145,7 +136,7 @@ export default function ProductTable({
                     <span className='inline-flex items-center justify-center gap-1 text-xs font-medium'>
                       <MoveIcon className='h-3.5 w-3.5' />
                       {product.priceDelta != null && product.priceDelta !== 0
-                        ? formatPrice(Math.abs(Number(product.priceDelta)))
+                        ? formatUsd(Math.abs(Number(product.priceDelta)))
                         : move.label}
                     </span>
                   </td>
@@ -199,7 +190,7 @@ export default function ProductTable({
                   </div>
                 </td>
                 <td className='px-2 py-3 text-right font-semibold tabular-nums text-foreground'>
-                  {product.price > 0 ? formatPrice(product.price) : 'Quote'}
+                  {product.price > 0 ? formatUsd(product.price) : 'Quote'}
                 </td>
                 <td className='px-2 py-3 text-center'>
                   <button

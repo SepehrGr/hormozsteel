@@ -1,5 +1,3 @@
-'use client'
-
 import { Filter, RefreshCw } from 'lucide-react'
 
 import { PriceFilter } from '@/types/products'
@@ -11,6 +9,13 @@ interface AdvancedFiltersProps {
   availableBrands?: string[]
   availableSizes?: string[]
 }
+
+export const chipClass = (active: boolean) =>
+  `px-2.5 py-1.5 text-xs font-medium transition-colors duration-200 ease-out ${
+    active
+      ? 'bg-primary text-primary-foreground'
+      : 'border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground'
+  }`
 
 export default function AdvancedFilters({
   filters,
@@ -61,13 +66,6 @@ export default function AdvancedFilters({
   const hasActiveFilters = Object.values(filters).some(
     value => value !== undefined && value !== '' && value !== false,
   )
-
-  const chipClass = (active: boolean) =>
-    `px-2.5 py-1.5 text-xs font-medium transition-colors duration-200 ease-out ${
-      active
-        ? 'bg-primary text-primary-foreground'
-        : 'border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground'
-    }`
 
   return (
     <div className='sticky top-40 border border-border bg-card'>

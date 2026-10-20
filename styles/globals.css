@@ -404,85 +404,7 @@
   }
 }
 
-/* بهبود hover behavior برای navbar */
-@layer components {
-  .menubar-content {
-    pointer-events: auto !important;
-  }
-
-  .menubar-sub-content {
-    pointer-events: auto !important;
-  }
-
-  /* اضافه کردن delay برای بهتر شدن UX */
-  [data-radix-menubar-content] {
-    animation-delay: 0ms !important;
-  }
-
-  [data-radix-menubar-sub-content] {
-    animation-delay: 100ms !important;
-  }
-
-  /* بهبود hover states */
-  [data-radix-menubar-trigger]:hover {
-    background-color: var(--accent);
-    color: var(--accent-foreground);
-  }
-
-  [data-radix-menubar-item]:hover {
-    background-color: var(--accent);
-    color: var(--accent-foreground);
-  }
-
-  [data-radix-menubar-sub-trigger]:hover {
-    background-color: var(--accent);
-    color: var(--accent-foreground);
-  }
-
-  /* اطمینان از نمایش افقی navbar */
-  [data-radix-menubar-root] {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    gap: 0.5rem !important;
-  }
-
-  [data-radix-menubar-root] > * {
-    display: inline-flex !important;
-  }
-
-  /* Swiper pagination styles with dark mode support */
-  .swiper-pagination-bullet {
-    background-color: rgb(
-      148 163 184 / 0.4
-    ) !important; /* slate-400 with opacity */
-    opacity: 1 !important;
-    transition: all 0.3s ease !important;
-  }
-
-  .swiper-pagination-bullet-active {
-    background-color: rgb(59 130 246) !important; /* blue-500 */
-    transform: scale(1.2) !important;
-  }
-
-  .dark .swiper-pagination-bullet {
-    background-color: rgb(
-      148 163 184 / 0.6
-    ) !important; /* slate-400 with higher opacity for dark mode */
-  }
-
-  .dark .swiper-pagination-bullet-active {
-    background-color: rgb(96 165 250) !important; /* blue-400 for dark mode */
-  }
-
-  /* Custom pagination container styling */
-  .swiper-pagination-products {
-    position: relative !important;
-    margin-top: 1rem !important;
-  }
-}
-
-/* Leaflet map: colorful Voyager basemap + Google-like dark (not greyscale) */
+/* Leaflet map: OSM basemap, darkened in dark mode (not greyscale) */
 .map-tiles {
   filter: none;
 }
@@ -504,4 +426,27 @@
 .leaflet-popup-pane,
 .leaflet-control-container {
   filter: none;
+}
+
+/* Unlayered like leaflet.css, so these beat it (Tailwind utilities, being in a
+   layer, never can); one class stronger than its .leaflet-touch rules */
+.leaflet-container .leaflet-control-zoom.leaflet-bar {
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.leaflet-container .leaflet-control-zoom.leaflet-bar a {
+  background: var(--card);
+  color: var(--foreground);
+  border-bottom-color: var(--border);
+}
+
+.leaflet-container .leaflet-control-zoom.leaflet-bar a:hover {
+  background: var(--muted);
+}
+
+.leaflet-container .leaflet-control-attribution.leaflet-control {
+  background: color-mix(in oklch, var(--card) 90%, transparent);
+  color: var(--muted-foreground);
+  font-size: 10px;
 }

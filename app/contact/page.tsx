@@ -1,9 +1,13 @@
-'use client'
+import type { Metadata } from 'next'
 
-import { useState } from 'react'
-import Link from 'next/link'
-
+import ContactForm from '@/components/content/contact-form'
 import Map from '@/components/content/map'
+
+export const metadata: Metadata = {
+  title: 'Contact sales',
+  description:
+    'Request a firm steel quote — rebar, sheet, sections, pipe, and billets. Sales desk in Bandar Abbas.',
+}
 
 const officeHours = [
   { day: 'Saturday – Wednesday', hours: '08:00 – 17:00' },
@@ -32,66 +36,7 @@ const channels = [
   },
 ]
 
-const fieldClass =
-  'w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground disabled:cursor-not-allowed disabled:opacity-50'
-
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    message: '',
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<{
-    type: 'success' | 'error' | null
-    message: string
-  }>({ type: null, message: '' })
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setSubmitStatus({ type: null, message: '' })
-
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-      const data = await response.json()
-
-      if (data.success) {
-        setSubmitStatus({
-          type: 'success',
-          message:
-            data.message || 'Message received. Sales will follow up shortly.',
-        })
-        setFormData({ name: '', phone: '', email: '', message: '' })
-      } else {
-        setSubmitStatus({
-          type: 'error',
-          message: data.error || 'Could not send message. Try again.',
-        })
-      }
-    } catch {
-      setSubmitStatus({
-        type: 'error',
-        message: 'Network error. Check your connection and try again.',
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target
-
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
-
   return (
     <div className='w-full '>
       {/* Header strip */}
@@ -226,130 +171,7 @@ export default function ContactPage() {
               </span>
             </div>
 
-            <form
-              className='space-y-5 px-5 py-6 md:px-6 md:py-8'
-              onSubmit={handleSubmit}
-            >
-              <div className='grid gap-5 sm:grid-cols-2'>
-                <div className='sm:col-span-2'>
-                  <label
-                    className='mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
-                    htmlFor='name'
-                  >
-                    Full name *
-                  </label>
-                  <input
-                    required
-                    autoComplete='name'
-                    className={fieldClass}
-                    disabled={isSubmitting}
-                    id='name'
-                    name='name'
-                    placeholder='Name for the quote file'
-                    type='text'
-                    value={formData.name}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
-                  <label
-                    className='mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
-                    htmlFor='phone'
-                  >
-                    Phone *
-                  </label>
-                  <input
-                    required
-                    autoComplete='tel'
-                    className={fieldClass}
-                    dir='ltr'
-                    disabled={isSubmitting}
-                    id='phone'
-                    name='phone'
-                    placeholder='+98 …'
-                    type='tel'
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
-                  <label
-                    className='mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
-                    htmlFor='email'
-                  >
-                    Email
-                  </label>
-                  <input
-                    autoComplete='email'
-                    className={fieldClass}
-                    dir='ltr'
-                    disabled={isSubmitting}
-                    id='email'
-                    name='email'
-                    placeholder='optional'
-                    type='email'
-                    value={formData.email}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className='sm:col-span-2'>
-                  <label
-                    className='mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
-                    htmlFor='message'
-                  >
-                    Specs &amp; volume *
-                  </label>
-                  <textarea
-                    required
-                    className={`${fieldClass} min-h-[10rem] resize-y`}
-                    disabled={isSubmitting}
-                    id='message'
-                    name='message'
-                    placeholder='Product, size/grade, tonnage, delivery city, timing…'
-                    rows={8}
-                    value={formData.message}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-
-              <div className='flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between'>
-                <p className='text-xs text-muted-foreground'>
-                  Prefer the catalog first?{' '}
-                  <Link
-                    className='font-medium text-foreground underline-offset-4 hover:underline'
-                    href='/products'
-                  >
-                    Browse unit prices
-                  </Link>
-                </p>
-                <button
-                  className='inline-flex items-center justify-center bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'
-                  disabled={isSubmitting}
-                  type='submit'
-                >
-                  {isSubmitting ? 'Sending…' : 'Send request'}
-                </button>
-              </div>
-
-              {submitStatus.type ? (
-                <div
-                  className={`border px-4 py-3 text-sm ${
-                    submitStatus.type === 'success'
-                      ? 'border-emerald-600/40 bg-emerald-50 text-emerald-900 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-100'
-                      : 'border-red-600/40 bg-red-50 text-red-900 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-100'
-                  }`}
-                  role='status'
-                >
-                  <p className='font-medium'>
-                    {submitStatus.type === 'success'
-                      ? 'Request received'
-                      : 'Could not send'}
-                  </p>
-                  <p className='mt-1 opacity-90'>{submitStatus.message}</p>
-                </div>
-              ) : null}
-            </form>
+            <ContactForm />
           </div>
         </div>
       </div>
