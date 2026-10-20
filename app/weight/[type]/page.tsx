@@ -11,53 +11,20 @@ import PipeWeightCalculator from '@/components/calculators/pipe-weight-calculato
 import StudWeightCalculator from '@/components/calculators/stud-weight-calculator'
 import AngleWeightCalculator from '@/components/calculators/angle-weight-calculator'
 import SquareTubeWeightCalculator from '@/components/calculators/square-tube-weight-calculator'
+import {
+  WEIGHT_CALCULATORS,
+  type WeightCalculatorType,
+} from '@/config/weight-calculators'
 
 type WeightPageProps = {
   params: Promise<{ type: string }>
 }
 
-const WEIGHT_CALCULATORS = {
-  rebar: {
-    title: 'Rebar weight',
-    description: 'Ribbed and plain bar by diameter and bar length.',
-  },
-  beam: {
-    title: 'Beam weight',
-    description: 'IPE / INP / HE-style sections from flange and web dims.',
-  },
-  sheet: {
-    title: 'Sheet weight',
-    description: 'Plate and coil sheet by length, width, and thickness.',
-  },
-  pipe: {
-    title: 'Pipe weight',
-    description: 'Round pipe from OD, wall thickness, and length.',
-  },
-  angle: {
-    title: 'Angle weight',
-    description: 'Equal and unequal leg angles.',
-  },
-  stud: {
-    title: 'Channel weight',
-    description: 'U-channel / stud sections from flange and web dims.',
-  },
-  'square-tube': {
-    title: 'Hollow section weight',
-    description: 'SHS / RHS tubes by section size and wall thickness.',
-  },
-  billet: {
-    title: 'Billet weight',
-    description: 'Square billet section × length.',
-  },
-} as const
-
-type CalcKey = keyof typeof WEIGHT_CALCULATORS
-
 export async function generateMetadata({
   params,
 }: WeightPageProps): Promise<Metadata> {
   const { type } = await params
-  const info = WEIGHT_CALCULATORS[type as CalcKey]
+  const info = WEIGHT_CALCULATORS[type as WeightCalculatorType]
 
   if (!info) return { title: 'Weight calculator' }
 
@@ -102,7 +69,7 @@ export default async function WeightCalculatorPage({
   params,
 }: WeightPageProps) {
   const { type } = await params
-  const calculatorInfo = WEIGHT_CALCULATORS[type as CalcKey]
+  const calculatorInfo = WEIGHT_CALCULATORS[type as WeightCalculatorType]
 
   if (!calculatorInfo) notFound()
 
@@ -182,7 +149,7 @@ export default async function WeightCalculatorPage({
                         scroll={false}
                       >
                         <span className='block text-sm font-medium text-foreground'>
-                          {info.title}
+                          {info.label}
                         </span>
                         <span className='mt-0.5 block text-xs leading-snug text-muted-foreground'>
                           {info.description}

@@ -642,6 +642,8 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     to unlayered CSS, since leaflet.css always beat the layered Tailwind classes.
 - [ ] 7.5 `about/page.tsx` and `manufacturers/[postId]`: move content into `config/` and
   split the sections.
+  - Also: page titles repeat the brand ("Rebar prices · Hormoz Steel · Hormoz Steel").
+    Pages add "· Hormoz Steel" and the root layout's title template adds it again.
 - [ ] 7.6 Calculators: pure formulas in `lib/weight.ts`, with one `tsx --test` check. Also drop the
   `formatPrice` prop; every caller passes `formatUsd`.
 - [ ] 7.7 Sweep out the Persian, RTL and `dir='ltr'` leftovers (including the `shamsh` and
