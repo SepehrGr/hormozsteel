@@ -45,13 +45,19 @@ const TOO_MANY = {
   error: 'Too many requests. Try again later.',
 } as const
 
-/** The result for input that failed `schema`, with each field's messages. */
-const invalidInput = (error: z.ZodError) =>
-  ({
+/**
+ * The result for input that failed `schema`, with each field's messages. An
+ * error on the input as a whole (say, an empty list) becomes the message.
+ */
+const invalidInput = (error: z.ZodError) => {
+  const { formErrors, fieldErrors } = z.flattenError(error)
+
+  return {
     success: false,
-    error: 'Check the highlighted fields.',
-    fieldErrors: z.flattenError(error).fieldErrors,
-  }) as const
+    error: formErrors[0] ?? 'Check the highlighted fields.',
+    fieldErrors,
+  } as const
+}
 
 interface ActionContext {
   session: Session

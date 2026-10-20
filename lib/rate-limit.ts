@@ -156,23 +156,6 @@ export function getClientIP(source: Request | Headers): string {
   return 'unknown'
 }
 
-/**
- * Reset rate limit for an IP (useful for testing or manual resets)
- * @param ip - The IP address to reset
- * @param type - Type of rate limit to reset ('login' | 'api' | 'all')
- */
-export function resetRateLimit(
-  ip: string,
-  type: 'login' | 'api' | 'all' = 'all',
-): void {
-  if (type === 'login' || type === 'all') {
-    loginRateLimitMap.delete(ip)
-  }
-  if (type === 'api' || type === 'all') {
-    apiRateLimitMap.delete(ip)
-  }
-}
-
 /** The 429 response for a limited request, or null to carry on. */
 function tooManyRequests(rateLimit: {
   isLimited: boolean

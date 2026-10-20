@@ -5,41 +5,17 @@ import type {
   MillOption,
 } from '@/components/admin/products/types'
 import type { ActionResult } from '@/lib/actions'
-import type { ProductDTO } from '@/types/products'
 
 import { useWatch } from 'react-hook-form'
 
 import { type FormMode, FormDialog } from '@/components/ui/dialogs'
 import { FormField, Input, Select } from '@/components/ui/field'
 import { useActionForm } from '@/hooks/use-action-form'
-import { type ProductFormValues, productSchema } from '@/lib/schemas/product'
-
-export const emptyProduct: ProductFormValues = {
-  name: '',
-  manufacturerId: '',
-  brand: '',
-  size: '',
-  price: '',
-  inStock: true,
-  categoryId: '',
-  subcategory: '',
-  weight: '',
-}
-
-/** A table row as the form's starting values. */
-export function toProductFormValues(product: ProductDTO): ProductFormValues {
-  return {
-    name: product.name,
-    manufacturerId: product.manufacturerId ?? '',
-    brand: '',
-    size: product.size,
-    price: String(product.price),
-    inStock: product.inStock,
-    categoryId: product.categoryId,
-    subcategory: product.subcategory ?? '',
-    weight: product.weightKg == null ? '' : String(product.weightKg),
-  }
-}
+import {
+  type ProductFormValues,
+  emptyProduct,
+  productSchema,
+} from '@/lib/schemas/product'
 
 /** Add/edit dialog for one product. Mount only while open. */
 export function ProductFormDialog({

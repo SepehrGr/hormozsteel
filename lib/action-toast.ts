@@ -5,7 +5,8 @@ import { addToast } from '@heroui/toast'
 import { mutate } from 'swr'
 
 /**
- * Toast a Server Action's outcome. On success, every SWR poll (the admin bell)
+ * Toast a Server Action's outcome; the success message can be built from the
+ * action's data. On success, every SWR poll (the admin bell)
  * refetches, since the write may have changed it. On failure, zod field errors
  * are pushed into the form (when `setError` is given) so they render under
  * each field.
@@ -18,12 +19,19 @@ import { mutate } from 'swr'
  */
 export function toastResult<T, F extends FieldValues = FieldValues>(
   result: ActionResult<T>,
-  successMessage: string,
+  successMessage: string | ((data: T) => string),
   setError?: UseFormSetError<F>,
 ): result is Extract<ActionResult<T>, { success: true }> {
   if (result.success) {
     void mutate(() => true)
-    addToast({ title: 'Done', description: successMessage, color: 'success' })
+    addToast({
+      title: 'Done',
+      description:
+        typeof successMessage === 'function'
+          ? successMessage(result.data)
+          : successMessage,
+      color: 'success',
+    })
 
     return true
   }

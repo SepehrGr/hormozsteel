@@ -1,3 +1,5 @@
+import type { ProductDTO } from '@/types/products'
+
 import { z } from 'zod'
 
 /** Blank, or a number above 0 (the form keeps number inputs as strings). */
@@ -44,6 +46,72 @@ export const productSchema = z
 export type ProductFormValues = z.input<typeof productSchema>
 /** What the actions receive. */
 export type ProductData = z.output<typeof productSchema>
+
+export const emptyProduct: ProductFormValues = {
+  name: '',
+  manufacturerId: '',
+  brand: '',
+  size: '',
+  price: '',
+  inStock: true,
+  categoryId: '',
+  subcategory: '',
+  weight: '',
+}
+
+/** A product as the form's starting values. */
+export function toProductFormValues(
+  product: Pick<
+    ProductDTO,
+    | 'name'
+    | 'manufacturerId'
+    | 'size'
+    | 'price'
+    | 'inStock'
+    | 'categoryId'
+    | 'subcategory'
+    | 'weightKg'
+  >,
+): ProductFormValues {
+  return {
+    name: product.name,
+    manufacturerId: product.manufacturerId ?? '',
+    brand: '',
+    size: product.size,
+    price: String(product.price),
+    inStock: product.inStock,
+    categoryId: product.categoryId,
+    subcategory: product.subcategory ?? '',
+    weight: product.weightKg == null ? '' : String(product.weightKg),
+  }
+}
+
+/**
+ * An imported sheet: one row per product, each cell as trimmed text, keyed
+ * like `SHEET`. The import action checks each row again with `productSchema`
+ * once it's merged with the product's current values.
+ */
+const cell = z.string().trim().max(200)
+
+export const productImportSchema = z
+  .array(
+    z.object({
+      id: cell,
+      name: cell,
+      mill: cell,
+      size: cell,
+      weight: cell,
+      price: cell,
+      stock: cell,
+      category: cell,
+      subcategory: cell,
+    }),
+  )
+  .min(1, 'The sheet has no rows.')
+  // ponytail: ~5 ms a row in one transaction, under Prisma's 5 s timeout; raise `timeout` in adminAction for bigger sheets
+  .max(500, 'Import at most 500 rows at a time.')
+
+export type ProductImportRow = z.input<typeof productImportSchema>[number]
 
 /**
  * What a bulk edit sets on many products, or an inline edit on one. Input is

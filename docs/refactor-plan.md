@@ -690,12 +690,12 @@ By now `app/api/` should hold only:
 
 So most of this phase is checking that the remaining routes are complete.
 
-- [ ] 8.0 **Security, do early.** These admin handlers have no auth check (found in 1.2;
+- [x] 8.0 **Security, do early.** These admin handlers have no auth check (found in 1.2;
   `middleware.ts` only guards `/admin` pages, not `/api`):
   - ~~`products` POST, `products/[id]` PATCH/PUT/DELETE~~ deleted in 5.9, with `products/bulk`
   - ~~`manufacturers` POST, `manufacturers/[id]` PUT/DELETE~~ deleted in 2.7
   - ~~`contact` GET (lists customer messages), PATCH, DELETE~~ deleted in 4.7
-  - `orders` GET (lists orders) and POST
+  - ~~`orders` GET (lists orders) and POST~~ deleted in 8.0, with `useOrders`/`useCreateOrder`
 
   Public on purpose: `contact` POST, `quick-orders` POST, `auth/[...nextauth]`.
 
@@ -704,15 +704,21 @@ So most of this phase is checking that the remaining routes are complete.
   handler, on a `fix/api-auth` branch before Phase 2. Nothing calls `/api/orders` at all
   (only the unused `useOrders`/`useCreateOrder` hooks reference it), so that route and
   both hooks can simply be deleted.
-- [ ] 8.1 Inventory `app/api/`: every remaining route needs one of the reasons above.
-  Delete anything without a caller.
-- [ ] 8.2 Every remaining route:
+- [x] 8.1 Inventory `app/api/`: every remaining route needs one of the reasons above.
+  Delete anything without a caller. Left: NextAuth, the notifications poll, Excel
+  export/import (7.4 made the public forms Server Actions). Also deleted the unused
+  `resetRateLimit`.
+- [x] 8.2 Every remaining route:
   - validates with zod, using the shared `lib/schemas/*`;
   - starts with the rate-limit guard;
   - uses `requireApiAuth()` unless it's public on purpose.
-- [ ] 8.3 Delete `hooks/use-api.ts`. The bell's SWR hook (4.6) lives in its own file;
+
+  The notifications and export routes already did. The Excel import became the
+  `importProducts` action (all rows or none), sharing `saveProduct` with the form.
+- [x] 8.3 Delete `hooks/use-api.ts`. The bell's SWR hook (4.6) lives in its own file;
   every other hook in it has been replaced by server reads or actions.
-- [ ] 8.4 Rewrite CLAUDE.md for the final model:
+- [x] 8.4 Rewrite CLAUDE.md for the final model (written fresh: the re-clone had lost it;
+  it stays gitignored):
   - the data-access table (server read / action / route);
   - the API-route conventions, which now cover a handful of routes;
   - the React 18 → 19 and `ES2017` → `es6` target facts.

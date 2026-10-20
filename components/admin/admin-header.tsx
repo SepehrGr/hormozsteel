@@ -17,7 +17,7 @@ import {
 
 import { ThemeSwitch } from '@/components/layout/theme-switch'
 import ModalDialog from '@/components/ui/modal-dialog'
-import { useNotifications } from '@/hooks/use-api'
+import { useNotifications } from '@/hooks/use-notifications'
 
 function getTimeAgo(date: Date): string {
   const now = new Date()
