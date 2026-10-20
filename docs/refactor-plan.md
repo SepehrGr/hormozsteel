@@ -690,12 +690,12 @@ By now `app/api/` should hold only:
 
 So most of this phase is checking that the remaining routes are complete.
 
-- [ ] 8.0 **Security, do early.** These admin handlers have no auth check (found in 1.2;
+- [x] 8.0 **Security, do early.** These admin handlers have no auth check (found in 1.2;
   `middleware.ts` only guards `/admin` pages, not `/api`):
   - ~~`products` POST, `products/[id]` PATCH/PUT/DELETE~~ deleted in 5.9, with `products/bulk`
   - ~~`manufacturers` POST, `manufacturers/[id]` PUT/DELETE~~ deleted in 2.7
   - ~~`contact` GET (lists customer messages), PATCH, DELETE~~ deleted in 4.7
-  - `orders` GET (lists orders) and POST
+  - ~~`orders` GET (lists orders) and POST~~ deleted in 8.0, with `useOrders`/`useCreateOrder`
 
   Public on purpose: `contact` POST, `quick-orders` POST, `auth/[...nextauth]`.
 
