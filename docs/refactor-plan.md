@@ -624,8 +624,12 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     `NoMatches`), server `product-notes.tsx` passed in as `children`, `UnifiedProductPage`
     deleted, `getCategoryProducts` selects only the board's columns. The Excel import now
     revalidates `/products` (the boards are baked into the hourly-cached HTML).
-- [ ] 7.3 `product-slider.tsx` (`/api/latest-prices`) and `moment-news/page.tsx`
+- [x] 7.3 `product-slider.tsx` (`/api/latest-prices`) and `moment-news/page.tsx`
   (`/api/moment-news`): fetch on the server and pass the data down as props.
+  - `getLatestPrices()` in `lib/data/prices.ts` (card fields only, `updated` formatted on
+    the server so it hydrates the same everywhere); the home page `revalidate = 60`.
+  - `/moment-news` deleted with its route and `moment-jalaali`: an unlinked leftover of
+    the Persian site. `/api/latest-prices` deleted too (no callers left).
 - [ ] 7.4 `contact/page.tsx`: RHF + zod. Optionally switch it, and the order-request
   modal, from the API POST to a public Server Action. That would be rate-limited and
   zod-validated like `adminAction`, but without the login check.
@@ -639,7 +643,6 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
   - `/api/products`, `/api/products/[id]`
   - `/api/categories`, `/api/categories/[id]`
   - `/api/manufacturers`, `/api/manufacturers/[id]`
-  - `/api/latest-prices`, `/api/moment-news`
 
   Excel export must already have its own route by now (5.8).
 

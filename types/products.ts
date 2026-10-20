@@ -251,6 +251,3 @@ export const BEAM_SIZES = [
   'HEA 140',
   'HEB 120',
 ]
-
-/** Empty fallback when API is down — prefer live seed data. */
-export const SAMPLE_PRODUCTS: Product[] = []

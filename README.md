@@ -185,7 +185,6 @@ Do **not** store system emoji in the DB.
 | `/products/[categorySlug]` | Category products |
 | `/about`, `/contact` | Static pages |
 | `/weight/[type]` | Weight calculators |
-| `/moment-news` | Price change feed |
 
 ---
 
@@ -199,8 +198,6 @@ Do **not** store system emoji in the DB.
 | GET/POST | `/api/categories` | Categories |
 | GET/PATCH/DELETE | `/api/categories/[id]` | Single category |
 | GET/POST | `/api/manufacturers` | Manufacturers |
-| GET | `/api/latest-prices` | Home price slider |
-| GET | `/api/moment-news` | Price history feed |
 | GET/POST | `/api/orders`, `/api/contact`, `/api/quick-orders` | CRM-ish endpoints |
 | * | `/api/auth/[...nextauth]` | NextAuth |
 
@@ -210,7 +207,6 @@ Example:
 # After yarn dev
 curl "http://localhost:3000/api/products?category=rebar&limit=5"
 curl "http://localhost:3000/api/categories"
-curl "http://localhost:3000/api/latest-prices"
 ```
 
 ---

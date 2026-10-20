@@ -1,42 +1,22 @@
-'use client'
+import type { LatestPrice } from '@/lib/data/prices'
 
 import Link from 'next/link'
 
-import { Product } from '@/types/products'
 import { productCategoryHref, subcategorySlug } from '@/types/products'
-import { formatUsd, formatShortDateTime } from '@/lib/format'
-
-interface ProductCardProps {
-  product: Product
-  onOrder?: (product: Product) => void
-  onCalculate?: (product: Product) => void
-}
-
-type Move = 'up' | 'down' | 'flat'
-
-function resolveMove(product: Product): Move {
-  const raw = product.priceHistory?.changeType || product.priceDirection || ''
-  const t = String(raw).toLowerCase()
-
-  if (t === 'up' || t === 'increase' || t === 'افزایش') return 'up'
-  if (t === 'down' || t === 'decrease' || t === 'کاهش') return 'down'
-
-  return 'flat'
-}
+import { formatUsd } from '@/lib/format'
 
 /**
  * Price tick cell — market-board style for the latest-prices rail.
  */
-export default function ProductCard({ product }: ProductCardProps) {
-  const move = resolveMove(product)
-  const delta = product.priceHistory?.changeAmount ?? product.priceDelta
-  const hasDelta = delta != null && Number(delta) !== 0
-  const updated =
-    formatShortDateTime(product.priceHistory?.changedAt) ||
-    formatShortDateTime(product.priceUpdatedAt ?? product.lastUpdated)
-
-  const categorySlug = product.categorySlug || product.category?.slug || ''
-  const sub = product.subcategory
+export default function ProductCard({ product }: { product: LatestPrice }) {
+  const move =
+    product.direction === 'UP'
+      ? 'up'
+      : product.direction === 'DOWN'
+        ? 'down'
+        : 'flat'
+  const { categorySlug, subcategory: sub, delta, updated } = product
+  const hasDelta = delta != null && delta !== 0
   const href =
     categorySlug && sub
       ? `${productCategoryHref(categorySlug)}/${subcategorySlug(sub)}`
@@ -81,7 +61,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               {product.price > 0 ? formatUsd(product.price) : 'Quote'}
             </p>
             <p className='mt-0.5 text-xs text-muted-foreground'>
-              per {String(product.unit || 'KG').toLowerCase()}
+              per {product.unit.toLowerCase()}
             </p>
           </div>
 
@@ -90,7 +70,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             {hasDelta ? (
               <p className='mt-1 font-mono text-sm font-medium tabular-nums'>
                 {move === 'down' ? '−' : '+'}
-                {formatUsd(Math.abs(Number(delta)))}
+                {formatUsd(Math.abs(delta))}
               </p>
             ) : (
               <p className='mt-1 text-xs text-muted-foreground'>No change</p>
