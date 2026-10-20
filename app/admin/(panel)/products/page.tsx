@@ -94,7 +94,7 @@ export default async function ProductsPage({
       <PageHeader
         actions={
           <>
-            <ImportExcelButton categories={categories} />
+            <ImportExcelButton />
             <Button asChild variant='outline'>
               {/* A plain link: the browser downloads the file the route sends */}
               <a download href={exportHref}>

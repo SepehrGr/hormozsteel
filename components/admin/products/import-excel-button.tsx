@@ -1,24 +1,14 @@
 'use client'
 
-import type { CategoryOption } from '@/components/admin/products/types'
-
-import { useRouter } from 'next/navigation'
 import { Upload } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { useProductExcel } from '@/hooks/use-product-excel'
 
-/** Picks an .xlsx file and imports it; the page re-reads afterwards. */
-export function ImportExcelButton({
-  categories,
-}: {
-  categories: CategoryOption[]
-}) {
-  const router = useRouter()
-  const { fileInputRef, handleFileImport, handleImportClick } = useProductExcel(
-    categories,
-    router.refresh,
-  )
+/** Picks an .xlsx file and imports it. */
+export function ImportExcelButton() {
+  const { fileInputRef, handleFileImport, handleImportClick } =
+    useProductExcel()
 
   return (
     <>

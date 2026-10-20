@@ -14,15 +14,13 @@ import {
   updateProduct,
 } from '@/app/admin/(panel)/products/actions'
 import { BulkEditDialog } from '@/components/admin/products/bulk-edit-dialog'
-import {
-  ProductFormDialog,
-  toProductFormValues,
-} from '@/components/admin/products/product-form-dialog'
+import { ProductFormDialog } from '@/components/admin/products/product-form-dialog'
 import ProductsTable from '@/components/admin/products/products-table'
 import { Button } from '@/components/ui/button'
 import { DeleteDialog } from '@/components/ui/delete-dialog'
 import { DialogScope } from '@/components/ui/dialog-scope'
 import { pluralize } from '@/lib/format'
+import { toProductFormValues } from '@/lib/schemas/product'
 
 /** The page's products with selection, row edits and the bulk/edit/delete dialogs. */
 export function ProductsWorkspace({

@@ -708,10 +708,13 @@ So most of this phase is checking that the remaining routes are complete.
   Delete anything without a caller. Left: NextAuth, the notifications poll, Excel
   export/import (7.4 made the public forms Server Actions). Also deleted the unused
   `resetRateLimit`.
-- [ ] 8.2 Every remaining route:
+- [x] 8.2 Every remaining route:
   - validates with zod, using the shared `lib/schemas/*`;
   - starts with the rate-limit guard;
   - uses `requireApiAuth()` unless it's public on purpose.
+
+  The notifications and export routes already did. The Excel import became the
+  `importProducts` action (all rows or none), sharing `saveProduct` with the form.
 - [ ] 8.3 Delete `hooks/use-api.ts`. The bell's SWR hook (4.6) lives in its own file;
   every other hook in it has been replaced by server reads or actions.
 - [ ] 8.4 Rewrite CLAUDE.md for the final model:
