@@ -739,7 +739,14 @@ Every module runs the same loop, then pauses for questions:
 
 Only ever touch `ahanhormoz_demo`.
 
-- [ ] W0 Prisma fundamentals, then migration hygiene (drift check and baseline).
+- [x] W0 Prisma fundamentals, then migration hygiene (drift check and baseline).
+  - The live DB matched the schema, but none of the 9 migrations were recorded (it was
+    built with `db push`). They were squashed into one `0_init`, generated with
+    `migrate diff --from-empty`, and marked applied with `migrate resolve --applied`.
+  - `migrate dev --create-only` produced an empty migration: replaying `0_init` in the
+    shadow DB gives the schema exactly. The shadow DB is the one allowed exception to
+    "only `ahanhormoz_demo`".
+  - `yarn db:push` was deleted; a fresh setup runs `yarn prisma migrate deploy`.
 - [ ] W1 Catalog (Category, Manufacturer, Product):
   - money `Float` → `Decimal(12,2)`
   - Category→Product `Restrict`
