@@ -482,7 +482,7 @@
   }
 }
 
-/* Leaflet map: colorful Voyager basemap + Google-like dark (not greyscale) */
+/* Leaflet map: OSM basemap, darkened in dark mode (not greyscale) */
 .map-tiles {
   filter: none;
 }
@@ -504,4 +504,27 @@
 .leaflet-popup-pane,
 .leaflet-control-container {
   filter: none;
+}
+
+/* Unlayered like leaflet.css, so these beat it (Tailwind utilities, being in a
+   layer, never can); one class stronger than its .leaflet-touch rules */
+.leaflet-container .leaflet-control-zoom.leaflet-bar {
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.leaflet-container .leaflet-control-zoom.leaflet-bar a {
+  background: var(--card);
+  color: var(--foreground);
+  border-bottom-color: var(--border);
+}
+
+.leaflet-container .leaflet-control-zoom.leaflet-bar a:hover {
+  background: var(--muted);
+}
+
+.leaflet-container .leaflet-control-attribution.leaflet-control {
+  background: color-mix(in oklch, var(--card) 90%, transparent);
+  color: var(--muted-foreground);
+  font-size: 10px;
 }

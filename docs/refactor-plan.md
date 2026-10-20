@@ -630,9 +630,16 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     the server so it hydrates the same everywhere); the home page `revalidate = 60`.
   - `/moment-news` deleted with its route and `moment-jalaali`: an unlinked leftover of
     the Persian site. `/api/latest-prices` deleted too (no callers left).
-- [ ] 7.4 `contact/page.tsx`: RHF + zod. Optionally switch it, and the order-request
+- [x] 7.4 `contact/page.tsx`: RHF + zod. Optionally switch it, and the order-request
   modal, from the API POST to a public Server Action. That would be rate-limited and
   zod-validated like `adminAction`, but without the login check.
+  - Done: `publicAction` in `lib/actions.ts` (submit rate limit → zod → handler);
+    `app/actions.ts` has `sendContactMessage` and `requestQuote`. `/api/contact` and
+    `/api/quick-orders` deleted. The contact page is a server page with a client
+    `ContactForm`. `blankOr` and `phone()` shared in `lib/schemas/fields.ts`.
+  - Also fixed the contact map: CARTO tiles now need an API key (they served an
+    "API key required" image), so it uses OSM's tiles; the zoom/attribution styles moved
+    to unlayered CSS, since leaflet.css always beat the layered Tailwind classes.
 - [ ] 7.5 `about/page.tsx` and `manufacturers/[postId]`: move content into `config/` and
   split the sections.
 - [ ] 7.6 Calculators: pure formulas in `lib/weight.ts`, with one `tsx --test` check. Also drop the

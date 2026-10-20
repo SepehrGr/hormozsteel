@@ -1,13 +1,7 @@
 import { z } from 'zod'
 
+import { blankOr } from '@/lib/schemas/fields'
 import { isValidSlug, slugify } from '@/lib/slug'
-
-/** Blank, or a value in `format`; surrounding spaces are ignored. */
-const blankOr = (format: z.ZodType<string, string>) =>
-  z
-    .string()
-    .trim()
-    .pipe(z.union([z.literal(''), format]))
 
 /**
  * The rules for a manufacturer (mill), shared by the admin form and its

@@ -1,9 +1,9 @@
-import type { ActionResult } from '@/lib/actions'
 import type { QuickOrderFormValues } from '@/lib/schemas/quick-order'
 
 import { useState } from 'react'
 import { CheckCircle, Send } from 'lucide-react'
 
+import { requestQuote } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import { DialogFooter, DialogFrame } from '@/components/ui/dialogs'
 import { FormField, Input, Textarea } from '@/components/ui/field'
@@ -23,25 +23,6 @@ const DELIVERY_OPTIONS = [
 
 const sectionTitleClass =
   'font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'
-
-async function postQuickOrder(
-  values: QuickOrderFormValues,
-): Promise<ActionResult<{ id: string }>> {
-  try {
-    const response = await fetch('/api/quick-orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
-    })
-
-    return await response.json()
-  } catch {
-    return {
-      success: false,
-      error: 'Network error. Check your connection and try again.',
-    }
-  }
-}
 
 export default function OrderRequestModal({
   onClose,
@@ -65,7 +46,7 @@ export default function OrderRequestModal({
         productName,
       },
       action: async values => {
-        const result = await postQuickOrder(values)
+        const result = await requestQuote(values)
 
         if (result.success) setOrderId(result.data.id)
 

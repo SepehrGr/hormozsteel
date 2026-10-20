@@ -198,7 +198,7 @@ Do **not** store system emoji in the DB.
 | GET/POST | `/api/categories` | Categories |
 | GET/PATCH/DELETE | `/api/categories/[id]` | Single category |
 | GET/POST | `/api/manufacturers` | Manufacturers |
-| GET/POST | `/api/orders`, `/api/contact`, `/api/quick-orders` | CRM-ish endpoints |
+| GET/POST | `/api/orders` | CRM-ish endpoints (the contact and quote forms use Server Actions) |
 | * | `/api/auth/[...nextauth]` | NextAuth |
 
 Example:
