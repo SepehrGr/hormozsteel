@@ -704,8 +704,10 @@ So most of this phase is checking that the remaining routes are complete.
   handler, on a `fix/api-auth` branch before Phase 2. Nothing calls `/api/orders` at all
   (only the unused `useOrders`/`useCreateOrder` hooks reference it), so that route and
   both hooks can simply be deleted.
-- [ ] 8.1 Inventory `app/api/`: every remaining route needs one of the reasons above.
-  Delete anything without a caller.
+- [x] 8.1 Inventory `app/api/`: every remaining route needs one of the reasons above.
+  Delete anything without a caller. Left: NextAuth, the notifications poll, Excel
+  export/import (7.4 made the public forms Server Actions). Also deleted the unused
+  `resetRateLimit`.
 - [ ] 8.2 Every remaining route:
   - validates with zod, using the shared `lib/schemas/*`;
   - starts with the rate-limit guard;
