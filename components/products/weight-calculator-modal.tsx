@@ -12,6 +12,18 @@ interface WeightCalculatorModalProps {
   productUnit?: 'kg' | 'ton' | 'piece'
 }
 
+/** First match wins, so "Angles & channels" opens the angle calculator. */
+const MATCHERS: [WeightCalculatorType, string[]][] = [
+  ['rebar', ['rebar']],
+  ['sheet', ['sheet']],
+  ['beam', ['beam']],
+  ['pipe', ['pipe']],
+  ['angle', ['angle']],
+  ['stud', ['channel', 'stud']],
+  ['billet', ['billet']],
+  ['square-tube', ['tube', 'hollow']],
+]
+
 export default function WeightCalculatorModal({
   onClose,
   productName,
@@ -21,34 +33,10 @@ export default function WeightCalculatorModal({
 }: WeightCalculatorModalProps) {
   const searchText =
     `${productCategory || ''} ${productName || ''}`.toLowerCase()
-
-  const calculatorType = ((): WeightCalculatorType => {
-    if (searchText.includes('rebar') || searchText.includes('میلگرد'))
-      return 'rebar'
-    if (searchText.includes('sheet') || searchText.includes('ورق'))
-      return 'sheet'
-    if (searchText.includes('beam') || searchText.includes('تیر')) return 'beam'
-    if (searchText.includes('pipe') || searchText.includes('لوله'))
-      return 'pipe'
-    if (searchText.includes('angle') || searchText.includes('نبشی'))
-      return 'angle'
-    if (
-      searchText.includes('channel') ||
-      searchText.includes('stud') ||
-      searchText.includes('ناودانی')
-    )
-      return 'stud'
-    if (searchText.includes('billet') || searchText.includes('شمش'))
-      return 'billet'
-    if (
-      searchText.includes('tube') ||
-      searchText.includes('hollow') ||
-      searchText.includes('قوطی')
-    )
-      return 'square-tube'
-
-    return 'rebar'
-  })()
+  const calculatorType =
+    MATCHERS.find(([, words]) =>
+      words.some(w => searchText.includes(w)),
+    )?.[0] ?? 'rebar'
 
   return (
     <DialogFrame

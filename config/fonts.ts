@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from 'next/font/google'
 
-/** Primary UI font for the English portfolio demo (LTR). */
+/** Primary UI font for the English portfolio demo. */
 export const geistSans = Geist({
   subsets: ['latin'],
   display: 'swap',

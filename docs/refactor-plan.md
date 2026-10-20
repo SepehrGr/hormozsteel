@@ -659,11 +659,16 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     from `config/weight-calculators.ts`. `includeVAT` (never set) dropped with `formatPrice`.
   - `linePrice` won't price a per-piece or per-metre product by weight (it used to treat
     METER as kg).
-- [ ] 7.7 Sweep out the Persian, RTL and `dir='ltr'` leftovers (including the `shamsh` and
+- [x] 7.7 Sweep out the Persian, RTL and `dir='ltr'` leftovers (including the `shamsh` and
   `qooti` keys in `config/category-icons.ts`, shown as icon names in the category form).
   - Also: `contact/layout.tsx` is only a wrapper + `metadata`; move the metadata into the
     (now server) page and delete the layout, as 7.5 did for about.
   - Also: the calculator modal still picks its calculator by Persian keywords too.
+  - Done: no Arabic-script text or `dir='ltr'` left in the source. `shamsh`/`qooti` became
+    `billet`/`tube` (the DB already used those; the navbar and footer linked to 404s).
+    Deleted the disabled `FloatingOrderButton`, the unused Shamsh/Qooti icons, dead Radix
+    menubar and Swiper pagination CSS, and `contact/layout.tsx`. Slugs no longer allow
+    Persian letters; the product table reads `priceDirection` only.
 - [ ] 7.8 Delete the public GET routes that 7.2–7.3 leave without callers (grep first):
   - `/api/products`, `/api/products/[id]`
   - `/api/categories`, `/api/categories/[id]`

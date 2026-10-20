@@ -63,7 +63,7 @@ export default function SheetWeightCalculator({
     SHEET_TYPES.find(t => t.value === sheetType)?.label ?? sheetType
 
   return (
-    <div className='space-y-6' dir='ltr'>
+    <div className='space-y-6'>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
         <FormField id='sheetType' label='Sheet type'>
           <Select

@@ -40,7 +40,7 @@ export default async function WeightCalculatorPage({
   if (!calculatorInfo) notFound()
 
   return (
-    <div className='w-full' dir='ltr'>
+    <div className='w-full'>
       <header className='border-b border-border bg-background'>
         <div className='mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-12'>
           <p className='mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
@@ -65,9 +65,9 @@ export default async function WeightCalculatorPage({
               </div>
               <div className='bg-card px-3 py-2.5'>
                 <dt className='text-[10px] uppercase tracking-wide text-muted-foreground'>
-                  Layout
+                  Inputs
                 </dt>
-                <dd className='text-sm font-medium text-foreground'>LTR</dd>
+                <dd className='text-sm font-medium text-foreground'>mm · m</dd>
               </div>
             </dl>
           </div>

@@ -1,5 +1,13 @@
+import type { Metadata } from 'next'
+
 import ContactForm from '@/components/content/contact-form'
 import Map from '@/components/content/map'
+
+export const metadata: Metadata = {
+  title: 'Contact sales',
+  description:
+    'Request a firm steel quote — rebar, sheet, sections, pipe, and billets. Sales desk in Bandar Abbas.',
+}
 
 const officeHours = [
   { day: 'Saturday – Wednesday', hours: '08:00 – 17:00' },

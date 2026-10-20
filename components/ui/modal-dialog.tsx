@@ -112,7 +112,6 @@ export default function ModalDialog({
         'm-auto border border-border bg-card p-0 text-foreground shadow-sm backdrop:bg-black/50',
         className,
       )}
-      dir='ltr'
       role={role}
       onClose={onClose}
     >

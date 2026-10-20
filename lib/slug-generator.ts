@@ -16,7 +16,7 @@ export async function generateUniqueSlug(
 ): Promise<string> {
   const baseSlug = baseName
     .toLowerCase()
-    .replace(/[^a-z0-9\u0600-\u06FF\s-]/g, '') // Allow Persian characters
+    .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .trim()
 

@@ -40,7 +40,7 @@ export default function AngleWeightCalculator() {
   }
 
   return (
-    <div className='space-y-6' dir='ltr'>
+    <div className='space-y-6'>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
         <FormField id='wing1' label='Leg A (mm)'>
           <Input

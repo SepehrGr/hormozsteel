@@ -18,17 +18,14 @@ interface ProductTableProps {
 }
 
 function directionMeta(product: Product) {
-  const raw = product.priceHistory?.changeType || product.priceDirection || ''
-  const t = String(raw).toLowerCase()
-
-  if (t === 'up' || t === 'increase' || t === 'افزایش') {
+  if (product.priceDirection === 'UP') {
     return {
       label: 'Up',
       className: 'text-emerald-600 dark:text-emerald-400',
       Icon: TrendingUp,
     }
   }
-  if (t === 'down' || t === 'decrease' || t === 'کاهش') {
+  if (product.priceDirection === 'DOWN') {
     return {
       label: 'Down',
       className: 'text-red-600 dark:text-red-400',

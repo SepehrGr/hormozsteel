@@ -138,8 +138,8 @@ Do **not** store system emoji in the DB.
 | pipe | `icon-pipe` |
 | wire | `icon-Wire-products` |
 | mesh | `icon-grating` |
-| shamsh | `icon-bullion` |
-| qooti | `icon-profil` |
+| billet | `icon-bullion` |
+| tube | `icon-profil` |
 
 ---
 
