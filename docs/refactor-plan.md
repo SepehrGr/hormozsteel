@@ -715,7 +715,7 @@ So most of this phase is checking that the remaining routes are complete.
 
   The notifications and export routes already did. The Excel import became the
   `importProducts` action (all rows or none), sharing `saveProduct` with the form.
-- [ ] 8.3 Delete `hooks/use-api.ts`. The bell's SWR hook (4.6) lives in its own file;
+- [x] 8.3 Delete `hooks/use-api.ts`. The bell's SWR hook (4.6) lives in its own file;
   every other hook in it has been replaced by server reads or actions.
 - [ ] 8.4 Rewrite CLAUDE.md for the final model:
   - the data-access table (server read / action / route);
