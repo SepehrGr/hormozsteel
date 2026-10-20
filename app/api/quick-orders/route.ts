@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
 import { prisma } from '@/lib/prisma'
 import { checkSubmitRateLimitAndRespond } from '@/lib/rate-limit'
+import { quickOrderSchema } from '@/lib/schemas/quick-order'
 
 // POST /api/quick-orders - Create a new quick order (public quote form)
 export async function POST(request: NextRequest) {
@@ -10,68 +12,26 @@ export async function POST(request: NextRequest) {
   if (rateLimitResponse) return rateLimitResponse
 
   try {
-    const body = await request.json()
-    const {
-      customerName,
-      companyName,
-      phoneNumber,
-      city,
-      productSpecs,
-      quantity,
-      deliveryDate,
-      deliveryMethod,
-      additionalNotes,
-      productName,
-    } = body
+    const parsed = quickOrderSchema.safeParse(await request.json())
 
-    // Validation
-    if (!customerName || !phoneNumber || !city || !productSpecs || !quantity) {
+    if (!parsed.success) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Please fill in all the required fields.',
+          error: 'Check the highlighted fields.',
+          fieldErrors: z.flattenError(parsed.error).fieldErrors,
         },
         { status: 400 },
       )
     }
 
-    // Validate phone number format
-    const phoneRegex = /^\+?[\d\s()-]{7,20}$/
-
-    if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Phone number format is incorrect.',
-        },
-        { status: 400 },
-      )
-    }
-
-    // Create quick order
     const quickOrder = await prisma.quickOrder.create({
-      data: {
-        customerName: customerName.trim(),
-        companyName: companyName?.trim() || null,
-        phoneNumber: phoneNumber.trim(),
-        city: city.trim(),
-        productSpecs: productSpecs.trim(),
-        quantity: quantity.trim(),
-        deliveryDate: deliveryDate ? new Date(deliveryDate) : null,
-        deliveryMethod: deliveryMethod?.toUpperCase() || 'PICKUP',
-        additionalNotes: additionalNotes?.trim() || null,
-        productName: productName?.trim() || null,
-        status: 'PENDING',
-      },
+      data: parsed.data,
+      select: { id: true },
     })
 
     return NextResponse.json(
-      {
-        success: true,
-        message:
-          'Order request submitted. Sales will get back to you the next business day.',
-        data: quickOrder,
-      },
+      { success: true, data: quickOrder },
       { status: 201 },
     )
   } catch (error) {

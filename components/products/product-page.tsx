@@ -482,32 +482,34 @@ export default function ProductPage({
         </p>
       </div>
 
-      <WeightCalculatorModal
-        formatPrice={formatUsd}
-        isOpen={isCalculatorOpen}
-        productCategory={selectedProduct?.category?.name || categorySlug}
-        productName={selectedProduct?.name}
-        productPrice={selectedProduct?.price}
-        productUnit={normalizeUnit(selectedProduct?.unit)}
-        onClose={() => {
-          setIsCalculatorOpen(false)
-          setSelectedProduct(null)
-        }}
-      />
+      {isCalculatorOpen && (
+        <WeightCalculatorModal
+          formatPrice={formatUsd}
+          productCategory={selectedProduct?.category?.name || categorySlug}
+          productName={selectedProduct?.name}
+          productPrice={selectedProduct?.price}
+          productUnit={normalizeUnit(selectedProduct?.unit)}
+          onClose={() => {
+            setIsCalculatorOpen(false)
+            setSelectedProduct(null)
+          }}
+        />
+      )}
 
-      <OrderRequestModal
-        isOpen={isOrderModalOpen}
-        productName={selectedOrderProduct?.name}
-        productSpecs={
-          selectedOrderProduct
-            ? `${selectedOrderProduct.name} · ${selectedOrderProduct.size} · ${selectedOrderProduct.brand ?? '—'}`
-            : ''
-        }
-        onClose={() => {
-          setIsOrderModalOpen(false)
-          setSelectedOrderProduct(null)
-        }}
-      />
+      {isOrderModalOpen && (
+        <OrderRequestModal
+          productName={selectedOrderProduct?.name}
+          productSpecs={
+            selectedOrderProduct
+              ? `${selectedOrderProduct.name} · ${selectedOrderProduct.size} · ${selectedOrderProduct.brand ?? '—'}`
+              : ''
+          }
+          onClose={() => {
+            setIsOrderModalOpen(false)
+            setSelectedOrderProduct(null)
+          }}
+        />
+      )}
     </div>
   )
 }

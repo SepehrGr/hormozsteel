@@ -115,12 +115,9 @@ export default function FloatingOrderButton() {
       </div>
 
       {/* Order Modal */}
-      <OrderRequestModal
-        isOpen={isModalOpen}
-        productName=''
-        productSpecs=''
-        onClose={() => setIsModalOpen(false)}
-      />
+      {isModalOpen && (
+        <OrderRequestModal onClose={() => setIsModalOpen(false)} />
+      )}
     </>
   )
 }

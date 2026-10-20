@@ -607,8 +607,11 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
   - Admin pages keep their one-off queries inline and move them here only if reused.
   - Found: `/manufacturers/[postId]` 500s on `<Button as={NextLink}>` (a function prop into
     a HeroUI client component); fixed in 7.5.
-- [ ] 7.1 `order-request-modal.tsx` and `weight-calculator-modal.tsx`: untangle the effects
+- [x] 7.1 `order-request-modal.tsx` and `weight-calculator-modal.tsx`: untangle the effects
   and move the forms to RHF + zod.
+  - Both sit on the exported `DialogFrame` (+ `DialogFooter`) and mount only while open.
+  - `lib/schemas/quick-order.ts` is parsed by the form (`useActionForm`, posting through a
+    fetch wrapper) and by `/api/quick-orders`, which now returns only the new id.
 - [ ] 7.2 Catalog pages:
   - `app/products/[categorySlug]/**` already query Prisma on the server (cached for an
     hour). Then `category-products.tsx` and `product-page.tsx` download the whole

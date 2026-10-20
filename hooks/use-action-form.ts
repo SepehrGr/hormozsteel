@@ -33,16 +33,19 @@ export function useActionForm<T extends FieldValues>({
   action,
   mode,
   noun,
+  successMessage,
   onSuccess,
 }: {
   /** Checked in the browser; the action checks again and transforms. */
   schema: z.ZodType<unknown, T>
   defaultValues: DefaultValues<T>
   /** A Server Action (or a call to one). */
-  action: (values: T) => Promise<ActionResult>
+  action: (values: T) => Promise<ActionResult<unknown>>
   mode: FormMode
   /** Lowercase; also prefixes each field's id (`category-name`). */
   noun: string
+  /** Overrides the mode's toast, e.g. "Request sent". */
+  successMessage?: string
   /** Runs after a save instead of closing the dialog. */
   onSuccess?: (values: T) => void
 }) {
@@ -53,12 +56,12 @@ export function useActionForm<T extends FieldValues>({
     defaultValues,
   })
   const { errors, isSubmitting, isDirty } = form.formState
-  const { successMessage } = formModeCopy(mode, noun)
+  const toast = successMessage ?? formModeCopy(mode, noun).successMessage
 
   const onSubmit = form.handleSubmit(async values => {
     const result = await action(values)
 
-    if (!toastResult(result, successMessage, form.setError)) return
+    if (!toastResult(result, toast, form.setError)) return
     if (onSuccess) onSuccess(values)
     else close?.()
   })

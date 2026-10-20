@@ -43,14 +43,15 @@ interface FrameProps {
  * Title bar + close button around a ModalDialog. Mount only while open.
  * On phones it's a sheet: `full` height for forms, or anchored to the `bottom`.
  */
-function DialogFrame({
+export function DialogFrame({
   title,
   onClose,
   pending,
   sheet,
+  className,
   children,
   ...modal
-}: FrameProps & { sheet: 'full' | 'bottom' } & Pick<
+}: FrameProps & { sheet: 'full' | 'bottom'; className?: string } & Pick<
     ComponentProps<typeof ModalDialog>,
     'describedBy' | 'role' | 'closeOnBackdrop'
   >) {
@@ -64,6 +65,7 @@ function DialogFrame({
         sheet === 'full'
           ? 'max-sm:m-0 max-sm:h-dvh max-sm:max-h-dvh max-sm:border-y-0 max-sm:open:flex max-sm:open:flex-col'
           : 'max-sm:mb-0 max-sm:max-h-[85dvh] max-sm:border-b-0',
+        className,
       )}
       dismissable={!pending}
       labelledBy={titleId}
@@ -97,7 +99,7 @@ function DialogFrame({
 export const buttonRowClass =
   'flex flex-col-reverse gap-2 max-sm:*:h-11 sm:flex-row sm:justify-end'
 
-function DialogFooter({
+export function DialogFooter({
   onCancel,
   pending,
   cancelLabel = 'Cancel',
