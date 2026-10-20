@@ -5,7 +5,11 @@ import { ChevronRight } from 'lucide-react'
 import CategoryProducts from '@/components/products/category-products'
 import ProductsSidebar from '@/components/products/products-sidebar'
 import { resolveCategoryIcon } from '@/config/category-icons'
-import { getCategories, getCategory } from '@/lib/data/catalog'
+import {
+  getCategories,
+  getCategory,
+  getCategoryProducts,
+} from '@/lib/data/catalog'
 
 interface PageProps {
   params: Promise<{
@@ -38,9 +42,10 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function CategoryPage({ params }: PageProps) {
   const { categorySlug } = await params
-  const [category, categories] = await Promise.all([
+  const [category, categories, products] = await Promise.all([
     getCategory(categorySlug),
     getCategories(),
+    getCategoryProducts(categorySlug),
   ])
 
   if (!category) {
@@ -132,7 +137,7 @@ export default async function CategoryPage({ params }: PageProps) {
         <div className='mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10'>
           <div className='grid grid-cols-1 gap-8 lg:grid-cols-12'>
             <div className='lg:col-span-9'>
-              <CategoryProducts category={category} />
+              <CategoryProducts category={category} products={products} />
             </div>
             <div className='lg:col-span-3'>
               <ProductsSidebar

@@ -1,5 +1,3 @@
-'use client'
-
 import type { Product } from '@/types/products'
 
 import { useMemo } from 'react'

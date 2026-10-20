@@ -1,153 +1,52 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { Search, Package, AlertCircle } from 'lucide-react'
+import { useState } from 'react'
+import { Search } from 'lucide-react'
 
-import { useProducts } from '@/hooks/use-api'
-import ProductTable from '@/components/products/product-table'
-import WeightCalculatorModal from '@/components/products/weight-calculator-modal'
-import OrderRequestModal from '@/components/products/order-request-modal'
+import { chipClass } from '@/components/products/advanced-filters'
+import { NoMatches, ProductBoards } from '@/components/products/product-boards'
 import { Product, ProductCategory } from '@/types/products'
-import { formatUsd } from '@/lib/format'
+import { matchesSearch } from '@/lib/utils'
 
 interface CategoryProductsProps {
   category: ProductCategory
+  products: Product[]
 }
 
-function normalizeUnit(
-  unit?: string | null,
-): 'kg' | 'ton' | 'piece' | undefined {
-  if (!unit) return undefined
-  const u = unit.toLowerCase()
-
-  if (u === 'kg' || u === 'ton' || u === 'piece') return u
-  if (u === 'meter' || u === 'm') return 'kg'
-
-  return 'kg'
-}
-
-export default function CategoryProducts({ category }: CategoryProductsProps) {
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string>('all')
+export default function CategoryProducts({
+  category,
+  products,
+}: CategoryProductsProps) {
+  const [selectedSubcategory, setSelectedSubcategory] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [searchDraft, setSearchDraft] = useState('')
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false)
-  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false)
-  const [selectedOrderProduct, setSelectedOrderProduct] =
-    useState<Product | null>(null)
 
-  const {
-    products,
-    isLoading: loading,
-    isError,
-    error: fetchError,
-  } = useProducts({ category: category.slug, limit: 1000 })
+  const filteredProducts = products.filter(
+    product =>
+      (selectedSubcategory === 'all' ||
+        product.subcategory === selectedSubcategory) &&
+      matchesSearch(searchTerm, [
+        product.name,
+        product.brand,
+        product.size,
+        product.description,
+      ]),
+  )
 
-  // The API's own message when it answered, a generic one when the fetch itself failed
-  const error =
-    typeof fetchError === 'string'
-      ? fetchError
-      : isError
-        ? 'Failed to load products. Please try again.'
-        : null
+  const subcategories = [
+    ...new Set(products.map(p => p.subcategory).filter(Boolean)),
+  ].sort() as string[]
 
-  const filteredProducts = useMemo(() => {
-    let list = products
+  const filtered = searchTerm !== '' || selectedSubcategory !== 'all'
 
-    if (selectedSubcategory !== 'all') {
-      list = list.filter(p => p.subcategory === selectedSubcategory)
-    }
-    if (searchTerm.trim() !== '') {
-      const q = searchTerm.trim().toLowerCase()
-
-      list = list.filter(product => {
-        const haystack = [
-          product.name,
-          product.brand,
-          product.size,
-          product.description,
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase()
-
-        return haystack.includes(q)
-      })
-    }
-
-    return list
-  }, [products, selectedSubcategory, searchTerm])
-
-  const availableSubcategories = useMemo(() => {
-    return Array.from(
-      new Set(
-        products.map(p => p.subcategory).filter((s): s is string => Boolean(s)),
-      ),
-    ).sort()
-  }, [products])
-
-  const productsByBrand = useMemo(() => {
-    const grouped: Record<string, Product[]> = {}
-
-    for (const product of filteredProducts) {
-      const brand = product.brand || 'Unspecified mill'
-
-      if (!grouped[brand]) grouped[brand] = []
-      grouped[brand].push(product)
-    }
-
-    return grouped
-  }, [filteredProducts])
-
-  const sortedBrands = Object.keys(productsByBrand).sort()
-
-  const handleOrder = (product: Product) => {
-    setSelectedOrderProduct(product)
-    setIsOrderModalOpen(true)
-  }
-
-  const handleCalculate = (product: Product) => {
-    setSelectedProduct(product)
-    setIsCalculatorOpen(true)
-  }
-
-  if (loading) {
-    return (
-      <div className='flex min-h-[40vh] items-center justify-center'>
-        <div className='text-center'>
-          <div className='mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-border border-t-foreground' />
-          <p className='text-sm text-muted-foreground'>
-            Loading catalog prices…
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className='flex min-h-[40vh] items-center justify-center px-4'>
-        <div className='max-w-md text-center'>
-          <AlertCircle className='mx-auto mb-4 h-10 w-10 text-red-600 dark:text-red-400' />
-          <h2 className='mb-2 text-lg font-semibold text-foreground'>
-            Could not load prices
-          </h2>
-          <p className='mb-4 text-sm text-muted-foreground'>{error}</p>
-          <button
-            className='bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity duration-200 ease-out hover:opacity-90'
-            type='button'
-            onClick={() => window.location.reload()}
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    )
+  const clear = () => {
+    setSearchTerm('')
+    setSearchDraft('')
+    setSelectedSubcategory('all')
   }
 
   return (
     <>
-      {/* Toolbar */}
       <div className='mb-6 border border-border bg-card'>
         <div className='flex items-center justify-between border-b border-border px-4 py-3'>
           <h2 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
@@ -163,6 +62,7 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
             <div className='relative flex-1'>
               <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
               <input
+                aria-label='Search products'
                 className='w-full border border-border bg-background py-2.5 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground'
                 placeholder='Search size, mill, or product name…'
                 type='search'
@@ -183,120 +83,46 @@ export default function CategoryProducts({ category }: CategoryProductsProps) {
             </button>
           </div>
 
-          {availableSubcategories.length > 0 && (
+          {subcategories.length > 0 && (
             <div className='flex flex-wrap gap-2'>
               <button
-                className={`px-2.5 py-1.5 text-xs font-medium transition-colors duration-200 ease-out ${
-                  selectedSubcategory === 'all'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
+                aria-pressed={selectedSubcategory === 'all'}
+                className={chipClass(selectedSubcategory === 'all')}
                 type='button'
                 onClick={() => setSelectedSubcategory('all')}
               >
                 All ({products.length})
               </button>
-              {availableSubcategories.map(subcategory => {
-                const count = products.filter(
-                  p => p.subcategory === subcategory,
-                ).length
-
-                return (
-                  <button
-                    key={subcategory}
-                    className={`px-2.5 py-1.5 text-xs font-medium transition-colors duration-200 ease-out ${
-                      selectedSubcategory === subcategory
-                        ? 'bg-primary text-primary-foreground'
-                        : 'border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground'
-                    }`}
-                    type='button'
-                    onClick={() => setSelectedSubcategory(subcategory)}
-                  >
-                    {subcategory} ({count})
-                  </button>
-                )
-              })}
+              {subcategories.map(subcategory => (
+                <button
+                  key={subcategory}
+                  aria-pressed={selectedSubcategory === subcategory}
+                  className={chipClass(selectedSubcategory === subcategory)}
+                  type='button'
+                  onClick={() => setSelectedSubcategory(subcategory)}
+                >
+                  {subcategory} (
+                  {products.filter(p => p.subcategory === subcategory).length})
+                </button>
+              ))}
             </div>
           )}
         </div>
       </div>
 
-      {/* Boards by mill */}
       {filteredProducts.length > 0 ? (
-        <div className='space-y-8'>
-          {sortedBrands.map(brand => (
-            <section key={brand}>
-              <div className='mb-3 flex flex-wrap items-center gap-2'>
-                <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
-                  {brand}
-                </h3>
-                <span className='border border-border bg-muted/50 px-2 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground'>
-                  {productsByBrand[brand].length}{' '}
-                  {productsByBrand[brand].length === 1 ? 'item' : 'items'}
-                </span>
-              </div>
-              <ProductTable
-                formatPrice={formatUsd}
-                products={productsByBrand[brand]}
-                onCalculate={handleCalculate}
-                onOrder={handleOrder}
-              />
-            </section>
-          ))}
-        </div>
-      ) : (
-        <div className='border border-dashed border-border bg-card px-6 py-16 text-center'>
-          <Package className='mx-auto mb-3 h-10 w-10 text-muted-foreground' />
-          <h3 className='mb-1 text-base font-semibold text-foreground'>
-            No matching line items
-          </h3>
-          <p className='text-sm text-muted-foreground'>
-            {selectedSubcategory === 'all' && !searchTerm
-              ? `No products in ${category.name} yet.`
-              : 'Adjust search or sub-line filters to see more results.'}
-          </p>
-          {(searchTerm || selectedSubcategory !== 'all') && (
-            <button
-              className='mt-4 text-sm font-medium text-foreground underline-offset-4 hover:underline'
-              type='button'
-              onClick={() => {
-                setSearchTerm('')
-                setSearchDraft('')
-                setSelectedSubcategory('all')
-              }}
-            >
-              Clear search & filters
-            </button>
-          )}
-        </div>
-      )}
-
-      {isCalculatorOpen && (
-        <WeightCalculatorModal
-          formatPrice={formatUsd}
-          productCategory={selectedProduct?.category?.name || category.name}
-          productName={selectedProduct?.name}
-          productPrice={selectedProduct?.price}
-          productUnit={normalizeUnit(selectedProduct?.unit)}
-          onClose={() => {
-            setIsCalculatorOpen(false)
-            setSelectedProduct(null)
-          }}
+        <ProductBoards
+          categoryName={category.name}
+          products={filteredProducts}
         />
-      )}
-
-      {isOrderModalOpen && (
-        <OrderRequestModal
-          productName={selectedOrderProduct?.name}
-          productSpecs={
-            selectedOrderProduct
-              ? `${selectedOrderProduct.name} · ${selectedOrderProduct.size} · ${selectedOrderProduct.brand ?? '—'}`
-              : ''
+      ) : (
+        <NoMatches
+          message={
+            filtered
+              ? 'Adjust search or sub-line filters to see more results.'
+              : `No products in ${category.name} yet.`
           }
-          onClose={() => {
-            setIsOrderModalOpen(false)
-            setSelectedOrderProduct(null)
-          }}
+          onClear={filtered ? clear : undefined}
         />
       )}
     </>

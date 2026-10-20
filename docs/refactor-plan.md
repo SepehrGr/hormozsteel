@@ -612,7 +612,7 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
   - Both sit on the exported `DialogFrame` (+ `DialogFooter`) and mount only while open.
   - `lib/schemas/quick-order.ts` is parsed by the form (`useActionForm`, posting through a
     fetch wrapper) and by `/api/quick-orders`, which now returns only the new id.
-- [ ] 7.2 Catalog pages:
+- [x] 7.2 Catalog pages:
   - `app/products/[categorySlug]/**` already query Prisma on the server (cached for an
     hour). Then `category-products.tsx` and `product-page.tsx` download the whole
     category again in the browser (`useProducts({ limit: 1000 })`, `useCategories()`).
@@ -620,6 +620,10 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     in-memory state in the client island.
   - Drop `useProducts`/`useCategories`.
   - Then split the two components (513 and 302 lines) into sections.
+  - Done: shared `product-boards.tsx` (`ProductBoards` = mill tables + both dialogs,
+    `NoMatches`), server `product-notes.tsx` passed in as `children`, `UnifiedProductPage`
+    deleted, `getCategoryProducts` selects only the board's columns. The Excel import now
+    revalidates `/products` (the boards are baked into the hourly-cached HTML).
 - [ ] 7.3 `product-slider.tsx` (`/api/latest-prices`) and `moment-news/page.tsx`
   (`/api/moment-news`): fetch on the server and pass the data down as props.
 - [ ] 7.4 `contact/page.tsx`: RHF + zod. Optionally switch it, and the order-request

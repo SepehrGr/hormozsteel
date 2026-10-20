@@ -1,5 +1,4 @@
 import type { InboxNotifications } from '@/types'
-import type { CategoryDTO, ProductDTO } from '@/types/products'
 
 import useSWR from 'swr'
 import { useState } from 'react'
@@ -11,16 +10,6 @@ const fetcher = (url: string) => fetch(url).then(res => res.json())
 interface PaginationParams {
   page?: number
   limit?: number
-}
-
-interface ProductFilters extends PaginationParams {
-  category?: string
-  subcategory?: string
-  brand?: string
-  inStock?: boolean
-  search?: string
-  sortBy?: string
-  sortOrder?: 'asc' | 'desc'
 }
 
 interface ApiResponse<T> {
@@ -45,86 +34,6 @@ interface PaginatedResponse<T> {
     }
   }
   error?: string
-}
-
-// Products hooks
-export function useProducts(filters?: ProductFilters) {
-  const queryString = filters
-    ? new URLSearchParams(
-        Object.entries(filters).reduce(
-          (acc, [key, value]) => {
-            if (value !== undefined && value !== null) {
-              acc[key] = value.toString()
-            }
-
-            return acc
-          },
-          {} as Record<string, string>,
-        ),
-      ).toString()
-    : ''
-
-  const { data, error, mutate } = useSWR<PaginatedResponse<ProductDTO>>(
-    `/api/products${queryString ? `?${queryString}` : ''}`,
-    fetcher,
-  )
-
-  return {
-    products: data?.success ? data.data.products || [] : [],
-    pagination: data?.success ? data.data.pagination : null,
-    isLoading: !error && !data,
-    isError: error || (data && !data.success),
-    error: error || (data && !data.success ? data.error : null),
-    mutate,
-  }
-}
-
-export function useProduct(id: string) {
-  const { data, error, mutate } = useSWR<ApiResponse<any>>(
-    id ? `/api/products/${id}` : null,
-    fetcher,
-  )
-
-  return {
-    product: data?.success ? data.data : null,
-    isLoading: !error && !data,
-    isError: error || (data && !data.success),
-    error: error || (data && !data.success ? data.error : null),
-    mutate,
-  }
-}
-
-// Categories hooks
-export function useCategories(includeProducts = false) {
-  const { data, error, mutate } = useSWR<ApiResponse<CategoryDTO[]>>(
-    `/api/categories${includeProducts ? '?includeProducts=true' : ''}`,
-    fetcher,
-  )
-
-  return {
-    categories: data?.success ? data.data : [],
-    isLoading: !error && !data,
-    isError: error || (data && !data.success),
-    error: error || (data && !data.success ? data.error : null),
-    mutate,
-  }
-}
-
-export function useCategory(id: string, includeProducts = false) {
-  const { data, error, mutate } = useSWR<ApiResponse<CategoryDTO>>(
-    id
-      ? `/api/categories/${id}${includeProducts ? '?includeProducts=true' : ''}`
-      : null,
-    fetcher,
-  )
-
-  return {
-    category: data?.success ? data.data : null,
-    isLoading: !error && !data,
-    isError: error || (data && !data.success),
-    error: error || (data && !data.success ? data.error : null),
-    mutate,
-  }
 }
 
 // Manufacturers hooks
