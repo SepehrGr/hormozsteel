@@ -717,7 +717,8 @@ So most of this phase is checking that the remaining routes are complete.
   `importProducts` action (all rows or none), sharing `saveProduct` with the form.
 - [x] 8.3 Delete `hooks/use-api.ts`. The bell's SWR hook (4.6) lives in its own file;
   every other hook in it has been replaced by server reads or actions.
-- [ ] 8.4 Rewrite CLAUDE.md for the final model:
+- [x] 8.4 Rewrite CLAUDE.md for the final model (written fresh: the re-clone had lost it;
+  it stays gitignored):
   - the data-access table (server read / action / route);
   - the API-route conventions, which now cover a handful of routes;
   - the React 18 → 19 and `ES2017` → `es6` target facts.
