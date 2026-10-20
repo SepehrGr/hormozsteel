@@ -7,25 +7,17 @@ import {
   CalculatorResult,
   FormulaNote,
   DensitySelect,
-  computeLinePrice,
+  type PriceProps,
 } from './calculator-ui'
 
 import { FormField, Input } from '@/components/ui/field'
 import { formatUsd } from '@/lib/format'
-
-interface Props {
-  productPrice?: number
-  productUnit?: 'kg' | 'ton' | 'piece'
-  includeVAT?: boolean
-  formatPrice?: (price: number) => string
-}
+import { linePrice, rebarKg } from '@/lib/weight'
 
 export default function RebarWeightCalculator({
   productPrice,
   productUnit = 'kg',
-  includeVAT = false,
-  formatPrice = formatUsd,
-}: Props) {
+}: PriceProps) {
   const [diameter, setDiameter] = useState('')
   const [length, setLength] = useState('')
   const [density, setDensity] = useState('7.85')
@@ -38,11 +30,10 @@ export default function RebarWeightCalculator({
     const dens = parseFloat(density)
 
     if (!d || !l || !dens) return
-    const weight = (d * d * Math.PI * l * dens) / 1000
-    const w = Math.round(weight * 100) / 100
+    const weight = rebarKg(d, l, dens)
 
-    setResult(w)
-    setTotalPrice(computeLinePrice(w, productPrice, productUnit, includeVAT))
+    setResult(weight)
+    setTotalPrice(linePrice(weight, productPrice, productUnit))
   }
 
   const resetForm = () => {
@@ -97,27 +88,23 @@ export default function RebarWeightCalculator({
               </p>
               <p>
                 kg/m ≈{' '}
-                {(
-                  (parseFloat(diameter) ** 2 * Math.PI * parseFloat(density)) /
-                  1000
-                ).toFixed(3)}
+                {rebarKg(parseFloat(diameter), 1, parseFloat(density)).toFixed(
+                  3,
+                )}
               </p>
             </>
           }
-          priceLabel={
-            totalPrice != null
-              ? `${formatPrice(totalPrice)}${includeVAT ? ' incl. tax' : ''}`
-              : undefined
-          }
+          priceLabel={totalPrice != null ? formatUsd(totalPrice) : undefined}
           totalPrice={totalPrice}
           weightKg={result}
         />
       )}
 
       <FormulaNote
-        formula='W = (d² × π × L × ρ) ÷ 1000'
+        formula='W = (π × d² ÷ 4) × L × ρ ÷ 1000'
         notes={[
           'd in mm, L in m, ρ in g/cm³ → W in kg',
+          'For carbon steel that is about d² ÷ 162 kg per metre',
           'Same relation for ribbed and plain bar',
         ]}
       />

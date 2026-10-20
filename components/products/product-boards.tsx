@@ -6,14 +6,12 @@ import { Package } from 'lucide-react'
 import OrderRequestModal from '@/components/products/order-request-modal'
 import ProductTable from '@/components/products/product-table'
 import WeightCalculatorModal from '@/components/products/weight-calculator-modal'
-import { formatUsd } from '@/lib/format'
 
-function normalizeUnit(unit?: string | null) {
-  const u = unit?.toLowerCase()
+/** Per-weight units price a calculated weight; anything else (piece, meter) can't. */
+function normalizeUnit(unit: string) {
+  const u = unit.toLowerCase()
 
-  if (!u) return undefined
-
-  return u === 'ton' || u === 'piece' ? u : 'kg'
+  return u === 'kg' || u === 'ton' ? u : 'piece'
 }
 
 /** One price table per mill, with the row actions' calculator and quote dialogs. */
@@ -53,7 +51,6 @@ export function ProductBoards({
                 </span>
               </div>
               <ProductTable
-                formatPrice={formatUsd}
                 products={rows}
                 onCalculate={setCalculating}
                 onOrder={setOrdering}
@@ -65,7 +62,6 @@ export function ProductBoards({
 
       {calculating && (
         <WeightCalculatorModal
-          formatPrice={formatUsd}
           productCategory={calculating.category?.name || categoryName}
           productName={calculating.name}
           productPrice={calculating.price}

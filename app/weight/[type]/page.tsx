@@ -3,14 +3,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 
-import SheetWeightCalculator from '@/components/calculators/sheet-weight-calculator'
-import BeamWeightCalculator from '@/components/calculators/beam-weight-calculator'
-import RebarWeightCalculator from '@/components/calculators/rebar-weight-calculator'
-import BilletWeightCalculator from '@/components/calculators/billet-weight-calculator'
-import PipeWeightCalculator from '@/components/calculators/pipe-weight-calculator'
-import StudWeightCalculator from '@/components/calculators/stud-weight-calculator'
-import AngleWeightCalculator from '@/components/calculators/angle-weight-calculator'
-import SquareTubeWeightCalculator from '@/components/calculators/square-tube-weight-calculator'
+import WeightCalculator from '@/components/calculators/weight-calculator'
 import {
   WEIGHT_CALCULATORS,
   type WeightCalculatorType,
@@ -36,33 +29,6 @@ export async function generateMetadata({
 
 export async function generateStaticParams() {
   return Object.keys(WEIGHT_CALCULATORS).map(type => ({ type }))
-}
-
-function renderCalculator(type: string) {
-  switch (type) {
-    case 'sheet':
-      return <SheetWeightCalculator />
-    case 'beam':
-      return <BeamWeightCalculator />
-    case 'rebar':
-      return <RebarWeightCalculator />
-    case 'billet':
-      return <BilletWeightCalculator />
-    case 'pipe':
-      return <PipeWeightCalculator />
-    case 'stud':
-      return <StudWeightCalculator />
-    case 'angle':
-      return <AngleWeightCalculator />
-    case 'square-tube':
-      return <SquareTubeWeightCalculator />
-    default:
-      return (
-        <p className='text-sm text-muted-foreground'>
-          Calculator not available.
-        </p>
-      )
-  }
 }
 
 export default async function WeightCalculatorPage({
@@ -121,7 +87,7 @@ export default async function WeightCalculatorPage({
               </span>
             </div>
             <div className='px-5 py-6 md:px-6 md:py-8'>
-              {renderCalculator(type)}
+              <WeightCalculator type={type as WeightCalculatorType} />
             </div>
           </div>
 

@@ -9,6 +9,7 @@ import {
   DensitySelect,
 } from './calculator-ui'
 
+import { pipeKg } from '@/lib/weight'
 import { FormField, Input } from '@/components/ui/field'
 
 export default function PipeWeightCalculator() {
@@ -25,10 +26,7 @@ export default function PipeWeightCalculator() {
     const d = parseFloat(density)
 
     if (!od || !t || !l || !d) return
-    const meanDiameter = od - t
-    const weight = (Math.PI * meanDiameter * t * l * d) / 1000
-
-    setResult(Math.round(weight * 100) / 100)
+    setResult(pipeKg(od, t, l, d))
   }
 
   const resetForm = () => {

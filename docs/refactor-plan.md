@@ -650,12 +650,20 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     `public/images/blog` and `getManufacturer(s)`: an unlinked Persian leftover.
   - Page titles no longer repeat the brand: the product pages added "· Hormoz Steel" on
     top of the root layout's title template.
-- [ ] 7.6 Calculators: pure formulas in `lib/weight.ts`, with one `tsx --test` check. Also drop the
+- [x] 7.6 Calculators: pure formulas in `lib/weight.ts`, with one `tsx --test` check. Also drop the
   `formatPrice` prop; every caller passes `formatUsd`.
+  - `lib/weight.test.ts` (`yarn test`) checks against steel-table values. It caught three
+    wrong formulas: rebar was 4× too heavy (d²π, not πd²/4); angle and hollow section
+    counted their corners twice.
+  - One `WeightCalculator({ type })` replaces the page's and the modal's switch; titles come
+    from `config/weight-calculators.ts`. `includeVAT` (never set) dropped with `formatPrice`.
+  - `linePrice` won't price a per-piece or per-metre product by weight (it used to treat
+    METER as kg).
 - [ ] 7.7 Sweep out the Persian, RTL and `dir='ltr'` leftovers (including the `shamsh` and
   `qooti` keys in `config/category-icons.ts`, shown as icon names in the category form).
   - Also: `contact/layout.tsx` is only a wrapper + `metadata`; move the metadata into the
     (now server) page and delete the layout, as 7.5 did for about.
+  - Also: the calculator modal still picks its calculator by Persian keywords too.
 - [ ] 7.8 Delete the public GET routes that 7.2–7.3 leave without callers (grep first):
   - `/api/products`, `/api/products/[id]`
   - `/api/categories`, `/api/categories/[id]`

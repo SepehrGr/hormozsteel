@@ -9,6 +9,7 @@ import {
   DensitySelect,
 } from './calculator-ui'
 
+import { billetKg } from '@/lib/weight'
 import { FormField, Input } from '@/components/ui/field'
 import { formatNumber } from '@/lib/format'
 
@@ -21,15 +22,12 @@ export default function BilletWeightCalculator() {
 
   const calculateWeight = () => {
     const l = parseFloat(length)
-    const w = parseFloat(width) / 1000
-    const h = parseFloat(height) / 1000
+    const w = parseFloat(width)
+    const h = parseFloat(height)
     const d = parseFloat(density)
 
     if (!l || !w || !h || !d) return
-    // l m × w m × h m × d t/m³ → tonnes; ×1000 → kg
-    const weight = l * w * h * d * 1000
-
-    setResult(Math.round(weight * 100) / 100)
+    setResult(billetKg(w, h, l, d))
   }
 
   const resetForm = () => {
@@ -99,10 +97,8 @@ export default function BilletWeightCalculator() {
       )}
 
       <FormulaNote
-        formula='W(kg) = L(m) × a(m) × b(m) × ρ × 1000'
-        notes={[
-          'Section sides entered in mm; converted to metres in the formula',
-        ]}
+        formula='W = a × b × L × ρ ÷ 1000'
+        notes={['a, b in mm; L in m → kg']}
       />
     </div>
   )

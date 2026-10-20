@@ -9,6 +9,7 @@ import {
   DensitySelect,
 } from './calculator-ui'
 
+import { hollowSectionKg } from '@/lib/weight'
 import { FormField, Input } from '@/components/ui/field'
 
 export default function SquareTubeWeightCalculator() {
@@ -27,9 +28,7 @@ export default function SquareTubeWeightCalculator() {
     const d = parseFloat(density)
 
     if (!w || !l || !t || !bl || !d) return
-    const weight = (2 * (w + l) * d * t * bl) / 1000
-
-    setResult(Math.round(weight * 100) / 100)
+    setResult(hollowSectionKg(w, l, t, bl, d))
   }
 
   const resetForm = () => {
@@ -110,8 +109,11 @@ export default function SquareTubeWeightCalculator() {
       )}
 
       <FormulaNote
-        formula='W = 2 × (a + b) × ρ × t × L ÷ 1000'
-        notes={['a, b, t in mm; L in m → kg (SHS / RHS approximation)']}
+        formula='W = [2 × (a + b) − 4t] × t × L × ρ ÷ 1000'
+        notes={[
+          'a, b, t in mm; L in m → kg',
+          'Corners counted once; rounded corners make real tubes a little lighter',
+        ]}
       />
     </div>
   )

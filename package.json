@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint --fix",
     "lint:check": "eslint --max-warnings=0",
+    "test": "tsx --test lib/*.test.ts",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",

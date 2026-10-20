@@ -131,19 +131,8 @@ export function DensitySelect({
   )
 }
 
-export function computeLinePrice(
-  weightKg: number,
-  productPrice?: number,
-  productUnit: 'kg' | 'ton' | 'piece' = 'kg',
-  includeVAT = false,
-) {
-  if (!productPrice || weightKg <= 0) return null
-  let final =
-    productUnit === 'ton'
-      ? (weightKg / 1000) * productPrice
-      : weightKg * productPrice
-
-  if (includeVAT) final *= 1.1
-
-  return Math.round(final * 100) / 100
+/** A product's price, for calculators that show the line value. */
+export interface PriceProps {
+  productPrice?: number
+  productUnit?: 'kg' | 'ton' | 'piece'
 }
