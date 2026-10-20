@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { logAdminAction, requireApiAuth } from '@/lib/admin-auth'
 import { updateProductPrice } from '@/lib/price-updater'
-import { resolveManufacturerId } from '@/lib/product-dto'
+import { resolveManufacturerId } from '@/lib/manufacturer'
 import { checkApiRateLimitAndRespond } from '@/lib/rate-limit'
 import { generateUniqueSlug } from '@/lib/slug-generator'
 

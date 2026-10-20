@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client'
 
 import { prisma } from '@/lib/prisma'
+import { slugify } from '@/lib/slug'
 
 /**
  * Generate a unique slug for a product
@@ -14,11 +15,7 @@ export async function generateUniqueSlug(
   excludeId?: string,
   db: Prisma.TransactionClient = prisma,
 ): Promise<string> {
-  const baseSlug = baseName
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .trim()
+  const baseSlug = slugify(baseName)
 
   // Handle empty slug
   if (!baseSlug) {

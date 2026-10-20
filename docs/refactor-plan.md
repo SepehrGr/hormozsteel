@@ -669,12 +669,16 @@ dashboard and login are skipped here, because Phase 6 rebuilds them and checks t
     Deleted the disabled `FloatingOrderButton`, the unused Shamsh/Qooti icons, dead Radix
     menubar and Swiper pagination CSS, and `contact/layout.tsx`. Slugs no longer allow
     Persian letters; the product table reads `priceDirection` only.
-- [ ] 7.8 Delete the public GET routes that 7.2–7.3 leave without callers (grep first):
+- [x] 7.8 Delete the public GET routes that 7.2–7.3 leave without callers (grep first):
   - `/api/products`, `/api/products/[id]`
   - `/api/categories`, `/api/categories/[id]`
   - `/api/manufacturers`, `/api/manufacturers/[id]`
 
   Excel export must already have its own route by now (5.8).
+  - Done, with the `useManufacturers`/`useManufacturer` hooks that called the mill routes.
+    `toProductDTO`, `mapDirectionToLegacy` and `productInclude` died with them;
+    `lib/product-dto.ts` is now `lib/manufacturer.ts` (`resolveManufacturerId`, using
+    `slugify`, as `generateUniqueSlug` now does too).
 
 ## Phase 8: API and hooks cleanup
 

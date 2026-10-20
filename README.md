@@ -190,24 +190,16 @@ Do **not** store system emoji in the DB.
 
 ## API overview
 
+Pages read with Prisma on the server and write through Server Actions, so only a
+few route handlers remain:
+
 | Method | Path | Notes |
 |--------|------|--------|
-| GET/POST | `/api/products` | List (filters, pagination) / create |
-| GET/PATCH/DELETE | `/api/products/[id]` | Single product |
-| POST | `/api/products/import` | Bulk import (auth) |
-| GET/POST | `/api/categories` | Categories |
-| GET/PATCH/DELETE | `/api/categories/[id]` | Single category |
-| GET/POST | `/api/manufacturers` | Manufacturers |
-| GET/POST | `/api/orders` | CRM-ish endpoints (the contact and quote forms use Server Actions) |
+| GET | `/api/products/export` | Excel export (auth) |
+| POST | `/api/products/import` | Excel import (auth) |
+| GET | `/api/admin/notifications` | Admin bell poll (auth) |
+| GET/POST | `/api/orders` | Legacy order endpoints (no auth yet) |
 | * | `/api/auth/[...nextauth]` | NextAuth |
-
-Example:
-
-```bash
-# After yarn dev
-curl "http://localhost:3000/api/products?category=rebar&limit=5"
-curl "http://localhost:3000/api/categories"
-```
 
 ---
 

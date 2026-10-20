@@ -7,7 +7,7 @@ import { z } from 'zod'
 
 import { ActionError, adminAction } from '@/lib/actions'
 import { setProductPrice } from '@/lib/price-updater'
-import { resolveManufacturerId } from '@/lib/product-dto'
+import { resolveManufacturerId } from '@/lib/manufacturer'
 import {
   type ProductData,
   productChangesSchema,

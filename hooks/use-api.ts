@@ -36,56 +36,6 @@ interface PaginatedResponse<T> {
   error?: string
 }
 
-// Manufacturers hooks
-export function useManufacturers(
-  filters?: PaginationParams & { search?: string },
-) {
-  const queryString = filters
-    ? new URLSearchParams(
-        Object.entries(filters).reduce(
-          (acc, [key, value]) => {
-            if (value !== undefined && value !== null) {
-              acc[key] = value.toString()
-            }
-
-            return acc
-          },
-          {} as Record<string, string>,
-        ),
-      ).toString()
-    : ''
-
-  const { data, error, mutate } = useSWR<PaginatedResponse<any>>(
-    `/api/manufacturers${queryString ? `?${queryString}` : ''}`,
-    fetcher,
-  )
-
-  return {
-    manufacturers: data?.success ? data.data.manufacturers || [] : [],
-    pagination: data?.success ? data.data.pagination : null,
-    isLoading: !error && !data,
-    isError: error || (data && !data.success),
-    error: error || (data && !data.success ? data.error : null),
-    mutate,
-  }
-}
-
-export function useManufacturer(id: string) {
-  const { data, error, mutate } = useSWR<ApiResponse<any>>(
-    id ? `/api/manufacturers/${id}` : null,
-    fetcher,
-  )
-
-  return {
-    manufacturer: data?.success ? data.data : null,
-    isLoading: !error && !data,
-    isError: error || (data && !data.success),
-    error: error || (data && !data.success ? data.error : null),
-    mutate,
-  }
-}
-
-// Orders hooks
 export function useOrders(
   filters?: PaginationParams & {
     status?: string
