@@ -792,8 +792,14 @@ Only ever touch `ahanhormoz_demo`.
   - the `quick_orders.phoneNumber` index dropped: the inbox searches with `contains`
     (`ILIKE '%…%'`), which a btree index can't serve (0 uses).
   - `@db.Text` dropped: Prisma's `String` is already `TEXT`, so it produced no SQL.
-- [ ] W4 Auth and audit: drop `Account`/`Session`/`VerificationToken` and
-  `User.emailVerified/image`; review the AdminLog indexes.
+- [x] W4 Auth and audit, migration `20261021095051_drop_nextauth_adapter_tables`:
+  - dropped `Account`/`Session`/`VerificationToken` (0 rows; NextAuth runs credentials +
+    JWT with no adapter) and `User.emailVerified/image` (never set).
+  - AdminLog: dropped the `[action]` and `[resourceType]` indexes (no query filters on
+    them; a log viewer adds what it needs). Kept `[userId]` (the `SetNull` foreign key)
+    and `[createdAt]` (the dashboard's newest entries). `ipAddress`/`userAgent` stay as
+    audit evidence even though nothing shows them yet.
+  - the real `authorize` still signs in (right password) and refuses a wrong one.
 - [ ] W5 Seed: update it for each schema change.
 - [ ] W6 Query performance: query log, N+1s, `select` vs `include`, `EXPLAIN ANALYZE`.
 

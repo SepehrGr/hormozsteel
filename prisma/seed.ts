@@ -94,8 +94,6 @@ async function main() {
   await prisma.manufacturer.deleteMany()
   // Keep users if re-running? wipe demo users too for idempotency
   await prisma.adminLog.deleteMany()
-  await prisma.session.deleteMany()
-  await prisma.account.deleteMany()
   await prisma.user.deleteMany()
 
   const passwordHash = await bcrypt.hash('admin123', 12)
