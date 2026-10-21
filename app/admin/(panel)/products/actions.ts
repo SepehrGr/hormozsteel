@@ -142,7 +142,9 @@ async function importRow(
     }).filter(([, value]) => value),
   )
   const parsed = productSchema.safeParse({
-    ...(current ? toProductFormValues(current) : emptyProduct),
+    ...(current
+      ? toProductFormValues({ ...current, price: current.price.toNumber() })
+      : emptyProduct),
     ...filled,
     ...(mill && { manufacturerId: '', brand: mill }),
     ...(stock && { inStock: stock === STOCK_LABEL.in }),

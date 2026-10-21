@@ -1,21 +1,54 @@
 -- CreateEnum
+CREATE TYPE "Role" AS ENUM ('ADMIN', 'SUPER_ADMIN');
+
+-- CreateEnum
+CREATE TYPE "ProductUnit" AS ENUM ('KG', 'TON', 'PIECE', 'METER');
+
+-- CreateEnum
+CREATE TYPE "PriceDirection" AS ENUM ('UP', 'DOWN', 'STABLE');
+
+-- CreateEnum
 CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED');
 
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('ADMIN', 'SUPER_ADMIN');
+CREATE TYPE "ContactFormStatus" AS ENUM ('NEW', 'READ', 'REPLIED');
+
+-- CreateEnum
+CREATE TYPE "QuickOrderStatus" AS ENUM ('PENDING', 'CONFIRMED', 'PROCESSING', 'COMPLETED', 'CANCELLED');
+
+-- CreateEnum
+CREATE TYPE "DeliveryMethod" AS ENUM ('PICKUP', 'DELIVERY');
 
 -- CreateTable
-CREATE TABLE "product_categories" (
+CREATE TABLE "categories" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
-    "icon" TEXT,
     "description" TEXT,
+    "icon" TEXT,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
     "subcategories" TEXT[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "product_categories_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "categories_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "manufacturers" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "description" TEXT,
+    "logo" TEXT,
+    "website" TEXT,
+    "email" TEXT,
+    "phone" TEXT,
+    "address" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "manufacturers_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -24,36 +57,41 @@ CREATE TABLE "products" (
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "description" TEXT,
-    "brand" TEXT NOT NULL,
     "size" TEXT NOT NULL,
+    "unit" "ProductUnit" NOT NULL DEFAULT 'KG',
     "price" DOUBLE PRECISION NOT NULL,
-    "unit" TEXT NOT NULL DEFAULT 'kg',
-    "weight" DOUBLE PRECISION,
+    "previousPrice" DOUBLE PRECISION,
+    "priceDirection" "PriceDirection" NOT NULL DEFAULT 'STABLE',
+    "priceDelta" DOUBLE PRECISION,
+    "priceUpdatedAt" TIMESTAMP(3),
+    "weightKg" DOUBLE PRECISION,
     "inStock" BOOLEAN NOT NULL DEFAULT true,
     "images" TEXT[],
-    "categoryId" TEXT NOT NULL,
-    "subcategory" TEXT NOT NULL,
-    "thickness" TEXT,
-    "diameter" TEXT,
-    "grade" TEXT,
-    "coating" TEXT,
-    "standard" TEXT,
-    "length" TEXT,
-    "subtype" TEXT,
-    "weightType" TEXT,
-    "sheetType" TEXT,
-    "pipeType" TEXT,
-    "wireType" TEXT,
-    "height" TEXT,
-    "meshSize" TEXT,
-    "packageType" TEXT,
-    "specifications" JSONB,
+    "subcategory" TEXT,
+    "specs" JSONB,
     "features" TEXT[],
     "applications" TEXT[],
+    "categoryId" TEXT NOT NULL,
+    "manufacturerId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "products_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "price_history" (
+    "id" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "oldPrice" DOUBLE PRECISION NOT NULL,
+    "newPrice" DOUBLE PRECISION NOT NULL,
+    "direction" "PriceDirection" NOT NULL,
+    "delta" DOUBLE PRECISION NOT NULL,
+    "note" TEXT,
+    "changedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "price_history_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -101,36 +139,6 @@ CREATE TABLE "order_items" (
 );
 
 -- CreateTable
-CREATE TABLE "price_history" (
-    "id" TEXT NOT NULL,
-    "productId" TEXT NOT NULL,
-    "price" DOUBLE PRECISION NOT NULL,
-    "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "notes" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "price_history_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "manufacturers" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
-    "description" TEXT,
-    "logo" TEXT,
-    "website" TEXT,
-    "email" TEXT,
-    "phone" TEXT,
-    "address" TEXT,
-    "products" TEXT[],
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "manufacturers_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
@@ -141,6 +149,8 @@ CREATE TABLE "users" (
     "lastLogin" TIMESTAMP(3),
     "emailVerified" TIMESTAMP(3),
     "image" TEXT,
+    "failedLoginAttempts" INTEGER NOT NULL DEFAULT 0,
+    "lockedUntil" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -185,7 +195,9 @@ CREATE TABLE "verification_tokens" (
 -- CreateTable
 CREATE TABLE "admin_logs" (
     "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "userId" TEXT,
+    "userName" TEXT NOT NULL,
+    "userEmail" TEXT NOT NULL,
     "action" TEXT NOT NULL,
     "resourceType" TEXT NOT NULL,
     "resourceId" TEXT,
@@ -197,11 +209,51 @@ CREATE TABLE "admin_logs" (
     CONSTRAINT "admin_logs_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "product_categories_name_key" ON "product_categories"("name");
+-- CreateTable
+CREATE TABLE "contact_forms" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "email" TEXT,
+    "message" TEXT NOT NULL,
+    "status" "ContactFormStatus" NOT NULL DEFAULT 'NEW',
+    "reply" TEXT,
+    "repliedAt" TIMESTAMP(3),
+    "repliedBy" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "contact_forms_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "quick_orders" (
+    "id" TEXT NOT NULL,
+    "customerName" TEXT NOT NULL,
+    "companyName" TEXT,
+    "phoneNumber" TEXT NOT NULL,
+    "city" TEXT NOT NULL,
+    "productSpecs" TEXT NOT NULL,
+    "quantity" TEXT NOT NULL,
+    "deliveryDate" TIMESTAMP(3),
+    "deliveryMethod" "DeliveryMethod" NOT NULL DEFAULT 'PICKUP',
+    "additionalNotes" TEXT,
+    "status" "QuickOrderStatus" NOT NULL DEFAULT 'PENDING',
+    "productName" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "quick_orders_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateIndex
-CREATE UNIQUE INDEX "product_categories_slug_key" ON "product_categories"("slug");
+CREATE UNIQUE INDEX "categories_slug_key" ON "categories"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "manufacturers_name_key" ON "manufacturers"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "manufacturers_slug_key" ON "manufacturers"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "products_slug_key" ON "products"("slug");
@@ -210,16 +262,28 @@ CREATE UNIQUE INDEX "products_slug_key" ON "products"("slug");
 CREATE INDEX "products_categoryId_idx" ON "products"("categoryId");
 
 -- CreateIndex
-CREATE INDEX "products_subcategory_idx" ON "products"("subcategory");
+CREATE INDEX "products_manufacturerId_idx" ON "products"("manufacturerId");
 
 -- CreateIndex
-CREATE INDEX "products_brand_idx" ON "products"("brand");
+CREATE INDEX "products_subcategory_idx" ON "products"("subcategory");
 
 -- CreateIndex
 CREATE INDEX "products_inStock_idx" ON "products"("inStock");
 
 -- CreateIndex
 CREATE INDEX "products_price_idx" ON "products"("price");
+
+-- CreateIndex
+CREATE INDEX "price_history_productId_idx" ON "price_history"("productId");
+
+-- CreateIndex
+CREATE INDEX "price_history_changedAt_idx" ON "price_history"("changedAt");
+
+-- CreateIndex
+CREATE INDEX "price_history_direction_idx" ON "price_history"("direction");
+
+-- CreateIndex
+CREATE INDEX "price_history_productId_changedAt_idx" ON "price_history"("productId", "changedAt" DESC);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "customers_email_key" ON "customers"("email");
@@ -244,18 +308,6 @@ CREATE INDEX "order_items_orderId_idx" ON "order_items"("orderId");
 
 -- CreateIndex
 CREATE INDEX "order_items_productId_idx" ON "order_items"("productId");
-
--- CreateIndex
-CREATE INDEX "price_history_productId_idx" ON "price_history"("productId");
-
--- CreateIndex
-CREATE INDEX "price_history_date_idx" ON "price_history"("date");
-
--- CreateIndex
-CREATE UNIQUE INDEX "manufacturers_name_key" ON "manufacturers"("name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "manufacturers_slug_key" ON "manufacturers"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
@@ -284,8 +336,29 @@ CREATE INDEX "admin_logs_resourceType_idx" ON "admin_logs"("resourceType");
 -- CreateIndex
 CREATE INDEX "admin_logs_createdAt_idx" ON "admin_logs"("createdAt");
 
+-- CreateIndex
+CREATE INDEX "contact_forms_status_idx" ON "contact_forms"("status");
+
+-- CreateIndex
+CREATE INDEX "contact_forms_createdAt_idx" ON "contact_forms"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "quick_orders_status_idx" ON "quick_orders"("status");
+
+-- CreateIndex
+CREATE INDEX "quick_orders_createdAt_idx" ON "quick_orders"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "quick_orders_phoneNumber_idx" ON "quick_orders"("phoneNumber");
+
 -- AddForeignKey
-ALTER TABLE "products" ADD CONSTRAINT "products_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "product_categories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "products" ADD CONSTRAINT "products_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "categories"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "products" ADD CONSTRAINT "products_manufacturerId_fkey" FOREIGN KEY ("manufacturerId") REFERENCES "manufacturers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "price_history" ADD CONSTRAINT "price_history_productId_fkey" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "orders" ADD CONSTRAINT "orders_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "customers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -303,4 +376,5 @@ ALTER TABLE "accounts" ADD CONSTRAINT "accounts_userId_fkey" FOREIGN KEY ("userI
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "admin_logs" ADD CONSTRAINT "admin_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "admin_logs" ADD CONSTRAINT "admin_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+

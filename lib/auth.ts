@@ -105,7 +105,6 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             role: user.role,
-            image: user.image,
             lastLogin: user.lastLogin,
           }
         } catch (error: any) {

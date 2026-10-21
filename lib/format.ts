@@ -29,6 +29,12 @@ const dateTimeFmt = new Intl.DateTimeFormat(locale, {
   hour: '2-digit',
   minute: '2-digit',
 })
+const calendarDateFmt = new Intl.DateTimeFormat(locale, {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'UTC',
+})
 const shortDateTimeFmt = new Intl.DateTimeFormat(locale, {
   month: 'short',
   day: 'numeric',
@@ -68,6 +74,13 @@ export function formatDate(value: DateInput) {
   const date = toDate(value)
 
   return date ? dateFmt.format(date) : EMPTY_VALUE
+}
+
+/** A date-only column (`@db.Date`, stored as UTC midnight): the same day in every time zone. */
+export function formatCalendarDate(value: DateInput) {
+  const date = toDate(value)
+
+  return date ? calendarDateFmt.format(date) : EMPTY_VALUE
 }
 
 /** `Oct 6, 2026, 02:30 PM` */

@@ -29,7 +29,7 @@ CREATE DATABASE ahanhormoz_demo;
 
 # 3. Install + schema + seed
 yarn
-yarn db:push
+yarn prisma migrate deploy
 yarn db:seed
 
 # 4. Run
@@ -58,8 +58,7 @@ Seed creates ~78 English products (rebar, beams, sheets, profiles, pipes, wire, 
 | `yarn dev` | Dev server |
 | `yarn build` / `yarn start` | Production build |
 | `yarn db:generate` | Generate Prisma Client |
-| `yarn db:push` | Sync schema to DB (dev) |
-| `yarn db:migrate` | Migrations (if you use them) |
+| `yarn db:migrate` | Create + apply a migration after a schema edit |
 | `yarn db:seed` | English catalog seed (**refuses** non-`ahanhormoz_demo` URLs) |
 | `yarn db:studio` | Prisma Studio GUI |
 | `yarn db:reset` | **Destructive** reset + migrate |
@@ -90,15 +89,15 @@ NEXTAUTH_SECRET="long-random-string"
 - **`Category.icon`**: icomoon CSS class (e.g. `icon-rebar`), **not emoji** — see `styles/icomoon.css` and `config/category-icons.ts`
 - Product technical details: **`specs` JSON** (no sparse type-specific columns)
 - **PriceDirection**: `UP` | `DOWN` | `STABLE` + **PriceHistory**
-- Auth: User / Account / Session (NextAuth)
-- Light CRM: ContactForm, QuickOrder, Order / Customer
+- Auth: User (NextAuth credentials + JWT sessions), AdminLog
+- Leads: ContactForm and QuickOrder (the contact and quote forms)
 
 ### Local Postgres (no Docker)
 
 1. Install PostgreSQL and ensure the service is running.
 2. Create DB: `CREATE DATABASE ahanhormoz_demo;`
 3. Put the connection string in `.env` and `.env.local`.
-4. `yarn db:push` then `yarn db:seed`.
+4. `yarn prisma migrate deploy` then `yarn db:seed`.
 
 ### Common DB errors
 

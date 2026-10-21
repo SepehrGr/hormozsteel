@@ -1,15 +1,15 @@
-import { PriceDirection, type Prisma } from '@prisma/client'
+import { PriceDirection, Prisma } from '@prisma/client'
 
-function directionFromDelta(delta: number): PriceDirection {
-  if (delta > 0) return PriceDirection.UP
-  if (delta < 0) return PriceDirection.DOWN
+function directionFromDelta(delta: Prisma.Decimal): PriceDirection {
+  if (delta.gt(0)) return PriceDirection.UP
+  if (delta.lt(0)) return PriceDirection.DOWN
 
   return PriceDirection.STABLE
 }
 
 /**
  * Set a product's price inside the caller's transaction, keeping
- * `previousPrice`/`priceDirection` in step and appending a price-history row.
+ * its last-move fields in step and appending a price-history row.
  * Does nothing when the price is unchanged.
  */
 export async function setProductPrice(
@@ -18,26 +18,29 @@ export async function setProductPrice(
   newPrice: number,
   note?: string,
 ) {
-  const product = await tx.product.findUnique({ where: { id: productId } })
+  const product = await tx.product.findUnique({
+    where: { id: productId },
+    select: { price: true },
+  })
 
   if (!product) {
     throw new Error(`Product not found: ${productId}`)
   }
-  if (product.price === newPrice) return product
+  if (product.price.equals(newPrice)) return
 
   const oldPrice = product.price
-  const delta = newPrice - oldPrice
+  const delta = new Prisma.Decimal(newPrice).minus(oldPrice)
   const direction = directionFromDelta(delta)
 
-  const row = await tx.product.update({
+  await tx.product.update({
     where: { id: productId },
     data: {
-      previousPrice: oldPrice,
       price: newPrice,
       priceDirection: direction,
-      priceDelta: Math.abs(delta),
+      priceDelta: delta.abs(),
       priceUpdatedAt: new Date(),
     },
+    select: { id: true },
   })
 
   await tx.priceHistory.create({
@@ -46,10 +49,9 @@ export async function setProductPrice(
       oldPrice,
       newPrice,
       direction,
-      delta: Math.abs(delta),
+      delta: delta.abs(),
       note,
     },
+    select: { id: true },
   })
-
-  return row
 }

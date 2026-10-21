@@ -120,8 +120,7 @@ export function ProductsWorkspace({
               name={pluralize(selectedIds.length, 'selected product')}
               noun='product'
             >
-              Their price history and any order lines that include them are
-              deleted too.
+              Their price history is deleted too.
             </DeleteDialog>
           )}
         </DialogScope>
@@ -144,8 +143,7 @@ export function ProductsWorkspace({
             name={deleting.name}
             noun='product'
           >
-            Its price history and any order lines that include it are deleted
-            too.
+            Its price history is deleted too.
           </DeleteDialog>
         </DialogScope>
       ) : null}

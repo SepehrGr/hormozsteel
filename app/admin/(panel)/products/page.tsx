@@ -83,6 +83,7 @@ export default async function ProductsPage({
 
   const products: ProductDTO[] = rows.map(row => ({
     ...row,
+    price: row.price.toNumber(),
     brand: row.manufacturer?.name ?? null,
   }))
   const countOf = (inStock: boolean) =>

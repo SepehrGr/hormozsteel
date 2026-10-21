@@ -8,7 +8,7 @@ import {
 } from '@/components/admin/admin-table'
 import { DeleteRowButton } from '@/components/admin/delete-row-button'
 import { QuickOrderStatusSelect } from '@/components/admin/orders/quick-order-status'
-import { capitalize, formatDateTime } from '@/lib/format'
+import { capitalize, formatCalendarDate, formatDateTime } from '@/lib/format'
 
 const columns: Column<QuickOrder>[] = [
   {
@@ -46,7 +46,7 @@ const columns: Column<QuickOrder>[] = [
         <p>{capitalize(order.deliveryMethod.toLowerCase())}</p>
         {order.deliveryDate ? (
           <p className='mt-0.5 font-mono tabular-nums'>
-            {formatDateTime(order.deliveryDate)}
+            {formatCalendarDate(order.deliveryDate)}
           </p>
         ) : null}
       </div>

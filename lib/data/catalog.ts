@@ -39,8 +39,10 @@ export const getCategoryProducts = cache(
       },
     })
 
-    return products.map(({ manufacturer, ...product }) => ({
+    return products.map(({ manufacturer, price, priceDelta, ...product }) => ({
       ...product,
+      price: price.toNumber(),
+      priceDelta: priceDelta?.toNumber() ?? null,
       brand: manufacturer?.name ?? null,
     }))
   },

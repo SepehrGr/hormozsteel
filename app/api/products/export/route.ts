@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       [SHEET.mill]: p.manufacturer?.name ?? '',
       [SHEET.size]: p.size,
       [SHEET.weight]: p.weightKg ?? '',
-      [SHEET.price]: p.price,
+      [SHEET.price]: p.price.toNumber(),
       [SHEET.stock]: p.inStock ? STOCK_LABEL.in : STOCK_LABEL.out,
       [SHEET.category]: p.category.name,
       [SHEET.subcategory]: p.subcategory ?? '',

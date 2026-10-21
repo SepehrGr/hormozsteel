@@ -739,23 +739,96 @@ Every module runs the same loop, then pauses for questions:
 
 Only ever touch `ahanhormoz_demo`.
 
-- [ ] W0 Prisma fundamentals, then migration hygiene (drift check and baseline).
-- [ ] W1 Catalog (Category, Manufacturer, Product):
-  - money `Float` → `Decimal(12,2)`
-  - Category→Product `Restrict`
-  - subcategory model decision
-  - index review with `EXPLAIN ANALYZE`
-- [ ] W2 Pricing (PriceHistory, `price-updater`):
-  - write the price copies on Product in one `$transaction`
-  - drop the redundant indexes and the `changedAt`/`createdAt` duplicate
-- [ ] W3 Orders and leads:
-  - OrderItem and Order cascades → `Restrict`
-  - `QuickOrder` types
-  - drop the redundant `@db.Text`
-- [ ] W4 Auth and audit: drop `Account`/`Session`/`VerificationToken` and
-  `User.emailVerified/image`; review the AdminLog indexes.
-- [ ] W5 Seed: update it for each schema change.
-- [ ] W6 Query performance: query log, N+1s, `select` vs `include`, `EXPLAIN ANALYZE`.
+- [x] W0 Prisma fundamentals, then migration hygiene (drift check and baseline).
+  - The live DB matched the schema, but none of the 9 migrations were recorded (it was
+    built with `db push`). They were squashed into one `0_init`, generated with
+    `migrate diff --from-empty`, and marked applied with `migrate resolve --applied`.
+  - `migrate dev --create-only` produced an empty migration: replaying `0_init` in the
+    shadow DB gives the schema exactly. The shadow DB is the one allowed exception to
+    "only `ahanhormoz_demo`".
+  - `yarn db:push` was deleted; a fresh setup runs `yarn prisma migrate deploy`.
+- [x] W1 Catalog (Category, Manufacturer, Product), migration `20261021080016_catalog_money_restrict`:
+  - money `Float` → `Decimal(12,2)` on all six money columns (Product and PriceHistory,
+    which copy into each other); no stored value had more than 2 decimals, so nothing
+    rounded. `weightKg` stays `Float`.
+    - Decimals stay on the server: `setProductPrice` and the dashboard's percent use
+      Decimal math; every read that renders or leaves the server (`lib/data/*`, the admin
+      products page, the export) calls `.toNumber()`, since a client prop can't be a Decimal.
+  - Category→Product `Restrict`: Postgres refuses (`23001`) when products remain;
+    `deleteCategory` keeps its count for the readable message.
+  - subcategory: kept as text labels. `updateCategory` refuses to drop a label that
+    products still use (a `ponytail:` note names the Subcategory table as the upgrade).
+  - index review with `EXPLAIN ANALYZE` on 50k fake rows (rolled back): `price` and
+    `inStock` stay (`LIMIT 20` sort, rare out-of-stock); `[categoryId]` + `[subcategory]`
+    became one `[categoryId, subcategory]`, which still serves the foreign key.
+  - `migrate dev` stops at the data-loss prompt in a non-interactive shell: write the SQL
+    with `migrate diff --from-schema-datasource … --to-schema-datamodel …` into a folder
+    named with a **UTC** timestamp, then `migrate deploy`.
+- [x] W2 Pricing (PriceHistory, `price-updater`), migration `20261021093006_price_history_cleanup`:
+  - the price copies on Product were already written in one transaction (`setProductPrice`
+    runs inside the action's `tx`); on the live data they matched the newest history row
+    for all 35 products that have one.
+  - dropped `PriceHistory.createdAt` (always equal to `changedAt`) and `Product.previousPrice`
+    (never read; it is `price` ∓ `priceDelta`).
+  - dropped the `[productId]` and `[direction]` indexes; kept `[changedAt]` (newest N) and
+    `[productId, changedAt desc]`, which serves the foreign key and the planned price charts.
+  - the home slider reads the products' last-move fields (12 newest non-STABLE moves)
+    instead of deduping the newest 50 history rows in JS; same products, same order.
+  - creating a product still writes no history row: a chart can start from the first
+    row's `oldPrice`, or from `price` when there is none.
+  - `REINDEX TABLE price_history` once: a rolled-back 100k-row size test had bloated its
+    indexes to 22 MB (now 48 kB).
+  - trimmed the unread legacy fields from `ProductDTO`.
+- [x] W3 Orders and leads, migration `20261021094656_drop_orders_tidy_leads`:
+  - `Customer`, `Order`, `OrderItem` and `OrderStatus` dropped instead of re-wired: only the
+    seed touched them (1 customer, 0 orders, 0 lines). The admin "Orders" inbox is
+    `QuickOrder`; real ordering, if it ever comes, grows out of it. This also ends the
+    Product → OrderItem cascade the product delete dialog warned about.
+  - `QuickOrder` types: `deliveryDate` is now `@db.Date` (the form sends a day, and a
+    timestamp showed the day before west of UTC), shown with `formatCalendarDate` (UTC).
+    `quantity` stays text ("20 tons", "60 pcs", "120 sheets"); `productName` stays a text
+    snapshot of the name at request time.
+  - `ContactForm.reply`/`repliedBy` dropped (never written); `repliedAt` stays.
+  - the `quick_orders.phoneNumber` index dropped: the inbox searches with `contains`
+    (`ILIKE '%…%'`), which a btree index can't serve (0 uses).
+  - `@db.Text` dropped: Prisma's `String` is already `TEXT`, so it produced no SQL.
+- [x] W4 Auth and audit, migration `20261021095051_drop_nextauth_adapter_tables`:
+  - dropped `Account`/`Session`/`VerificationToken` (0 rows; NextAuth runs credentials +
+    JWT with no adapter) and `User.emailVerified/image` (never set).
+  - AdminLog: dropped the `[action]` and `[resourceType]` indexes (no query filters on
+    them; a log viewer adds what it needs). Kept `[userId]` (the `SetNull` foreign key)
+    and `[createdAt]` (the dashboard's newest entries). `ipAddress`/`userAgent` stay as
+    audit evidence even though nothing shows them yet.
+  - the real `authorize` still signs in (right password) and refuses a wrong one.
+- [x] W5 Seed: kept in step with each schema change (W1–W4), then:
+  - price moves go through `setProductPrice` (start at `startPrice`, move to `price`), so
+    seeded products and history have exactly the shape the admin writes: no
+    `priceDelta`/`priceUpdatedAt` on STABLE products, one history row per move.
+  - tested without touching the demo data: `migrate deploy` + seed into a throwaway
+    `seedcheck` schema inside `ahanhormoz_demo`, checked, then `DROP SCHEMA … CASCADE`.
+    78 products, 32 history rows, every product's last-move fields equal its newest row.
+  - that test caught that `migrate diff --from-schema-datasource` writes `"public".`-
+    qualified SQL (it aimed at `public` from the other schema; the failed migration rolled
+    back). The four W1–W4 migrations were unqualified and their checksums updated in
+    `_prisma_migrations`; built from scratch they now match the live schema (only
+    `admin_logs` column order differs, from the Phase 3 `ADD COLUMN`s).
+  - `prisma/seed.ts` is outside `tsconfig`; type-check it on its own after schema changes.
+- [x] W6 Query performance, migration `20261021095959_products_created_at_index`:
+  - query log per page (warm requests, a second dev server from a temp worktree on
+    webpack, since Turbopack rejects a symlinked `node_modules`): every page runs a fixed
+    number of queries (admin 2–11, public 0–5), so no N+1s; relations load as one
+    `IN (…)` each. Admin pages include one `users` read from the `jwt` callback.
+    The shelf page's repeated `categories` read is dev-only (`generateStaticParams` runs
+    per request in dev), and public pages are cached for an hour.
+  - `EXPLAIN ANALYZE` at 50k products (rolled back, then `REINDEX`): the admin list's
+    default sort (`createdAt desc`) read the whole table (10.7 ms); a `[createdAt]` index
+    makes it 0.04 ms. The text search (`ILIKE '%…%'`, 42 ms) would need `pg_trgm` GIN
+    indexes; not worth it at this catalog size.
+  - `select` vs everything: `setProductPrice` read and returned the whole product (22
+    columns) and the whole history row; it now reads `price` and returns ids.
+  - `lib/prisma.ts`: dropped the `SIGINT`/`SIGTERM`/`beforeExit` handlers (their
+    `process.exit(0)` cut Next's own shutdown short, and dev reloads stacked them) and
+    the `datasources` override that repeated `DATABASE_URL`.
 
 ## Verification (every phase)
 
