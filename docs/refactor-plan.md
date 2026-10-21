@@ -764,9 +764,21 @@ Only ever touch `ahanhormoz_demo`.
   - `migrate dev` stops at the data-loss prompt in a non-interactive shell: write the SQL
     with `migrate diff --from-schema-datasource … --to-schema-datamodel …` into a folder
     named with a **UTC** timestamp, then `migrate deploy`.
-- [ ] W2 Pricing (PriceHistory, `price-updater`):
-  - write the price copies on Product in one `$transaction`
-  - drop the redundant indexes and the `changedAt`/`createdAt` duplicate
+- [x] W2 Pricing (PriceHistory, `price-updater`), migration `20261021093006_price_history_cleanup`:
+  - the price copies on Product were already written in one transaction (`setProductPrice`
+    runs inside the action's `tx`); on the live data they matched the newest history row
+    for all 35 products that have one.
+  - dropped `PriceHistory.createdAt` (always equal to `changedAt`) and `Product.previousPrice`
+    (never read; it is `price` ∓ `priceDelta`).
+  - dropped the `[productId]` and `[direction]` indexes; kept `[changedAt]` (newest N) and
+    `[productId, changedAt desc]`, which serves the foreign key and the planned price charts.
+  - the home slider reads the products' last-move fields (12 newest non-STABLE moves)
+    instead of deduping the newest 50 history rows in JS; same products, same order.
+  - creating a product still writes no history row: a chart can start from the first
+    row's `oldPrice`, or from `price` when there is none.
+  - `REINDEX TABLE price_history` once: a rolled-back 100k-row size test had bloated its
+    indexes to 22 MB (now 48 kB).
+  - trimmed the unread legacy fields from `ProductDTO`.
 - [ ] W3 Orders and leads:
   - OrderItem and Order cascades → `Restrict`
   - `QuickOrder` types

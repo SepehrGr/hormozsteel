@@ -597,7 +597,7 @@ async function main() {
     const category = bySlug[item.categorySlug]
 
     if (!category) continue
-    const priceFields = withPriceMotion(item.basePrice, i)
+    const { previousPrice, ...priceFields } = withPriceMotion(item.basePrice, i)
     const manufacturer = m(item.manufacturerIndex)
 
     const product = await prisma.product.create({
@@ -620,14 +620,11 @@ async function main() {
       },
     })
 
-    if (
-      priceFields.priceDirection !== PriceDirection.STABLE &&
-      priceFields.previousPrice
-    ) {
+    if (priceFields.priceDirection !== PriceDirection.STABLE && previousPrice) {
       await prisma.priceHistory.create({
         data: {
           productId: product.id,
-          oldPrice: priceFields.previousPrice,
+          oldPrice: previousPrice,
           newPrice: priceFields.price,
           direction: priceFields.priceDirection,
           delta: priceFields.priceDelta,

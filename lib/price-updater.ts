@@ -9,7 +9,7 @@ function directionFromDelta(delta: Prisma.Decimal): PriceDirection {
 
 /**
  * Set a product's price inside the caller's transaction, keeping
- * `previousPrice`/`priceDirection` in step and appending a price-history row.
+ * its last-move fields in step and appending a price-history row.
  * Does nothing when the price is unchanged.
  */
 export async function setProductPrice(
@@ -32,7 +32,6 @@ export async function setProductPrice(
   const row = await tx.product.update({
     where: { id: productId },
     data: {
-      previousPrice: oldPrice,
       price: newPrice,
       priceDirection: direction,
       priceDelta: delta.abs(),

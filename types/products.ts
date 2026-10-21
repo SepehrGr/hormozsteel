@@ -9,10 +9,8 @@ export interface ProductDTO {
   size: string
   unit: ProductUnit | string
   price: number
-  previousPrice?: number | null
   priceDirection?: PriceDirection | string | null
   priceDelta?: number | null
-  priceUpdatedAt?: string | Date | null
   weightKg?: number | null
   inStock: boolean
   images: string[]
@@ -36,15 +34,7 @@ export interface ProductDTO {
     name: string
     slug: string
   } | null
-  priceHistory?: {
-    changeType?: string | null
-    changeAmount?: number | null
-    changedAt?: string | null
-  } | null
-  lastUpdated?: string
   createdAt?: string
-  grade?: string
-  categoryIcon?: string
 }
 
 export type Product = ProductDTO
