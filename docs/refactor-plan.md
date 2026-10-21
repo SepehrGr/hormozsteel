@@ -800,7 +800,19 @@ Only ever touch `ahanhormoz_demo`.
     and `[createdAt]` (the dashboard's newest entries). `ipAddress`/`userAgent` stay as
     audit evidence even though nothing shows them yet.
   - the real `authorize` still signs in (right password) and refuses a wrong one.
-- [ ] W5 Seed: update it for each schema change.
+- [x] W5 Seed: kept in step with each schema change (W1–W4), then:
+  - price moves go through `setProductPrice` (start at `startPrice`, move to `price`), so
+    seeded products and history have exactly the shape the admin writes: no
+    `priceDelta`/`priceUpdatedAt` on STABLE products, one history row per move.
+  - tested without touching the demo data: `migrate deploy` + seed into a throwaway
+    `seedcheck` schema inside `ahanhormoz_demo`, checked, then `DROP SCHEMA … CASCADE`.
+    78 products, 32 history rows, every product's last-move fields equal its newest row.
+  - that test caught that `migrate diff --from-schema-datasource` writes `"public".`-
+    qualified SQL (it aimed at `public` from the other schema; the failed migration rolled
+    back). The four W1–W4 migrations were unqualified and their checksums updated in
+    `_prisma_migrations`; built from scratch they now match the live schema (only
+    `admin_logs` column order differs, from the Phase 3 `ADD COLUMN`s).
+  - `prisma/seed.ts` is outside `tsconfig`; type-check it on its own after schema changes.
 - [ ] W6 Query performance: query log, N+1s, `select` vs `include`, `EXPLAIN ANALYZE`.
 
 ## Verification (every phase)

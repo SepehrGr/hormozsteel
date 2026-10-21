@@ -6,6 +6,8 @@ import { PrismaClient, PriceDirection, ProductUnit, Role } from '@prisma/client'
 import dotenv from 'dotenv'
 import bcrypt from 'bcryptjs'
 
+import { setProductPrice } from '../lib/price-updater'
+
 dotenv.config({ path: '.env.local' })
 
 const prisma = new PrismaClient()
@@ -35,43 +37,20 @@ function pickDirection(i: number): PriceDirection {
 }
 
 /**
- * Apply a small demo price movement around a USD base price.
+ * A demo price movement around a USD base price: the product starts at `startPrice`
+ * and, unless they're equal, moves to `price` through `setProductPrice`.
  * Prices are unit prices in USD (per KG / TON / METER / PIECE as set on the product).
  */
 function withPriceMotion(base: number, i: number) {
   const price = usd(base)
   const direction = pickDirection(i)
 
-  if (direction === PriceDirection.UP) {
-    const prev = usd(price * 0.97)
+  if (direction === PriceDirection.UP)
+    return { startPrice: usd(price * 0.97), price }
+  if (direction === PriceDirection.DOWN)
+    return { startPrice: usd(price * 1.03), price }
 
-    return {
-      price,
-      previousPrice: prev,
-      priceDirection: PriceDirection.UP,
-      priceDelta: usd(price - prev),
-      priceUpdatedAt: new Date(),
-    }
-  }
-  if (direction === PriceDirection.DOWN) {
-    const prev = usd(price * 1.03)
-
-    return {
-      price,
-      previousPrice: prev,
-      priceDirection: PriceDirection.DOWN,
-      priceDelta: usd(prev - price),
-      priceUpdatedAt: new Date(),
-    }
-  }
-
-  return {
-    price,
-    previousPrice: price,
-    priceDirection: PriceDirection.STABLE,
-    priceDelta: 0,
-    priceUpdatedAt: new Date(),
-  }
+  return { startPrice: price, price }
 }
 
 async function main() {
@@ -592,7 +571,7 @@ async function main() {
     const category = bySlug[item.categorySlug]
 
     if (!category) continue
-    const { previousPrice, ...priceFields } = withPriceMotion(item.basePrice, i)
+    const { startPrice, price } = withPriceMotion(item.basePrice, i)
     const manufacturer = m(item.manufacturerIndex)
 
     const product = await prisma.product.create({
@@ -602,7 +581,7 @@ async function main() {
         description: item.description,
         size: item.size,
         unit: item.unit,
-        ...priceFields,
+        price: startPrice,
         weightKg: item.weightKg,
         inStock: item.inStock,
         images: [],
@@ -615,18 +594,7 @@ async function main() {
       },
     })
 
-    if (priceFields.priceDirection !== PriceDirection.STABLE && previousPrice) {
-      await prisma.priceHistory.create({
-        data: {
-          productId: product.id,
-          oldPrice: previousPrice,
-          newPrice: priceFields.price,
-          direction: priceFields.priceDirection,
-          delta: priceFields.priceDelta,
-          note: 'Seed demo movement',
-        },
-      })
-    }
+    await setProductPrice(prisma, product.id, price, 'Seed demo movement')
     created++
   }
 

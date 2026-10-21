@@ -1,11 +1,11 @@
 -- DropForeignKey
-ALTER TABLE "public"."products" DROP CONSTRAINT "products_categoryId_fkey";
+ALTER TABLE "products" DROP CONSTRAINT "products_categoryId_fkey";
 
 -- DropIndex
-DROP INDEX "public"."products_categoryId_idx";
+DROP INDEX "products_categoryId_idx";
 
 -- DropIndex
-DROP INDEX "public"."products_subcategory_idx";
+DROP INDEX "products_subcategory_idx";
 
 -- AlterTable
 ALTER TABLE "price_history" ALTER COLUMN "oldPrice" SET DATA TYPE DECIMAL(12,2),

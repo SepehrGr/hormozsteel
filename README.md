@@ -89,7 +89,7 @@ NEXTAUTH_SECRET="long-random-string"
 - **`Category.icon`**: icomoon CSS class (e.g. `icon-rebar`), **not emoji** — see `styles/icomoon.css` and `config/category-icons.ts`
 - Product technical details: **`specs` JSON** (no sparse type-specific columns)
 - **PriceDirection**: `UP` | `DOWN` | `STABLE` + **PriceHistory**
-- Auth: User / Account / Session (NextAuth)
+- Auth: User (NextAuth credentials + JWT sessions), AdminLog
 - Leads: ContactForm and QuickOrder (the contact and quote forms)
 
 ### Local Postgres (no Docker)
