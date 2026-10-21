@@ -18,18 +18,21 @@ export async function setProductPrice(
   newPrice: number,
   note?: string,
 ) {
-  const product = await tx.product.findUnique({ where: { id: productId } })
+  const product = await tx.product.findUnique({
+    where: { id: productId },
+    select: { price: true },
+  })
 
   if (!product) {
     throw new Error(`Product not found: ${productId}`)
   }
-  if (product.price.equals(newPrice)) return product
+  if (product.price.equals(newPrice)) return
 
   const oldPrice = product.price
   const delta = new Prisma.Decimal(newPrice).minus(oldPrice)
   const direction = directionFromDelta(delta)
 
-  const row = await tx.product.update({
+  await tx.product.update({
     where: { id: productId },
     data: {
       price: newPrice,
@@ -37,6 +40,7 @@ export async function setProductPrice(
       priceDelta: delta.abs(),
       priceUpdatedAt: new Date(),
     },
+    select: { id: true },
   })
 
   await tx.priceHistory.create({
@@ -48,7 +52,6 @@ export async function setProductPrice(
       delta: delta.abs(),
       note,
     },
+    select: { id: true },
   })
-
-  return row
 }

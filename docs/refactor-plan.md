@@ -813,7 +813,22 @@ Only ever touch `ahanhormoz_demo`.
     `_prisma_migrations`; built from scratch they now match the live schema (only
     `admin_logs` column order differs, from the Phase 3 `ADD COLUMN`s).
   - `prisma/seed.ts` is outside `tsconfig`; type-check it on its own after schema changes.
-- [ ] W6 Query performance: query log, N+1s, `select` vs `include`, `EXPLAIN ANALYZE`.
+- [x] W6 Query performance, migration `20261021095959_products_created_at_index`:
+  - query log per page (warm requests, a second dev server from a temp worktree on
+    webpack, since Turbopack rejects a symlinked `node_modules`): every page runs a fixed
+    number of queries (admin 2–11, public 0–5), so no N+1s; relations load as one
+    `IN (…)` each. Admin pages include one `users` read from the `jwt` callback.
+    The shelf page's repeated `categories` read is dev-only (`generateStaticParams` runs
+    per request in dev), and public pages are cached for an hour.
+  - `EXPLAIN ANALYZE` at 50k products (rolled back, then `REINDEX`): the admin list's
+    default sort (`createdAt desc`) read the whole table (10.7 ms); a `[createdAt]` index
+    makes it 0.04 ms. The text search (`ILIKE '%…%'`, 42 ms) would need `pg_trgm` GIN
+    indexes; not worth it at this catalog size.
+  - `select` vs everything: `setProductPrice` read and returned the whole product (22
+    columns) and the whole history row; it now reads `price` and returns ids.
+  - `lib/prisma.ts`: dropped the `SIGINT`/`SIGTERM`/`beforeExit` handlers (their
+    `process.exit(0)` cut Next's own shutdown short, and dev reloads stacked them) and
+    the `datasources` override that repeated `DATABASE_URL`.
 
 ## Verification (every phase)
 

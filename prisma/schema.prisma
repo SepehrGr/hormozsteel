@@ -133,6 +133,7 @@ model Product {
   @@index([manufacturerId])
   @@index([inStock])
   @@index([price])
+  @@index([createdAt])
   @@map("products")
 }
 
