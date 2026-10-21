@@ -61,10 +61,10 @@ export const getLatestPrices = cache(async () => {
       brand: product.manufacturer?.name ?? null,
       categorySlug: product.category?.slug ?? null,
       subcategory: product.subcategory,
-      price: product.price,
+      price: product.price.toNumber(),
       unit: product.unit,
       direction: change?.direction ?? product.priceDirection,
-      delta: change?.delta ?? product.priceDelta,
+      delta: (change?.delta ?? product.priceDelta)?.toNumber() ?? null,
       // Formatted here, in the server's time zone: client-side it would differ per
       // visitor and break hydration
       updated: formatShortDateTime(

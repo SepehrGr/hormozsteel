@@ -30,6 +30,25 @@ export const createCategory = adminAction(
 export const updateCategory = adminAction(
   z.object({ id: categoryId, values: categorySchema }),
   async ({ id, values }, { tx, audit }) => {
+    // Products store their sub-line as text, so a label can't go while any use it.
+    // ponytail: check-then-update can race a product save; a Subcategory table with
+    // a foreign key closes it if that ever matters.
+    const inUse = await tx.product.groupBy({
+      by: ['subcategory'],
+      where: { categoryId: id, subcategory: { notIn: values.subcategories } },
+      _count: true,
+    })
+
+    if (inUse.length > 0) {
+      const labels = inUse.map(
+        row => `"${row.subcategory}" (${pluralize(row._count, 'product')})`,
+      )
+
+      throw new ActionError(
+        `Products still use ${labels.join(', ')}. Move them to another sub-line first.`,
+      )
+    }
+
     await tx.category.update({ where: { id }, data: values })
 
     await audit('UPDATE', 'Category', id, values)
@@ -40,10 +59,7 @@ export const updateCategory = adminAction(
 export const deleteCategory = adminAction(
   z.object({ id: categoryId }),
   async ({ id }, { tx, audit }) => {
-    // The schema cascades a category delete to all of its products, so refuse
-    // while any are linked.
-    // ponytail: count-then-delete can race a product insert; the real fix is
-    // onDelete: Restrict on Product.category (DB track W1).
+    // Postgres refuses too (onDelete: Restrict); this check gives the readable message.
     const products = await tx.product.count({ where: { categoryId: id } })
 
     if (products > 0) {

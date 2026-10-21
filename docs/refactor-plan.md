@@ -747,11 +747,23 @@ Only ever touch `ahanhormoz_demo`.
     shadow DB gives the schema exactly. The shadow DB is the one allowed exception to
     "only `ahanhormoz_demo`".
   - `yarn db:push` was deleted; a fresh setup runs `yarn prisma migrate deploy`.
-- [ ] W1 Catalog (Category, Manufacturer, Product):
-  - money `Float` → `Decimal(12,2)`
-  - Category→Product `Restrict`
-  - subcategory model decision
-  - index review with `EXPLAIN ANALYZE`
+- [x] W1 Catalog (Category, Manufacturer, Product), migration `20261021080016_catalog_money_restrict`:
+  - money `Float` → `Decimal(12,2)` on all six money columns (Product and PriceHistory,
+    which copy into each other); no stored value had more than 2 decimals, so nothing
+    rounded. `weightKg` stays `Float`.
+    - Decimals stay on the server: `setProductPrice` and the dashboard's percent use
+      Decimal math; every read that renders or leaves the server (`lib/data/*`, the admin
+      products page, the export) calls `.toNumber()`, since a client prop can't be a Decimal.
+  - Category→Product `Restrict`: Postgres refuses (`23001`) when products remain;
+    `deleteCategory` keeps its count for the readable message.
+  - subcategory: kept as text labels. `updateCategory` refuses to drop a label that
+    products still use (a `ponytail:` note names the Subcategory table as the upgrade).
+  - index review with `EXPLAIN ANALYZE` on 50k fake rows (rolled back): `price` and
+    `inStock` stay (`LIMIT 20` sort, rare out-of-stock); `[categoryId]` + `[subcategory]`
+    became one `[categoryId, subcategory]`, which still serves the foreign key.
+  - `migrate dev` stops at the data-loss prompt in a non-interactive shell: write the SQL
+    with `migrate diff --from-schema-datasource … --to-schema-datamodel …` into a folder
+    named with a **UTC** timestamp, then `migrate deploy`.
 - [ ] W2 Pricing (PriceHistory, `price-updater`):
   - write the price copies on Product in one `$transaction`
   - drop the redundant indexes and the `changedAt`/`createdAt` duplicate

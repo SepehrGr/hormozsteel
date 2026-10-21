@@ -117,9 +117,13 @@ export function PriceBoard({
         >
           {changes.map(change => {
             const { Icon, text } = MOVES[change.direction]
-            const percent = change.oldPrice
-              ? ((change.newPrice - change.oldPrice) / change.oldPrice) * 100
-              : 0
+            const percent = change.oldPrice.isZero()
+              ? 0
+              : change.newPrice
+                  .minus(change.oldPrice)
+                  .div(change.oldPrice)
+                  .times(100)
+                  .toNumber()
             const sign = percent > 0 ? '+' : percent < 0 ? '−' : ''
 
             return (
@@ -142,7 +146,7 @@ export function PriceBoard({
                 </div>
                 <div className='shrink-0 text-right font-mono tabular-nums'>
                   <p className='text-sm text-foreground'>
-                    {formatUsd(change.newPrice)}
+                    {formatUsd(change.newPrice.toNumber())}
                     <span className='text-xs text-muted-foreground'>
                       /{UNITS[change.product.unit]}
                     </span>
@@ -153,7 +157,7 @@ export function PriceBoard({
                       {formatNumber(Math.abs(percent), 1)}%
                     </span>{' '}
                     <span className='text-muted-foreground'>
-                      from {formatUsd(change.oldPrice)}
+                      from {formatUsd(change.oldPrice.toNumber())}
                     </span>
                   </p>
                 </div>

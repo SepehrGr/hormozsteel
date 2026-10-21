@@ -1,8 +1,8 @@
-import { PriceDirection, type Prisma } from '@prisma/client'
+import { PriceDirection, Prisma } from '@prisma/client'
 
-function directionFromDelta(delta: number): PriceDirection {
-  if (delta > 0) return PriceDirection.UP
-  if (delta < 0) return PriceDirection.DOWN
+function directionFromDelta(delta: Prisma.Decimal): PriceDirection {
+  if (delta.gt(0)) return PriceDirection.UP
+  if (delta.lt(0)) return PriceDirection.DOWN
 
   return PriceDirection.STABLE
 }
@@ -23,10 +23,10 @@ export async function setProductPrice(
   if (!product) {
     throw new Error(`Product not found: ${productId}`)
   }
-  if (product.price === newPrice) return product
+  if (product.price.equals(newPrice)) return product
 
   const oldPrice = product.price
-  const delta = newPrice - oldPrice
+  const delta = new Prisma.Decimal(newPrice).minus(oldPrice)
   const direction = directionFromDelta(delta)
 
   const row = await tx.product.update({
@@ -35,7 +35,7 @@ export async function setProductPrice(
       previousPrice: oldPrice,
       price: newPrice,
       priceDirection: direction,
-      priceDelta: Math.abs(delta),
+      priceDelta: delta.abs(),
       priceUpdatedAt: new Date(),
     },
   })
@@ -46,7 +46,7 @@ export async function setProductPrice(
       oldPrice,
       newPrice,
       direction,
-      delta: Math.abs(delta),
+      delta: delta.abs(),
       note,
     },
   })
