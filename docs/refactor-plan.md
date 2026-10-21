@@ -779,10 +779,19 @@ Only ever touch `ahanhormoz_demo`.
   - `REINDEX TABLE price_history` once: a rolled-back 100k-row size test had bloated its
     indexes to 22 MB (now 48 kB).
   - trimmed the unread legacy fields from `ProductDTO`.
-- [ ] W3 Orders and leads:
-  - OrderItem and Order cascades → `Restrict`
-  - `QuickOrder` types
-  - drop the redundant `@db.Text`
+- [x] W3 Orders and leads, migration `20261021094656_drop_orders_tidy_leads`:
+  - `Customer`, `Order`, `OrderItem` and `OrderStatus` dropped instead of re-wired: only the
+    seed touched them (1 customer, 0 orders, 0 lines). The admin "Orders" inbox is
+    `QuickOrder`; real ordering, if it ever comes, grows out of it. This also ends the
+    Product → OrderItem cascade the product delete dialog warned about.
+  - `QuickOrder` types: `deliveryDate` is now `@db.Date` (the form sends a day, and a
+    timestamp showed the day before west of UTC), shown with `formatCalendarDate` (UTC).
+    `quantity` stays text ("20 tons", "60 pcs", "120 sheets"); `productName` stays a text
+    snapshot of the name at request time.
+  - `ContactForm.reply`/`repliedBy` dropped (never written); `repliedAt` stays.
+  - the `quick_orders.phoneNumber` index dropped: the inbox searches with `contains`
+    (`ILIKE '%…%'`), which a btree index can't serve (0 uses).
+  - `@db.Text` dropped: Prisma's `String` is already `TEXT`, so it produced no SQL.
 - [ ] W4 Auth and audit: drop `Account`/`Session`/`VerificationToken` and
   `User.emailVerified/image`; review the AdminLog indexes.
 - [ ] W5 Seed: update it for each schema change.

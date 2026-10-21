@@ -90,7 +90,7 @@ NEXTAUTH_SECRET="long-random-string"
 - Product technical details: **`specs` JSON** (no sparse type-specific columns)
 - **PriceDirection**: `UP` | `DOWN` | `STABLE` + **PriceHistory**
 - Auth: User / Account / Session (NextAuth)
-- Light CRM: ContactForm, QuickOrder, Order / Customer
+- Leads: ContactForm and QuickOrder (the contact and quote forms)
 
 ### Local Postgres (no Docker)
 

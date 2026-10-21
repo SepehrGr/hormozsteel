@@ -32,15 +32,6 @@ enum PriceDirection {
   STABLE
 }
 
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-}
-
 enum ContactFormStatus {
   NEW
   READ
@@ -134,7 +125,6 @@ model Product {
   manufacturer   Manufacturer? @relation(fields: [manufacturerId], references: [id], onDelete: SetNull)
 
   priceHistory PriceHistory[]
-  orderItems   OrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -161,67 +151,6 @@ model PriceHistory {
   @@index([changedAt])
   @@index([productId, changedAt(sort: Desc)])
   @@map("price_history")
-}
-
-// ─── Orders (lightweight demo CRM) ───────────────────────────────────────────
-
-model Customer {
-  id      String  @id @default(cuid())
-  name    String
-  email   String? @unique
-  phone   String  @unique
-  company String?
-  address String?
-  city    String?
-
-  orders Order[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("customers")
-}
-
-model Order {
-  id          String      @id @default(cuid())
-  orderNumber String      @unique
-  status      OrderStatus @default(PENDING)
-  totalAmount Float
-  notes       String?
-
-  customerId String
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
-  items OrderItem[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([customerId])
-  @@index([status])
-  @@index([createdAt])
-  @@map("orders")
-}
-
-model OrderItem {
-  id         String @id @default(cuid())
-  quantity   Float
-  unitPrice  Float
-  totalPrice Float
-  notes      String?
-
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([orderId])
-  @@index([productId])
-  @@map("order_items")
 }
 
 // ─── Auth (NextAuth) ─────────────────────────────────────────────────────────
@@ -313,16 +242,16 @@ model AdminLog {
 
 // ─── Inbound leads ───────────────────────────────────────────────────────────
 
+// ─── Leads (public forms) ─────────────────────────────────────────────────────
+
 model ContactForm {
   id        String            @id @default(cuid())
   name      String
   phone     String
   email     String?
-  message   String            @db.Text
+  message   String
   status    ContactFormStatus @default(NEW)
-  reply     String?           @db.Text
   repliedAt DateTime?
-  repliedBy String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -338,11 +267,11 @@ model QuickOrder {
   companyName     String?
   phoneNumber     String
   city            String
-  productSpecs    String           @db.Text
+  productSpecs    String
   quantity        String
-  deliveryDate    DateTime?
+  deliveryDate    DateTime?        @db.Date
   deliveryMethod  DeliveryMethod   @default(PICKUP)
-  additionalNotes String?          @db.Text
+  additionalNotes String?
   status          QuickOrderStatus @default(PENDING)
   productName     String?
 
@@ -351,6 +280,5 @@ model QuickOrder {
 
   @@index([status])
   @@index([createdAt])
-  @@index([phoneNumber])
   @@map("quick_orders")
 }

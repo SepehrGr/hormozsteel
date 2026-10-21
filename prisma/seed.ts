@@ -87,14 +87,11 @@ async function main() {
 
   // Wipe catalog tables for a clean re-seed (demo DB only)
   await prisma.priceHistory.deleteMany()
-  await prisma.orderItem.deleteMany()
-  await prisma.order.deleteMany()
   await prisma.quickOrder.deleteMany()
   await prisma.contactForm.deleteMany()
   await prisma.product.deleteMany()
   await prisma.category.deleteMany()
   await prisma.manufacturer.deleteMany()
-  await prisma.customer.deleteMany()
   // Keep users if re-running? wipe demo users too for idempotency
   await prisma.adminLog.deleteMany()
   await prisma.session.deleteMany()
@@ -636,17 +633,6 @@ async function main() {
   }
 
   console.log(`✅ ${created} products`)
-
-  await prisma.customer.create({
-    data: {
-      name: 'Alex Mercer',
-      email: 'alex@example-build.com',
-      phone: '+15550100',
-      company: 'Example Build Co.',
-      address: '100 Market Street',
-      city: 'Berlin',
-    },
-  })
 
   await prisma.quickOrder.create({
     data: {
