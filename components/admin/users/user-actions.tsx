@@ -16,6 +16,7 @@ import { RowActions } from '@/components/admin/admin-table'
 import { UserFormDialog } from '@/components/admin/users/user-form-dialog'
 import { DeleteDialog } from '@/components/ui/delete-dialog'
 import { DialogScope } from '@/components/ui/dialog-scope'
+import { isDemoAccount } from '@/lib/demo'
 
 /** A database row in the shape the user form holds; the password starts blank. */
 function toFormValues(user: UserRow): UserFormValues {
@@ -31,7 +32,8 @@ function toFormValues(user: UserRow): UserFormValues {
 /**
  * The buttons in one user's row. Only this cell runs in the browser, so the
  * rest of the table (dates included) stays server-rendered. Your own row has
- * no Delete, mirroring the server's guard.
+ * no Delete, and the demo logins have neither Edit nor Delete, mirroring the
+ * server's guards.
  */
 export function UserActions({
   user,
@@ -44,13 +46,14 @@ export function UserActions({
   // One value, not two booleans, so both dialogs can't be open at once
   const [open, setOpen] = useState<'edit' | 'delete' | null>(null)
   const close = () => setOpen(null)
+  const isDemo = isDemoAccount(user.email)
 
   return (
     <>
       <RowActions
         name={user.name}
-        onDelete={isSelf ? undefined : () => setOpen('delete')}
-        onEdit={() => setOpen('edit')}
+        onDelete={isSelf || isDemo ? undefined : () => setOpen('delete')}
+        onEdit={isDemo ? undefined : () => setOpen('edit')}
       >
         {user.lockedUntil ? (
           <ActionButton

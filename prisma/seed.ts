@@ -2,10 +2,11 @@
  * English portfolio seed for ahanhormoz_demo.
  * Run: yarn db:seed  (requires DATABASE_URL → ahanhormoz_demo)
  */
-import { PrismaClient, PriceDirection, ProductUnit, Role } from '@prisma/client'
+import { PrismaClient, PriceDirection, ProductUnit } from '@prisma/client'
 import dotenv from 'dotenv'
 import bcrypt from 'bcryptjs'
 
+import { DEMO_LOGINS } from '../lib/demo'
 import { setProductPrice } from '../lib/price-updater'
 
 dotenv.config({ path: '.env.local' })
@@ -75,25 +76,31 @@ async function main() {
   await prisma.adminLog.deleteMany()
   await prisma.user.deleteMany()
 
-  const passwordHash = await bcrypt.hash('admin123', 12)
+  for (const { password, ...login } of DEMO_LOGINS) {
+    await prisma.user.create({
+      data: { ...login, password: await bcrypt.hash(password, 12) },
+    })
+  }
+  // Unlocked test accounts, so visitors can try editing and deleting users
+  const testPassword = await bcrypt.hash('test1234', 12)
 
-  await prisma.user.create({
-    data: {
-      email: 'admin@hormozsteel.demo',
-      password: passwordHash,
-      name: 'Demo Admin',
-      role: Role.ADMIN,
-    },
+  await prisma.user.createMany({
+    data: [
+      {
+        name: 'Emma Clarke',
+        email: 'emma.clarke.test@hormozsteel.demo',
+        role: 'ADMIN',
+        password: testPassword,
+      },
+      {
+        name: 'James Porter',
+        email: 'james.porter.test@hormozsteel.demo',
+        role: 'SUPER_ADMIN',
+        password: testPassword,
+      },
+    ],
   })
-  await prisma.user.create({
-    data: {
-      email: 'superadmin@hormozsteel.demo',
-      password: await bcrypt.hash('superadmin123', 12),
-      name: 'Demo Super Admin',
-      role: Role.SUPER_ADMIN,
-    },
-  })
-  console.log('✅ Users (admin@hormozsteel.demo / admin123)')
+  console.log(`✅ Users (${DEMO_LOGINS.map(l => l.email).join(', ')} + 2 test)`)
 
   const manufacturers = await Promise.all(
     [

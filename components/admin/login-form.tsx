@@ -10,6 +10,7 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { FormField, Input, invalidProps } from '@/components/ui/field'
+import { DEMO_LOGINS } from '@/lib/demo'
 import { loginErrorMessage } from '@/lib/login-errors'
 import { loginSchema } from '@/lib/schemas/user'
 
@@ -26,6 +27,8 @@ export function LoginForm({
     register,
     handleSubmit,
     setError,
+    setValue,
+    clearErrors,
     formState: { errors, isSubmitting, isSubmitted },
   } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema, undefined, { raw: true }),
@@ -52,6 +55,26 @@ export function LoginForm({
 
   return (
     <form noValidate className='space-y-5 px-5 py-6' onSubmit={onSubmit}>
+      <div className='space-y-2'>
+        <p className='text-xs text-muted-foreground'>Fill in a demo login:</p>
+        <div className='grid grid-cols-2 gap-2'>
+          {DEMO_LOGINS.map(login => (
+            <Button
+              key={login.email}
+              size='sm'
+              variant='outline'
+              onClick={() => {
+                setValue('email', login.email)
+                setValue('password', login.password)
+                clearErrors()
+              }}
+            >
+              {login.name}
+            </Button>
+          ))}
+        </div>
+      </div>
+
       <FormField error={errors.email?.message} id='login-email' label='Email *'>
         <Input
           autoComplete='username'

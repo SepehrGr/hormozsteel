@@ -6,7 +6,7 @@ import { CheckCircle, Send } from 'lucide-react'
 import { requestQuote } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import { DialogFooter, DialogFrame } from '@/components/ui/dialogs'
-import { FormField, Input, Textarea } from '@/components/ui/field'
+import { choiceClass, FormField, Input, Textarea } from '@/components/ui/field'
 import { useActionForm } from '@/hooks/use-action-form'
 import { quickOrderSchema } from '@/lib/schemas/quick-order'
 
@@ -178,10 +178,7 @@ export default function OrderRequestModal({
               <legend className={`${sectionTitleClass} mb-3`}>Delivery</legend>
               <div className='grid gap-2 sm:grid-cols-2'>
                 {DELIVERY_OPTIONS.map(option => (
-                  <label
-                    key={option.value}
-                    className='flex cursor-pointer items-center gap-2 border border-border bg-background px-3 py-2.5 text-sm text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted/50 has-checked:border-foreground has-checked:bg-muted has-checked:text-foreground has-focus-visible:ring-1 has-focus-visible:ring-foreground'
-                  >
+                  <label key={option.value} className={choiceClass}>
                     <input
                       className='sr-only'
                       type='radio'

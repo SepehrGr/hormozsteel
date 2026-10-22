@@ -7,6 +7,7 @@ import { z } from 'zod'
 
 import { ActionError, adminAction } from '@/lib/actions'
 import { hashPassword } from '@/lib/auth'
+import { DEMO_ACCOUNT_LOCKED, isDemoAccount } from '@/lib/demo'
 import { createUserSchema, updateUserSchema } from '@/lib/schemas/user'
 
 const userId = z.string().min(1)
@@ -59,6 +60,10 @@ export const updateUser = adminAction(
   z.object({ id: userId, values: updateUserSchema }),
   async ({ id, values: { password, ...data } }, { session, tx, audit }) => {
     const existing = await findUser(tx, id)
+
+    if (isDemoAccount(existing.email)) {
+      throw new ActionError(DEMO_ACCOUNT_LOCKED)
+    }
 
     if (id === session.user.id) {
       if (data.role !== existing.role) {
@@ -126,6 +131,10 @@ export const deleteUser = adminAction(
     }
 
     const existing = await findUser(tx, id)
+
+    if (isDemoAccount(existing.email)) {
+      throw new ActionError(DEMO_ACCOUNT_LOCKED)
+    }
 
     if (
       existing.role === 'SUPER_ADMIN' &&

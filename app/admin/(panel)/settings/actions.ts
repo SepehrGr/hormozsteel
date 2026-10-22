@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 
 import { ActionError, adminAction } from '@/lib/actions'
 import { checkPassword, hashPassword } from '@/lib/auth'
+import { DEMO_ACCOUNT_LOCKED, isDemoAccount } from '@/lib/demo'
 import { pluralize } from '@/lib/format'
 import { profileSchema } from '@/lib/schemas/user'
 
@@ -15,6 +16,8 @@ export const updateProfile = adminAction(
     if (!user) throw new ActionError('Your account no longer exists.')
 
     if (data.email !== user.email || password) {
+      if (isDemoAccount(user.email)) throw new ActionError(DEMO_ACCOUNT_LOCKED)
+
       if (!currentPassword) {
         throw new ActionError('Enter your current password', 'currentPassword')
       }
