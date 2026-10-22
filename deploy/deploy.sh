@@ -26,13 +26,18 @@ health_check() {
   log "Health check FAILED"; return 1
 }
 
-# Pull, then `up`: postgres (healthy) -> migrate (exits 0) -> app. A failed migration
-# fails `up`, so the app never starts on a half-migrated database.
+# Pull, migrate while the old app keeps serving, then replace only the app container.
+# A failed migration stops here, so the app never starts on a half-migrated database.
 # Migrations aren't undone by a rollback: keep each one compatible with the previous app.
+# Chained with &&: `set -e` is off inside the `if start` callers, so each step must stop the next.
 start() {
-  compose pull --quiet
-  compose up -d --remove-orphans
+  compose pull --quiet &&
+    compose run --rm migrate &&
+    compose up -d --no-deps --remove-orphans app
 }
+
+# Write a tag file, or delete it when there's no tag to record
+set_tag() { if [[ -n "$2" ]]; then echo "IMAGE_TAG=$2" > "$1"; else rm -f "$1"; fi; }
 
 # Keep the current and previous versions (rollback needs the previous one) and
 # delete older ones; `image prune` alone only removes untagged layers.
@@ -51,17 +56,19 @@ case "${1:-}" in
     NEW_TAG="${2:-}"
     # Accept only real commit tags: "sha-" + 40 hex characters. Blocks typos and injection.
     [[ "$NEW_TAG" =~ ^sha-[0-9a-f]{40}$ ]] || { log "Invalid tag: '$NEW_TAG'"; exit 2; }
-    OLD_TAG="$(tag_in tag.env)"
+    OLD_TAG="$(tag_in tag.env)"; OLD_PREV="$(tag_in tag.env.previous)"
     log "Deploying $NEW_TAG (previous: ${OLD_TAG:-none})"
-    if [[ -n "$OLD_TAG" ]]; then cp tag.env tag.env.previous; fi
-    echo "IMAGE_TAG=$NEW_TAG" > tag.env
+    if [[ -n "$OLD_TAG" ]]; then set_tag tag.env.previous "$OLD_TAG"; fi
+    set_tag tag.env "$NEW_TAG"
     if start && health_check; then
       prune_images
       log "Deploy OK: $NEW_TAG"
     else
-      if [[ -f tag.env.previous ]]; then
-        log "Automatic rollback to $(tag_in tag.env.previous)"
-        cp tag.env.previous tag.env
+      # Put both tag files back as they were, so a failed deploy leaves no trace,
+      # including the rollback point
+      set_tag tag.env "$OLD_TAG"; set_tag tag.env.previous "$OLD_PREV"
+      if [[ -n "$OLD_TAG" ]]; then
+        log "Automatic rollback to $OLD_TAG"
         if start && health_check; then log "Rollback OK"; else log "Rollback ALSO failed: manual attention needed"; fi
       fi
       exit 1
