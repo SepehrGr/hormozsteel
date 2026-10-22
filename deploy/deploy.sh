@@ -3,7 +3,7 @@
 # CI reaches it only through /usr/local/bin/deploy-gate (deploy, rollback, status).
 # CI doesn't update this file: after changing it, copy it to the server and
 # `sudo install -o root -g root -m 755 deploy.sh /srv/hormozsteel/deploy.sh`.
-# Usage: deploy.sh deploy <sha-tag> | rollback | status | seed
+# Usage: deploy.sh deploy <sha-tag> | rollback | status | restart | seed
 set -euo pipefail
 
 APP_DIR=/srv/hormozsteel
@@ -84,12 +84,17 @@ case "${1:-}" in
     log "Current: $(tag_in tag.env)   Previous: $(tag_in tag.env.previous)"
     if [[ -n "$(tag_in tag.env)" ]]; then compose ps; else log "Not deployed yet"; fi
     ;;
+  restart)
+    # Re-read .env after rotating a secret, without changing the version or rollback point
+    [[ -n "$(tag_in tag.env)" ]] || { log "Not deployed yet"; exit 1; }
+    compose up -d --no-deps app && health_check
+    ;;
   seed)
     # Wipes the database and reloads the demo data. Not reachable through deploy-gate.
     [[ -n "$(tag_in tag.env)" ]] || { log "Not deployed yet"; exit 1; }
     compose run --rm migrate yarn db:seed
     ;;
   *)
-    echo "Usage: $0 deploy <sha-tag> | rollback | status | seed" >&2; exit 2
+    echo "Usage: $0 deploy <sha-tag> | rollback | status | restart | seed" >&2; exit 2
     ;;
 esac
