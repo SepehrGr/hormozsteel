@@ -120,7 +120,8 @@ answer orders and messages, and manage the team.
 │   ├── schema.prisma
 │   ├── migrations/
 │   └── seed.ts                   # ~78 demo products, demo admin accounts
-├── middleware.ts                 # Guards /admin pages
+├── prisma.config.ts              # Prisma CLI: schema, seed, loads .env
+├── proxy.ts                      # Guards /admin pages
 └── styles/
 ```
 
