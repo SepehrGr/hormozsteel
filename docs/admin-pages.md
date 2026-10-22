@@ -1,8 +1,7 @@
 # How an admin page works
 
-`app/admin/categories` is the template for every admin CRUD page (list, search, add,
-edit, delete). Phase 1 of `docs/refactor-plan.md` built it, replacing one 884-line
-client component. This explains the ideas behind it, then lists the steps to apply
+`app/admin/(panel)/categories` is the template for every admin CRUD page (list, search,
+add, edit, delete). It replaced one 884-line client component. This explains the ideas behind it, then lists the steps to apply
 them to the next page.
 
 ## The files
