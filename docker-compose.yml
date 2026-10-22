@@ -1,3 +1,5 @@
+# The whole app in Docker: `docker compose up -d --build`, then http://localhost:3001.
+# For `yarn dev` with a Docker database instead: `docker compose up -d postgres`.
 services:
   postgres:
     image: postgres:18
@@ -7,9 +9,43 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
-      - '127.0.0.1:5432:5432'
+      # POSTGRES_PORT=5433 if a local Postgres already uses 5432
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d ahanhormoz_demo']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Applies pending migrations, then exits. Its image is the Dockerfile's builder
+  # stage, which still has the Prisma CLI and tsx, so it can also seed:
+  # `docker compose run --rm migrate yarn db:seed` (wipes all data first).
+  migrate:
+    build:
+      context: .
+      target: builder
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/ahanhormoz_demo
+    command: yarn prisma migrate deploy
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  app:
+    build: .
+    image: hormozsteel:local
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/ahanhormoz_demo
+      NEXTAUTH_URL: http://localhost:3001
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?set NEXTAUTH_SECRET in .env}
+    ports:
+      - '127.0.0.1:3001:3000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:
