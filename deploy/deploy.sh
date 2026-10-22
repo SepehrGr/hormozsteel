@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # Deploy, roll back, or inspect hs.sepehrgr.dev. Installed at /srv/hormozsteel/deploy.sh;
-# CI reaches it only through /usr/local/bin/deploy-gate.
-# Usage: deploy.sh deploy <sha-tag> | rollback | status
+# CI reaches it only through /usr/local/bin/deploy-gate (deploy, rollback, status).
+# CI doesn't update this file: after changing it, copy it to the server and
+# `sudo install -o root -g root -m 755 deploy.sh /srv/hormozsteel/deploy.sh`.
+# Usage: deploy.sh deploy <sha-tag> | rollback | status | seed
 set -euo pipefail
 
 APP_DIR=/srv/hormozsteel
+IMAGE=sepehrgr7/hormozsteel
 HEALTH_URL=http://127.0.0.1:3001/   # the home page reads the database, so it checks both
 cd "$APP_DIR"
 
@@ -31,6 +34,18 @@ start() {
   compose up -d --remove-orphans
 }
 
+# Keep the current and previous versions (rollback needs the previous one) and
+# delete older ones; `image prune` alone only removes untagged layers.
+prune_images() {
+  local now prev keep
+  now="$(tag_in tag.env)"; prev="$(tag_in tag.env.previous)"
+  keep=" $now tools-$now ${prev:+$prev tools-$prev} "
+  docker image ls "$IMAGE" --format '{{.Tag}}' | while read -r tag; do
+    [[ "$keep" == *" $tag "* ]] || docker image rm "$IMAGE:$tag" > /dev/null || true
+  done
+  docker image prune -f > /dev/null
+}
+
 case "${1:-}" in
   deploy)
     NEW_TAG="${2:-}"
@@ -41,7 +56,7 @@ case "${1:-}" in
     if [[ -n "$OLD_TAG" ]]; then cp tag.env tag.env.previous; fi
     echo "IMAGE_TAG=$NEW_TAG" > tag.env
     if start && health_check; then
-      docker image prune -f > /dev/null          # remove unused image layers to save disk
+      prune_images
       log "Deploy OK: $NEW_TAG"
     else
       if [[ -f tag.env.previous ]]; then
@@ -62,7 +77,12 @@ case "${1:-}" in
     log "Current: $(tag_in tag.env)   Previous: $(tag_in tag.env.previous)"
     if [[ -n "$(tag_in tag.env)" ]]; then compose ps; else log "Not deployed yet"; fi
     ;;
+  seed)
+    # Wipes the database and reloads the demo data. Not reachable through deploy-gate.
+    [[ -n "$(tag_in tag.env)" ]] || { log "Not deployed yet"; exit 1; }
+    compose run --rm migrate yarn db:seed
+    ;;
   *)
-    echo "Usage: $0 deploy <sha-tag> | rollback | status" >&2; exit 2
+    echo "Usage: $0 deploy <sha-tag> | rollback | status | seed" >&2; exit 2
     ;;
 esac
