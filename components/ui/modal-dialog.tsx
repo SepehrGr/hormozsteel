@@ -109,7 +109,8 @@ export default function ModalDialog({
       aria-describedby={describedBy}
       aria-labelledby={labelledBy}
       className={cn(
-        'm-auto border border-border bg-card p-0 text-foreground shadow-sm backdrop:bg-black/50',
+        // text-left: row dialogs render inside a right-aligned actions cell
+        'm-auto border border-border bg-card p-0 text-left text-foreground shadow-sm backdrop:bg-black/50',
         className,
       )}
       role={role}

@@ -3,7 +3,14 @@
 import type { ActionResult } from '@/lib/actions'
 
 import { type FormMode, FormDialog } from '@/components/ui/dialogs'
-import { fieldHintId, FormField, Input, Select } from '@/components/ui/field'
+import {
+  choiceClass,
+  fieldHintId,
+  FormField,
+  Input,
+  labelClass,
+  Select,
+} from '@/components/ui/field'
 import { useActionForm } from '@/hooks/use-action-form'
 import {
   type UserFormValues,
@@ -45,6 +52,8 @@ export function UserFormDialog({
   const isCreate = mode === 'create'
   const {
     field,
+    watch,
+    setValue,
     formState: { errors },
     dialog,
   } = useActionForm({
@@ -115,14 +124,29 @@ export function UserFormDialog({
       </FormField>
 
       {isCreate || isSelf ? null : (
-        <label className='flex cursor-pointer items-center gap-2 text-sm text-foreground'>
-          <input
-            className='h-4 w-4 cursor-pointer accent-foreground'
-            type='checkbox'
-            {...field('isActive')}
-          />
-          Active (can sign in)
-        </label>
+        <fieldset>
+          <legend className={labelClass}>Status</legend>
+          <div className='grid grid-cols-2 gap-2'>
+            {/* Controlled: a registered radio would submit "true"/"false" strings */}
+            {[true, false].map(active => (
+              <label key={String(active)} className={choiceClass}>
+                <input
+                  checked={watch('isActive') === active}
+                  className='sr-only'
+                  name='user-isActive'
+                  type='radio'
+                  onChange={() =>
+                    setValue('isActive', active, { shouldDirty: true })
+                  }
+                />
+                {active ? 'Active' : 'Inactive'}
+              </label>
+            ))}
+          </div>
+          <p className='mt-1 text-xs text-muted-foreground'>
+            Inactive users can&apos;t sign in.
+          </p>
+        </fieldset>
       )}
     </FormDialog>
   )

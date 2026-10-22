@@ -10,6 +10,7 @@ import {
 } from '@/components/admin/admin-table'
 import { Pill } from '@/components/admin/pill'
 import { UserActions } from '@/components/admin/users/user-actions'
+import { isDemoAccount } from '@/lib/demo'
 import { formatDateTime } from '@/lib/format'
 import { ROLE_LABELS } from '@/lib/schemas/user'
 
@@ -42,18 +43,25 @@ export function UsersTable({
         <NameCell
           description={user.email}
           media={<UserRound aria-hidden className='h-4 w-4' />}
-          name={user.name}
+          name={
+            isDemoAccount(user.email) ? (
+              <span className='inline-flex flex-wrap items-center gap-2'>
+                {user.name}
+                <span title="A shared demo login: it can't be edited or deleted here.">
+                  <Pill tone='info'>Demo · protected</Pill>
+                </span>
+              </span>
+            ) : (
+              user.name
+            )
+          }
         />
       ),
     },
     {
       label: 'Role',
       narrow: 'summary',
-      cell: user => (
-        <Pill tone={user.role === 'SUPER_ADMIN' ? 'strong' : 'neutral'}>
-          {ROLE_LABELS[user.role]}
-        </Pill>
-      ),
+      cell: user => <Pill>{ROLE_LABELS[user.role]}</Pill>,
     },
     {
       label: 'Status',

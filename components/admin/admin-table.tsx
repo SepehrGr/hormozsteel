@@ -154,7 +154,8 @@ export function NameCell({
   description,
 }: {
   media: ReactNode
-  name: string
+  /** Text, or text with a pill after it. */
+  name: ReactNode
   description?: string | null
 }) {
   return (

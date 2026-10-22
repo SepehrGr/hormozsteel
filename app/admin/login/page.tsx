@@ -72,11 +72,7 @@ export default async function LoginPage({
           </DataCard>
 
           <p className='mt-6 text-center text-xs text-muted-foreground'>
-            Demo admin:{' '}
-            <span className='font-mono text-foreground'>
-              admin@hormozsteel.demo
-            </span>{' '}
-            · <span className='font-mono text-foreground'>admin123</span>
+            It&apos;s a shared demo: changes reset every hour.
           </p>
         </div>
       </main>

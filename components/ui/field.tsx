@@ -5,6 +5,10 @@ import { cn } from '@/lib/utils'
 export const inputClass =
   'w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors duration-200 ease-out focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-red-700 dark:aria-[invalid=true]:border-red-400'
 
+/** A `<label>` around an `sr-only` radio, styled as one button of a choice group. */
+export const choiceClass =
+  'flex cursor-pointer items-center gap-2 border border-border bg-background px-3 py-2.5 text-sm text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted/50 has-checked:border-foreground has-checked:bg-muted has-checked:text-foreground has-focus-visible:ring-1 has-focus-visible:ring-foreground'
+
 export const labelClass =
   'mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground'
 
