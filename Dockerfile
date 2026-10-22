@@ -6,6 +6,26 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile --ignore-scripts
 
+# ---------- Tools: Prisma CLI + tsx, for migrations and the demo seed ----------
+# Pushed as its own tag. Installs only what migrations and prisma/seed.ts import,
+# at the versions package.json and yarn.lock pin; that layer only changes with them.
+FROM node:22-alpine AS tools
+WORKDIR /app
+RUN apk add --no-cache openssl
+COPY package.json yarn.lock ./
+RUN node -e " \
+      const fs = require('fs'); \
+      const pkg = JSON.parse(fs.readFileSync('package.json')); \
+      const all = { ...pkg.dependencies, ...pkg.devDependencies }; \
+      const keep = ['prisma', '@prisma/client', 'tsx', 'bcryptjs', 'dotenv']; \
+      fs.writeFileSync('package.json', JSON.stringify({ \
+        private: true, dependencies: Object.fromEntries(keep.map(name => [name, all[name]])) \
+      })); \
+    " \
+ && yarn install --pure-lockfile --ignore-scripts
+COPY . .
+RUN yarn prisma generate
+
 # ---------- Stage 2: build the app ----------
 FROM node:22-alpine AS builder
 WORKDIR /app

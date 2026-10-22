@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Forced command for the CI deploy keys: allows only deploy/rollback/status.
+# Shared by every app on the server; installed at /usr/local/bin/deploy-gate.
+# Each key names its app in authorized_keys: command="/usr/local/bin/deploy-gate hormozsteel".
+# A key with no app name is the portfolio's, which predates this argument.
+set -euo pipefail
+APP="${1:-sepehrgr}"
+case "$APP" in
+  sepehrgr|hormozsteel) ;;
+  *) echo "Unknown app: $APP" >&2; exit 2 ;;
+esac
+read -r -a ARGS <<< "${SSH_ORIGINAL_COMMAND:-}"   # split into words; nothing is executed or expanded
+if (( ${#ARGS[@]} > 2 )); then echo "Too many arguments" >&2; exit 2; fi
+case "${ARGS[0]:-}" in
+  deploy)   exec "/srv/$APP/deploy.sh" deploy "${ARGS[1]:-}" ;;
+  rollback) exec "/srv/$APP/deploy.sh" rollback ;;
+  status)   exec "/srv/$APP/deploy.sh" status ;;
+  *)        echo "Allowed: deploy <sha-tag> | rollback | status" >&2; exit 2 ;;
+esac

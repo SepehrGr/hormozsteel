@@ -1,0 +1,46 @@
+# Production stack for hs.sepehrgr.dev, run by deploy.sh from /srv/hormozsteel.
+# .env holds the secrets (written once by hand); tag.env holds IMAGE_TAG (written by deploy.sh).
+name: hormozsteel
+
+services:
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ahanhormoz_demo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    # No published port: only the containers on this stack's network can reach it
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d ahanhormoz_demo']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Runs pending migrations, then exits; the app starts only if it succeeds
+  migrate:
+    image: sepehrgr7/hormozsteel:tools-${IMAGE_TAG:?IMAGE_TAG is not set}
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/ahanhormoz_demo
+    command: yarn prisma migrate deploy
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  app:
+    image: sepehrgr7/hormozsteel:${IMAGE_TAG:?IMAGE_TAG is not set}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/ahanhormoz_demo
+      NEXTAUTH_URL: https://hs.sepehrgr.dev
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?set NEXTAUTH_SECRET in .env}
+    ports:
+      - '127.0.0.1:3001:3000' # Caddy's hs.sepehrgr.dev block proxies here
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:

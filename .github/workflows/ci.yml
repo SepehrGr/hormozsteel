@@ -5,6 +5,16 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  IMAGE: docker.io/sepehrgr7/hormozsteel
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -46,3 +56,91 @@ jobs:
       - run: yarn build
       # After the build: it generates next-env.d.ts and .next/types, which tsc needs.
       - run: yarn tsc --noEmit
+
+  # On PRs this only proves the Dockerfile builds; on main it also pushes.
+  image:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        if: github.event_name == 'push'
+        uses: docker/login-action@v4
+        with:
+          username: sepehrgr7
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: App image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' }}
+          platforms: linux/amd64
+          tags: |
+            ${{ env.IMAGE }}:sha-${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+          cache-from: type=gha,scope=app
+          cache-to: type=gha,mode=max,scope=app
+
+      # Migrations and the demo seed run from this one; deploy.sh pulls both by commit
+      - name: Tools image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          target: tools
+          push: ${{ github.event_name == 'push' }}
+          platforms: linux/amd64
+          tags: ${{ env.IMAGE }}:tools-sha-${{ github.sha }}
+          cache-from: type=gha,scope=tools
+          cache-to: type=gha,mode=max,scope=tools
+
+  deploy:
+    needs: image
+    if: github.event_name == 'push' # only after a merge to main, never on PRs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: https://hs.sepehrgr.dev
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false # never interrupt a deploy halfway
+    steps:
+      - name: Set up SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          HOST: ${{ vars.DEPLOY_HOST }}
+          PORT: ${{ vars.DEPLOY_PORT }}
+          EXPECTED_FP: ${{ vars.DEPLOY_HOST_FINGERPRINT }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          # Accept the server's host key only if its fingerprint matches the pinned one
+          ssh-keyscan -p "$PORT" -t ed25519 "$HOST" > /tmp/scanned_key 2>/dev/null || true
+          ACTUAL_FP="$(ssh-keygen -lf /tmp/scanned_key 2>/dev/null | awk '{print $2}' || true)"
+          echo "Expected host key: $EXPECTED_FP"
+          echo "Actual host key:   ${ACTUAL_FP:-<none: could not reach server>}"
+          if [ -z "$ACTUAL_FP" ] || [ "$ACTUAL_FP" != "$EXPECTED_FP" ]; then
+            echo "::error::Server host key does not match the pinned fingerprint. Refusing to deploy."
+            exit 1
+          fi
+          mv /tmp/scanned_key ~/.ssh/known_hosts
+
+      # The key's forced command (deploy-gate hormozsteel) only accepts deploy/rollback/status
+      - name: Deploy this commit
+        env:
+          HOST: ${{ vars.DEPLOY_HOST }}
+          PORT: ${{ vars.DEPLOY_PORT }}
+          USER_NAME: ${{ vars.DEPLOY_USER }}
+          TAG: sha-${{ github.sha }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+              -p "$PORT" "$USER_NAME@$HOST" "deploy $TAG"
+
+      - name: Check the public site
+        run: curl -fsS -o /dev/null --retry 5 --retry-delay 3 --retry-all-errors https://hs.sepehrgr.dev/
