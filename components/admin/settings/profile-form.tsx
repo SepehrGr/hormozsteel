@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { buttonRowClass } from '@/components/ui/dialogs'
 import { FormField, Input } from '@/components/ui/field'
 import { useActionForm } from '@/hooks/use-action-form'
+import { isDemoAccount } from '@/lib/demo'
 import { profileSchema } from '@/lib/schemas/user'
 
 const noPasswords = { password: '', confirmPassword: '', currentPassword: '' }
@@ -45,6 +46,7 @@ export function ProfileForm({
   })
 
   const needsCurrentPassword = Boolean(dirtyFields.email || watch('password'))
+  const isDemo = isDemoAccount(profile.email)
 
   return (
     <form noValidate className='max-w-2xl space-y-6' onSubmit={onSubmit}>
@@ -59,12 +61,18 @@ export function ProfileForm({
           </FormField>
           <FormField
             error={errors.email?.message}
-            hint='You sign in with this.'
+            hint={
+              isDemo
+                ? 'A shared demo login: only your name can change.'
+                : 'You sign in with this.'
+            }
             id='profile-email'
             label='Email'
           >
+            {/* readOnly, not disabled: react-hook-form submits a disabled field as undefined */}
             <Input
               autoComplete='email'
+              readOnly={isDemo}
               type='email'
               {...field('email', { hint: true })}
             />
@@ -76,12 +84,17 @@ export function ProfileForm({
         <div className='space-y-4 p-4'>
           <FormField
             error={errors.password?.message}
-            hint='At least 6 characters. Leave blank to keep your current one.'
+            hint={
+              isDemo
+                ? 'Demo logins keep their password.'
+                : 'At least 6 characters. Leave blank to keep your current one.'
+            }
             id='profile-password'
             label='New password'
           >
             <Input
               autoComplete='new-password'
+              readOnly={isDemo}
               type='password'
               {...field('password', { hint: true })}
             />
@@ -93,6 +106,7 @@ export function ProfileForm({
           >
             <Input
               autoComplete='new-password'
+              readOnly={isDemo}
               type='password'
               {...field('confirmPassword')}
             />
