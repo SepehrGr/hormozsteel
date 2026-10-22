@@ -178,7 +178,7 @@
   }
 }
 
-@config "../tailwind.config.js";
+@config "../tailwind.config.mjs";
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);

@@ -17,9 +17,6 @@
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
     "@heroui/navbar": "2.2.22",

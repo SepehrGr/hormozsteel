@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Optimize for Netlify deployment
   output: 'standalone',
   experimental: {
     serverActions: {
