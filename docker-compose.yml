@@ -19,13 +19,13 @@ services:
       timeout: 5s
       retries: 10
 
-  # Applies pending migrations, then exits. Its image is the Dockerfile's builder
-  # stage, which still has the Prisma CLI and tsx, so it can also seed:
+  # Applies pending migrations, then exits. Its image is the Dockerfile's tools
+  # stage, which has the Prisma CLI and tsx, so it can also seed:
   # `docker compose run --rm migrate yarn db:seed` (wipes all data first).
   migrate:
     build:
       context: .
-      target: builder
+      target: tools
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/ahanhormoz_demo
     command: yarn prisma migrate deploy
