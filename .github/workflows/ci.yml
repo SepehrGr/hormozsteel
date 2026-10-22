@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    # The build prerenders catalog pages from the database, so CI needs a real Postgres.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: ahanhormoz_demo
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Throwaway values for the throwaway CI database: not real secrets.
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ahanhormoz_demo
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ci-only-not-a-secret
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint:check
+      - run: yarn test
+      - run: yarn prisma migrate deploy
+      - run: yarn db:seed
+      - run: yarn build
+      # After the build: it generates next-env.d.ts and .next/types, which tsc needs.
+      - run: yarn tsc --noEmit

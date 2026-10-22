@@ -1,15 +1,15 @@
 services:
   postgres:
-    image: postgres:15
-    restart: always
+    image: postgres:18
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ahanhormoz_demo
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
-      - '5432:5432'
+      - '127.0.0.1:5432:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
 
 volumes:
   postgres_data:
