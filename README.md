@@ -7,6 +7,7 @@ they moved, work out weights with built-in calculators, and send a quote request
 Staff sign in to manage the catalog, update prices in bulk from a spreadsheet,
 answer orders and messages, and manage the team.
 
+[![CI](https://github.com/SepehrGr/hormozsteel/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/SepehrGr/hormozsteel/actions/workflows/ci.yml)
 ![Next.js](https://img.shields.io/badge/Next.js_16-000?logo=nextdotjs)
 ![React](https://img.shields.io/badge/React_19-149eca?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white)
@@ -15,7 +16,8 @@ answer orders and messages, and manage the team.
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_4-06b6d4?logo=tailwindcss&logoColor=white)
 
 > A portfolio project: an English rebuild of a real client site, running on its
-> own demo data.
+> own demo data. **Live at https://hs.sepehrgr.dev**: the sign-in page fills in
+> the demo logins, and the data resets every hour.
 
 ![The public home page](docs/screenshots/home.png)
 
@@ -57,6 +59,7 @@ answer orders and messages, and manage the team.
 | Forms and validation | react-hook-form, zod |
 | UI | Tailwind CSS 4, HeroUI, Lucide icons, Leaflet map |
 | Other | SWR (notification polling), SheetJS (Excel), node:test |
+| Delivery | GitHub Actions, Docker, Docker Hub, Caddy, systemd |
 
 ## How it's built
 
@@ -76,6 +79,16 @@ answer orders and messages, and manage the team.
 - **Shared admin building blocks.** Every admin page is put together from the
   same table, toolbar, dialog and form components. See
   [`docs/admin-pages.md`](docs/admin-pages.md) for the pattern.
+
+## Deployment
+
+Merging to `main` deploys to the VPS in about five minutes, with no downtime.
+CI checks every pull request, and `main` only accepts changes that pass. Docker
+images are tagged with their commit. The server backs up the database, migrates
+while the old version keeps serving, then swaps the app. If the new version fails
+its health check, the server rolls back to the previous one by itself. Details,
+including what happens at each kind of failure, are in
+[`docs/deployment.md`](docs/deployment.md).
 
 ## Project structure
 
