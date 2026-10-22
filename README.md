@@ -1,223 +1,167 @@
-# Hormoz Steel — English portfolio demo
+# Hormoz Steel
 
-B2B steel pricing catalog rebuilt as an **English** portfolio showcase.
+A steel trading website with a public price catalog and an admin panel to run it.
 
-This is **not** the live client site. It uses a **dedicated database** (`ahanhormoz_demo`).
+Visitors browse steel products by category, see today's prices and which way
+they moved, work out weights with built-in calculators, and send a quote request.
+Staff sign in to manage the catalog, update prices in bulk from a spreadsheet,
+answer orders and messages, and manage the team.
 
-| Stack | |
-|-------|--|
-| Framework | Next.js (App Router), TypeScript |
-| Data | Prisma + PostgreSQL |
-| Auth | NextAuth.js (credentials + bcrypt) |
-| UI | HeroUI, Tailwind, icomoon icons |
+![Next.js](https://img.shields.io/badge/Next.js_16-000?logo=nextdotjs)
+![React](https://img.shields.io/badge/React_19-149eca?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2d3748?logo=prisma)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169e1?logo=postgresql&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_4-06b6d4?logo=tailwindcss&logoColor=white)
 
-**Role:** Solo full-stack frontend — catalog, pricing, admin, auth.
+> A portfolio project: an English rebuild of a real client site, running on its
+> own demo data.
 
----
+![The public home page](docs/screenshots/home.png)
 
-## Quick start
+![The admin dashboard](docs/screenshots/admin.png)
+
+## Features
+
+### Public site
+
+- **Price catalog**: categories → subcategories → product pages, with the
+  current price, its direction (up, down or stable) and the last change.
+- **Weight calculators** for rebar, beams, sheet, pipe, angle, channel, hollow
+  section and billet.
+- **Contact and quote forms**, validated on both sides and rate-limited.
+- Light and dark themes, responsive down to phone width.
+
+### Admin panel
+
+- **Dashboard** with catalog and inbox stats.
+- **Products**: search, filter, sort and paginate; create, edit and bulk
+  delete; **Excel export and all-or-nothing import** for bulk price updates.
+- **Price history**: every price change is recorded with its direction.
+- **Categories and mills** (manufacturers); a category that still has products
+  can't be deleted.
+- **Inbox**: quote requests and contact messages with statuses, plus a
+  notification bell that polls for new ones.
+- **Users and roles** (`ADMIN`, `SUPER_ADMIN`), login lockout, and an
+  **audit log** of every admin write.
+- Tables collapse into accordion rows on phones; no horizontal scrolling.
+
+## Tech stack
+
+| Area | Tools |
+|---|---|
+| Framework | Next.js 16 (App Router, Server Components, Server Actions), React 19 |
+| Language | TypeScript (strict) |
+| Data | PostgreSQL, Prisma 6 |
+| Auth | NextAuth (credentials, JWT sessions), bcrypt |
+| Forms and validation | react-hook-form, zod |
+| UI | Tailwind CSS 4, HeroUI, Lucide icons, Leaflet map |
+| Other | SWR (notification polling), SheetJS (Excel), node:test |
+
+## How it's built
+
+- **Reads happen on the server.** Pages are Server Components that query
+  Prisma directly; public reads are cached per request.
+- **Writes go through Server Actions.** Each one runs through a single wrapper:
+  auth check → rate limit → zod validation → the change, all in **one database
+  transaction together with its audit-log row**, so a write never lands without
+  its record.
+- **Typed results end to end.** Actions return a `{ success, data }` or
+  `{ success: false, error, fieldErrors }` result that the forms map straight
+  onto their fields.
+- **Few API routes.** Only sign-in, the Excel download and the notification
+  poll are route handlers; each one checks its own rate limit, auth and input.
+- **Money is exact.** Prices are stored as `Decimal(12,2)`, and every price
+  change goes through one function that writes the history row.
+- **Shared admin building blocks.** Every admin page is put together from the
+  same table, toolbar, dialog and form components. See
+  [`docs/admin-pages.md`](docs/admin-pages.md) for the pattern.
+
+## Project structure
+
+```
+.
+├── app/
+│   ├── page.tsx                  # Home
+│   ├── products/                 # Catalog: /products/[categorySlug]/[productId]
+│   ├── weight/[type]/            # Weight calculators
+│   ├── about/, contact/
+│   ├── actions.ts                # Public Server Actions (contact, quote)
+│   ├── admin/
+│   │   ├── login/
+│   │   └── (panel)/              # Shared layout; each area has page.tsx + actions.ts
+│   │       ├── dashboard/
+│   │       ├── products/
+│   │       ├── categories/
+│   │       ├── manufacturers/
+│   │       ├── orders/           # Inbox: quote requests and messages
+│   │       ├── users/            # Super admin only
+│   │       └── settings/
+│   └── api/
+│       ├── auth/[...nextauth]/
+│       ├── admin/notifications/  # Bell poll
+│       └── products/export/      # .xlsx download
+├── components/
+│   ├── admin/                    # AdminTable, PageHeader, SearchToolbar, Pagination…
+│   ├── ui/                       # FormDialog, ConfirmDialog, DeleteDialog, form fields
+│   ├── products/, calculators/, home/, about/, content/
+│   └── layout/                   # Navbar, footer, theme switch
+├── lib/
+│   ├── actions.ts                # adminAction / publicAction wrappers
+│   ├── auth.ts                   # NextAuth config, password checks, lockout
+│   ├── data/                     # Cached public reads
+│   ├── schemas/                  # zod schemas, one per entity
+│   ├── price-updater.ts          # The one place prices change
+│   ├── rate-limit.ts
+│   └── weight.ts (+ weight.test.ts)
+├── hooks/                        # useActionForm, useNotifications, useProductExcel
+├── config/                       # Site, calculators, category icons
+├── prisma/
+│   ├── schema.prisma
+│   ├── migrations/
+│   └── seed.ts                   # ~78 demo products, demo admin accounts
+├── middleware.ts                 # Guards /admin pages
+└── styles/
+```
+
+## Getting started
+
+**Requirements:** Node.js 22 (see `.nvmrc`), Yarn 1, PostgreSQL or Docker.
 
 ```bash
-# 1. Create demo database (once, via psql)
-CREATE DATABASE ahanhormoz_demo;
-
-# 2. Environment: create `.env.local` (the app) and `.env` (Prisma CLI) with
-#   DATABASE_URL="postgresql://postgres:PASSWORD@localhost:5432/ahanhormoz_demo?schema=public"
-#   NEXTAUTH_URL="http://localhost:3000"
-#   NEXTAUTH_SECRET="<a long random string>"
-# Both must point at ahanhormoz_demo
-
-# 3. Install + schema + seed
+# 1. Install
 yarn
+
+# 2. Create a database (the seed only runs against this name)
+createdb ahanhormoz_demo
+#    or start one in Docker: docker compose up -d
+
+# 3. Configure: create .env with
+#    DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/ahanhormoz_demo"
+#    NEXTAUTH_URL="http://localhost:3000"
+#    NEXTAUTH_SECRET="<output of: openssl rand -base64 32>"
+
+# 4. Create the tables and load demo data
 yarn prisma migrate deploy
 yarn db:seed
 
-# 4. Run
+# 5. Run
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-### Demo admin
-
-| Role | Email | Password |
-|------|--------|----------|
-| Admin | `admin@hormozsteel.demo` | `admin123` |
-| Super Admin | `superadmin@hormozsteel.demo` | `superadmin123` |
-
-Admin panel: [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
-
-Seed creates ~78 English products (rebar, beams, sheets, profiles, pipes, wire, mesh, billets, tubes).
-
----
+The site runs at http://localhost:3000 and the admin panel at `/admin/login`.
+The seed creates an admin and a super admin account; their logins are in
+[`prisma/seed.ts`](prisma/seed.ts).
 
 ## Scripts
 
-| Command | Purpose |
-|---------|---------|
-| `yarn dev` | Dev server |
-| `yarn build` / `yarn start` | Production build |
-| `yarn db:generate` | Generate Prisma Client |
-| `yarn db:migrate` | Create + apply a migration after a schema edit |
-| `yarn db:seed` | English catalog seed (**refuses** non-`ahanhormoz_demo` URLs) |
-| `yarn db:studio` | Prisma Studio GUI |
-| `yarn db:reset` | **Destructive** reset + migrate |
-
----
-
-## Database
-
-| Database | Purpose |
-|----------|---------|
-| `ahanhormoz_demo` | **This repo only** |
-| `ahanhormoz` | Original client app — never seed from here |
-
-### Env
-
-```bash
-DATABASE_URL="postgresql://postgres:PASSWORD@localhost:5432/ahanhormoz_demo?schema=public"
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="long-random-string"
-```
-
-- Keep secrets in `.env` / `.env.local` (gitignored).
-- Prisma CLI loads **`.env`** by default; the app also loads `.env.local`.
-
-### Schema (tour)
-
-- **Category** → **Product** → optional **Manufacturer**
-- **`Category.icon`**: icomoon CSS class (e.g. `icon-rebar`), **not emoji** — see `styles/icomoon.css` and `config/category-icons.ts`
-- Product technical details: **`specs` JSON** (no sparse type-specific columns)
-- **PriceDirection**: `UP` | `DOWN` | `STABLE` + **PriceHistory**
-- Auth: User (NextAuth credentials + JWT sessions), AdminLog
-- Leads: ContactForm and QuickOrder (the contact and quote forms)
-
-### Local Postgres (no Docker)
-
-1. Install PostgreSQL and ensure the service is running.
-2. Create DB: `CREATE DATABASE ahanhormoz_demo;`
-3. Put the connection string in `.env` and `.env.local`.
-4. `yarn prisma migrate deploy` then `yarn db:seed`.
-
-### Common DB errors
-
-| Error | Fix |
-|-------|-----|
-| `P1001` Can't reach server | Start PostgreSQL |
-| `P1003` Database does not exist | `CREATE DATABASE ahanhormoz_demo` |
-| Auth failed | Check user/password in `DATABASE_URL` |
-| Seed refuses to run | URL must contain `ahanhormoz_demo` |
-
-### Optional Docker
-
-`docker-compose.yml` can run Postgres if you prefer containers. Prefer dedicated demo DB name in the compose config if you use it. Default project path is local Postgres.
-
----
-
-## Icons (icomoon)
-
-Do **not** store system emoji in the DB.
-
-- Font + classes: `styles/icomoon.css`, `public/fonts/icomoon.ttf`
-- Category map: `config/category-icons.ts` (`resolveCategoryIcon()`)
-- Usage:
-
-```tsx
-<i className={`${category.icon} text-2xl`} aria-hidden />
-// e.g. icon-rebar, icon-girder, icon-sheet, icon-pipe
-```
-
-| Category slug | Icon class |
-|---------------|------------|
-| rebar | `icon-rebar` |
-| beam | `icon-girder` |
-| sheet | `icon-sheet` |
-| profile | `icon-profile` |
-| angle | `icon-Corners` |
-| pipe | `icon-pipe` |
-| wire | `icon-Wire-products` |
-| mesh | `icon-grating` |
-| billet | `icon-bullion` |
-| tube | `icon-profil` |
-
----
-
-## Admin panel
-
-### Features
-
-- Login with role-based access (`ADMIN`, `SUPER_ADMIN`)
-- Dashboard stats
-- Products (list, filters, bulk ops where implemented)
-- Categories, manufacturers, orders
-- User management for super admin
-- Admin action logging
-
-### Routes
-
-| Path | Purpose |
-|------|---------|
-| `/admin/login` | Sign in |
-| `/admin/dashboard` | Overview |
-| `/admin/products` | Catalog management |
-| `/admin/categories` | Categories |
-| `/admin/manufacturers` | Manufacturers |
-| `/admin/orders` | Orders |
-| `/admin/users` | Users (super admin) |
-| `/admin/settings` | Settings |
-
-### Security notes
-
-- Passwords hashed with bcrypt
-- NextAuth JWT sessions
-- Admin APIs require authentication
-- Prefer changing demo passwords before any public deploy
-
----
-
-## Public app routes
-
-| Path | Purpose |
-|------|---------|
-| `/` | Home |
-| `/products` | Category index |
-| `/products/[categorySlug]` | Category products |
-| `/about`, `/contact` | Static pages |
-| `/weight/[type]` | Weight calculators |
-
----
-
-## API overview
-
-Pages read with Prisma on the server and write through Server Actions, so only a
-few route handlers remain:
-
-| Method | Path | Notes |
-|--------|------|--------|
-| GET | `/api/products/export` | Excel export (auth) |
-| POST | `/api/products/import` | Excel import (auth) |
-| GET | `/api/admin/notifications` | Admin bell poll (auth) |
-| GET/POST | `/api/orders` | Legacy order endpoints (no auth yet) |
-| * | `/api/auth/[...nextauth]` | NextAuth |
-
----
-
-## Project layout (high level)
-
-```
-app/           # App Router pages + API routes
-components/    # UI (public + admin)
-config/        # site, fonts, category-icons
-lib/           # prisma, auth, price-updater, DTOs
-prisma/        # schema.prisma, seed.ts
-styles/        # globals + icomoon
-types/         # shared TS types + PRODUCT_CATEGORIES
-```
-
----
-
-## Portfolio notes
-
-- English UI + LTR for Germany-facing demos
-- Keep client production data out of this repo’s DB
-- Prefer shipping a polished public catalog + admin over feature parity with the original Persian product
+| Command | What it does |
+|---|---|
+| `yarn dev` | Start the dev server (Turbopack) |
+| `yarn build` / `yarn start` | Production build and server |
+| `yarn lint:check` | ESLint, zero warnings allowed |
+| `yarn tsc --noEmit` | Type-check |
+| `yarn test` | Unit tests |
+| `yarn db:migrate` | Create and apply a migration after a schema change |
+| `yarn db:seed` | Load the demo catalog |
+| `yarn db:studio` | Browse the database in Prisma Studio |
