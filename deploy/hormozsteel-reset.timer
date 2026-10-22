@@ -1,0 +1,11 @@
+# Runs hormozsteel-reset.service at the top of every hour.
+# Installed at /etc/systemd/system/hormozsteel-reset.timer
+[Unit]
+Description=Reset the hs.sepehrgr.dev demo database every hour
+
+[Timer]
+OnCalendar=hourly
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target
