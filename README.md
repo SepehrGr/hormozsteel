@@ -135,7 +135,7 @@ yarn
 
 # 2. Create a database (the seed only runs against this name)
 createdb ahanhormoz_demo
-#    or start one in Docker: docker compose up -d
+#    or start one in Docker: docker compose up -d postgres
 
 # 3. Configure: create .env with
 #    DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/ahanhormoz_demo"
@@ -152,7 +152,22 @@ yarn dev
 
 The site runs at http://localhost:3000 and the admin panel at `/admin/login`.
 The seed creates an admin and a super admin account; their logins are in
-[`prisma/seed.ts`](prisma/seed.ts).
+[`lib/demo.ts`](lib/demo.ts), and the login page fills them in with one click.
+
+### Run it in Docker
+
+The production image, its database and the migrations together, with only a
+`NEXTAUTH_SECRET` in `.env`:
+
+```bash
+docker compose up -d --build                # Postgres, then migrations, then the app
+docker compose run --rm migrate yarn db:seed # load the demo data (wipes the database)
+```
+
+The app runs at http://localhost:3001. If a local Postgres already uses port
+5432, prefix both commands with `POSTGRES_PORT=5433`. The image is built with
+`next build --experimental-build-mode=compile`, so building it needs no
+database; public pages render on each request.
 
 ## Scripts
 

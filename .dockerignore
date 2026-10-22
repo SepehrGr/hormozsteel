@@ -1,0 +1,19 @@
+node_modules
+.next
+.git
+.github
+.env*
+yarn-error.log*
+*.tsbuildinfo
+next-env.d.ts
+Dockerfile
+docker-compose.yml
+README.md
+docs
+# local tooling
+.claude
+CLAUDE.md
+graft
+.impeccable
+.playwright-mcp
+.mcp.json
