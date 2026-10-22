@@ -1,0 +1,11 @@
+# Wipes the demo database and reloads the seed. Started by hormozsteel-reset.timer.
+# Installed at /etc/systemd/system/hormozsteel-reset.service
+[Unit]
+Description=Reset the hs.sepehrgr.dev demo database
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=deploy
+ExecStart=/srv/hormozsteel/deploy.sh seed
