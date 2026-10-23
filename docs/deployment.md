@@ -72,6 +72,7 @@ image. Inventory and rotation steps: [`secrets.md`](secrets.md).
 | The Dockerfile breaks | `image` fails on the PR, before anything is pushed |
 | The server's host key changes | `deploy` refuses to connect |
 | The image can't be pulled | Nothing running changes; the deploy fails |
+| The disk is over 90% full | The deploy stops before pulling anything |
 | The backup fails | The deploy stops before migrating and rolls back |
 | A migration fails | The new app never starts; the old one keeps serving |
 | The new version is unhealthy | Automatic rollback to the previous version, with the rollback point kept; CI turns red |
@@ -91,6 +92,17 @@ sudo -u deploy /srv/hormozsteel/deploy.sh restore /srv/hormozsteel/backups/<file
 systemctl list-timers hormozsteel-reset.timer             # next and last hourly reset
 ```
 
+Reading logs:
+
+```bash
+sudo -u deploy /srv/hormozsteel/deploy.sh logs            # the app's last 100 lines
+sudo -u deploy /srv/hormozsteel/deploy.sh logs postgres   # or migrate
+sudo journalctl -u hormozsteel-reset -n 20                # the hourly reset
+sudo journalctl -u caddy --since "1 hour ago"             # HTTPS and proxy errors
+```
+
+Deploy logs are on the repo's Actions tab, under each run's `deploy` job.
+
 `deploy.sh`, `deploy-gate` and the systemd files are installed by hand; CI doesn't
 change files on the server.
 
@@ -107,7 +119,15 @@ Breaking it on purpose found three bugs that normal deploys never hit, all fixed
 a failed deploy lost the rollback point, each restart served about 7 seconds of
 502s, and old images were never deleted.
 
-## Not done yet
+## Monitoring
 
-Monitoring: an outside uptime check with alerts, container log rotation, and a disk
-guard for deploys.
+- **Uptime:** [`.github/workflows/uptime.yml`](../.github/workflows/uptime.yml)
+  requests both sites every 10 minutes from GitHub's servers, retrying 3 times
+  before it fails. A failed run is the alert, sent by email and the GitHub app.
+- **Deploys:** a failed deploy turns CI red, which sends the same alert.
+- **Disk:** a deploy refuses to start above 90% disk use, before pulling anything.
+- **Logs:** each container keeps at most 3 files of 10 MB.
+
+Not covered: a failed hourly reset sends no alert. The demo stays as visitors left it
+until the next successful reset; `systemctl status hormozsteel-reset` shows the last
+result.

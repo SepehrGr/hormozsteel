@@ -2,9 +2,18 @@
 # .env holds the secrets (written once by hand); tag.env holds IMAGE_TAG (written by deploy.sh).
 name: hormozsteel
 
+# Docker keeps every line a container prints unless told otherwise: cap each
+# container at 3 files of 10 MB. Applies when a container is (re)created.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
 services:
   postgres:
     image: postgres:18
+    logging: *logging
     restart: unless-stopped
     environment:
       POSTGRES_DB: ahanhormoz_demo
@@ -22,6 +31,7 @@ services:
   # Runs pending migrations, then exits; the app starts only if it succeeds
   migrate:
     image: sepehrgr7/hormozsteel:tools-${IMAGE_TAG:?IMAGE_TAG is not set}
+    logging: *logging
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/ahanhormoz_demo
     command: yarn prisma migrate deploy
@@ -31,6 +41,7 @@ services:
 
   app:
     image: sepehrgr7/hormozsteel:${IMAGE_TAG:?IMAGE_TAG is not set}
+    logging: *logging
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/ahanhormoz_demo

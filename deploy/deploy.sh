@@ -3,7 +3,7 @@
 # CI reaches it only through /usr/local/bin/deploy-gate (deploy, rollback, status).
 # CI doesn't update this file: after changing it, copy it to the server and
 # `sudo install -o root -g root -m 755 deploy.sh /srv/hormozsteel/deploy.sh`.
-# Usage: deploy.sh deploy <sha-tag> | rollback | status | restart | seed | backup | restore <file>
+# Usage: deploy.sh deploy <sha-tag> | rollback | status | restart | seed | backup | restore <file> | logs [service]
 set -euo pipefail
 
 APP_DIR=/srv/hormozsteel
@@ -11,11 +11,12 @@ IMAGE=sepehrgr7/hormozsteel
 HEALTH_URL=http://127.0.0.1:3001/   # the home page reads the database, so it checks both
 BACKUP_DIR="$APP_DIR/backups"
 KEEP_BACKUPS=10
+DISK_LIMIT=90   # percent used; a deploy refuses to start above it
 cd "$APP_DIR"
 umask 077   # backups hold every password hash: files this script makes are deploy-only
 
 # One change at a time: a deploy, the hourly reset and a restore wait for each other
-if [[ "${1:-}" != status ]]; then exec 9> .lock; flock 9; fi
+case "${1:-}" in status|logs) ;; *) exec 9> .lock; flock 9 ;; esac   # read-only actions skip it
 
 log() { echo "[$(date -u +%FT%TZ)] $*"; }
 tag_in() { grep -E '^IMAGE_TAG=' "$1" 2>/dev/null | cut -d= -f2 || true; }
@@ -60,6 +61,13 @@ backup() {
   ls -1t "$BACKUP_DIR"/*.sql.gz | tail -n +$((KEEP_BACKUPS + 1)) | xargs -r rm --
 }
 
+# Pulling a new version needs room for its images; a full disk would fail halfway
+disk_ok() {
+  local used
+  used="$(df --output=pcent / | tail -1 | tr -dc '0-9')"
+  (( used < DISK_LIMIT )) || { log "Disk ${used}% full (limit ${DISK_LIMIT}%): free some space before deploying"; return 1; }
+}
+
 # Write a tag file, or delete it when there's no tag to record
 set_tag() { if [[ -n "$2" ]]; then echo "IMAGE_TAG=$2" > "$1"; else rm -f "$1"; fi; }
 
@@ -80,6 +88,7 @@ case "${1:-}" in
     NEW_TAG="${2:-}"
     # Accept only real commit tags: "sha-" + 40 hex characters. Blocks typos and injection.
     [[ "$NEW_TAG" =~ ^sha-[0-9a-f]{40}$ ]] || { log "Invalid tag: '$NEW_TAG'"; exit 2; }
+    disk_ok || exit 1
     OLD_TAG="$(tag_in tag.env)"; OLD_PREV="$(tag_in tag.env.previous)"
     log "Deploying $NEW_TAG (previous: ${OLD_TAG:-none})"
     if [[ -n "$OLD_TAG" ]]; then set_tag tag.env.previous "$OLD_TAG"; fi
@@ -136,7 +145,10 @@ case "${1:-}" in
     compose up -d --no-deps app && health_check
     exit "$RC"
     ;;
+  logs)
+    compose logs --tail 100 --timestamps "${2:-app}"
+    ;;
   *)
-    echo "Usage: $0 deploy <sha-tag> | rollback | status | restart | seed | backup | restore <file>" >&2; exit 2
+    echo "Usage: $0 deploy <sha-tag> | rollback | status | restart | seed | backup | restore <file> | logs [service]" >&2; exit 2
     ;;
 esac
