@@ -1,0 +1,29 @@
+name: Uptime
+
+# Checks both sites from outside the server every 10 minutes. A failed run is the
+# alert: GitHub emails and pushes it to whoever last changed this schedule.
+# GitHub may start a run a few minutes late, and pauses schedules in a public repo
+# after 60 days without commits (re-enable it on the Actions tab).
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        url:
+          - https://hs.sepehrgr.dev/
+          - https://sepehrgr.dev/
+    steps:
+      # Retries: one slow answer shouldn't wake anyone up; 3 failures 10 s apart should
+      - name: GET ${{ matrix.url }}
+        env:
+          URL: ${{ matrix.url }}
+        run: curl -fsS -o /dev/null --max-time 20 --retry 3 --retry-delay 10 --retry-all-errors "$URL"
