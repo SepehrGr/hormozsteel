@@ -9,6 +9,7 @@ import {
   FolderTree,
   Building2,
   ClipboardList,
+  History,
   Settings,
   Shield,
   ChevronLeft,
@@ -25,6 +26,7 @@ const sidebarItems = [
   { title: 'Categories', href: '/admin/categories', icon: FolderTree },
   { title: 'Manufacturers', href: '/admin/manufacturers', icon: Building2 },
   { title: 'Orders', href: '/admin/orders', icon: ClipboardList },
+  { title: 'Activity log', href: '/admin/logs', icon: History },
   { title: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
