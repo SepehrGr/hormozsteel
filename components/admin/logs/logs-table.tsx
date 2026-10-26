@@ -54,7 +54,9 @@ function valueText(value: unknown): string {
   return String(value)
 }
 
-const columns: Column<AdminLog>[] = [
+type Log = Omit<AdminLog, 'ipAddress' | 'userAgent'>
+
+const columns: Column<Log>[] = [
   {
     label: 'Event',
     narrow: 'title',
@@ -134,19 +136,12 @@ const columns: Column<AdminLog>[] = [
   },
 ]
 
-/** Audit-log rows, each opening onto what changed and where it came from. */
-export function LogsTable({
-  logs,
-  showNetwork,
-}: {
-  logs: AdminLog[]
-  /** IP and browser: super admins only. */
-  showNetwork: boolean
-}) {
+/** Audit-log rows, each opening onto what was recorded. */
+export function LogsTable({ logs }: { logs: Log[] }) {
   return (
     <AdminTable
       columns={columns}
-      detail={log => <LogDetails log={log} showNetwork={showNetwork} />}
+      detail={log => <LogDetails log={log} />}
       rowLabel={log =>
         `Details of ${log.userName}'s ${actionLabel(log.action).toLowerCase()}`
       }
@@ -155,13 +150,7 @@ export function LogsTable({
   )
 }
 
-function LogDetails({
-  log,
-  showNetwork,
-}: {
-  log: AdminLog
-  showNetwork: boolean
-}) {
+function LogDetails({ log }: { log: Log }) {
   const changes =
     log.details &&
     typeof log.details === 'object' &&
@@ -172,12 +161,6 @@ function LogDetails({
     ['Time', formatDateTime(log.createdAt)],
     ['Record ID', log.resourceId],
     ['Log ID', log.id],
-    ...(showNetwork
-      ? ([
-          ['IP address', log.ipAddress],
-          ['Browser', log.userAgent],
-        ] as [string, string | null][])
-      : []),
   ]
 
   return (

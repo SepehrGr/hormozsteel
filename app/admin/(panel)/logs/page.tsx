@@ -24,7 +24,7 @@ export default async function LogsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
-  const session = await requireAuth()
+  await requireAuth()
 
   const params = await searchParams
   const query = typeof params.q === 'string' ? params.q.trim() : ''
@@ -57,6 +57,7 @@ export default async function LogsPage({
       orderBy: { createdAt: 'desc' },
       skip,
       take: limit,
+      omit: { ipAddress: true, userAgent: true },
     }),
     prisma.adminLog.count({ where }),
     prisma.adminLog.count(),
@@ -131,10 +132,7 @@ export default async function LogsPage({
 
       <DataCard titleHidden title={`Activity (${total})`}>
         {logs.length > 0 ? (
-          <LogsTable
-            logs={logs}
-            showNetwork={session.user.role === 'SUPER_ADMIN'}
-          />
+          <LogsTable logs={logs} />
         ) : (
           <EmptyState
             description={
