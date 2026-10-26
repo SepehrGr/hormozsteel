@@ -3,7 +3,10 @@ import type { PriceDirection, QuickOrderStatus } from '@prisma/client'
 import { Inbox, LayoutDashboard, LineChart, Mail, Package } from 'lucide-react'
 import Link from 'next/link'
 
-import { ActivityFeed } from '@/components/admin/dashboard/activity-feed'
+import {
+  ActivityFeed,
+  LOGIN_ACTIONS,
+} from '@/components/admin/dashboard/activity-feed'
 import { PriceBoard } from '@/components/admin/dashboard/price-board'
 import { RequestDesk } from '@/components/admin/dashboard/request-desk'
 import { PageHeader } from '@/components/admin/page-header'
@@ -63,6 +66,7 @@ export default async function DashboardPage() {
       },
     }),
     prisma.adminLog.findMany({
+      where: { action: { notIn: LOGIN_ACTIONS } },
       orderBy: { createdAt: 'desc' },
       take: 6,
       select: {

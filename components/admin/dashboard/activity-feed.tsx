@@ -18,6 +18,9 @@ export type Log = Pick<
   | 'createdAt'
 >
 
+/** Sign-ins: on the full log, not the dashboard's list of changes. */
+export const LOGIN_ACTIONS = ['LOGIN', 'LOGIN_FAILED']
+
 export const NOUNS: Record<string, string> = {
   User: 'admin',
   Product: 'product',
@@ -53,6 +56,15 @@ export function describe({
       : {}
   const noun = NOUNS[resourceType] ?? resourceType.toLowerCase()
   const verb = VERBS[action] ?? action.toLowerCase().replaceAll('_', ' ')
+
+  if (action === 'LOGIN') return ['signed in']
+  if (action === 'LOGIN_FAILED') {
+    return [
+      typeof d.reason === 'string'
+        ? `failed to sign in (${d.reason.toLowerCase()})`
+        : 'failed to sign in',
+    ]
+  }
 
   if (resourceType === 'User' && resourceId && resourceId === userId) {
     return [`${verb} their own account`]

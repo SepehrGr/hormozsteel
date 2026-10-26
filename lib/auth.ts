@@ -4,6 +4,7 @@ import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 
+import { logAdminAction } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000 // 15 minutes
@@ -20,7 +21,11 @@ export const hashPassword = (password: string) => bcrypt.hash(password, 12)
 export async function checkPassword(
   user: Pick<User, 'id' | 'password' | 'failedLoginAttempts' | 'lockedUntil'>,
   password: string,
-): Promise<{ status: 'ok' | 'wrong' } | { status: 'locked'; minutes: number }> {
+): Promise<
+  | { status: 'ok' }
+  | { status: 'wrong'; locked: boolean }
+  | { status: 'locked'; minutes: number }
+> {
   const now = Date.now()
   const lockedUntil = user.lockedUntil?.getTime()
 
@@ -37,18 +42,17 @@ export async function checkPassword(
   // Global client, not a caller's transaction: a wrong guess must stick even
   // when the caller rolls back
   if (!(await bcrypt.compare(password, user.password))) {
+    const locked = failed + 1 >= MAX_FAILED_ATTEMPTS
+
     await prisma.user.update({
       where: { id: user.id },
       data: {
         failedLoginAttempts: failed + 1,
-        lockedUntil:
-          failed + 1 >= MAX_FAILED_ATTEMPTS
-            ? new Date(now + LOCKOUT_DURATION_MS)
-            : null,
+        lockedUntil: locked ? new Date(now + LOCKOUT_DURATION_MS) : null,
       },
     })
 
-    return { status: 'wrong' }
+    return { status: 'wrong', locked }
   }
 
   if (user.failedLoginAttempts || lockedUntil) {
@@ -69,7 +73,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error('INVALID_CREDENTIALS')
         }
@@ -85,20 +89,44 @@ export const authOptions: NextAuthOptions = {
             throw new Error('USER_NOT_FOUND')
           }
 
+          // Only attempts on a real account: an unknown email has no one to
+          // log against. Best effort, so a failed write never blocks sign-in.
+          const logLogin = (reason?: string) =>
+            logAdminAction(
+              user.id,
+              reason ? 'LOGIN_FAILED' : 'LOGIN',
+              'User',
+              user.id,
+              reason ? { reason } : undefined,
+              new Headers(req.headers as Record<string, string>),
+            ).catch(error => console.error('Login log failed:', error))
+
           const check = await checkPassword(user, credentials.password)
 
           // Encode minutes in error message (NextAuth will pass this through)
           if (check.status === 'locked') {
+            await logLogin('Account locked')
             throw new Error(`AccountLocked:${check.minutes}`)
           }
-          if (check.status === 'wrong') throw new Error('WRONG_PASSWORD')
+          if (check.status === 'wrong') {
+            await logLogin(
+              check.locked
+                ? 'Wrong password, account now locked'
+                : 'Wrong password',
+            )
+            throw new Error('WRONG_PASSWORD')
+          }
           // After the password, so it doesn't reveal that the account exists
-          if (!user.isActive) throw new Error('USER_INACTIVE')
+          if (!user.isActive) {
+            await logLogin('Account deactivated')
+            throw new Error('USER_INACTIVE')
+          }
 
           await prisma.user.update({
             where: { id: user.id },
             data: { lastLogin: new Date() },
           })
+          await logLogin()
 
           return {
             id: user.id,
