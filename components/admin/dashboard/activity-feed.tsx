@@ -2,11 +2,11 @@ import type { AdminLog } from '@prisma/client'
 
 import { History } from 'lucide-react'
 
-import { DataCard } from '@/components/admin/data-card'
+import { DataCard, DataCardLink } from '@/components/admin/data-card'
 import { EmptyState } from '@/components/admin/empty-state'
 import { formatDateTime, formatRelative, pluralize } from '@/lib/format'
 
-type Log = Pick<
+export type Log = Pick<
   AdminLog,
   | 'id'
   | 'action'
@@ -18,7 +18,7 @@ type Log = Pick<
   | 'createdAt'
 >
 
-const NOUNS: Record<string, string> = {
+export const NOUNS: Record<string, string> = {
   User: 'admin',
   Product: 'product',
   PRODUCT: 'product',
@@ -40,7 +40,7 @@ const VERBS: Record<string, string> = {
  * actions write into `details`: a `name`, a `customer`, a `status`, or
  * a list of products.
  */
-function describe({
+export function describe({
   action,
   resourceType,
   resourceId,
@@ -58,7 +58,7 @@ function describe({
     return [`${verb} their own account`]
   }
 
-  if (action === 'IMPORT_PRODUCTS') {
+  if (action === 'IMPORT') {
     return [
       `imported products: ${d.created ?? 0} new, ${d.updated ?? 0} updated`,
     ]
@@ -85,7 +85,11 @@ function describe({
 /** The latest audit-log rows, newest first. */
 export function ActivityFeed({ logs }: { logs: Log[] }) {
   return (
-    <DataCard icon={History} title='Recent activity'>
+    <DataCard
+      actions={<DataCardLink href='/admin/logs'>Full log</DataCardLink>}
+      icon={History}
+      title='Recent activity'
+    >
       {logs.length === 0 ? (
         <EmptyState
           description='Changes made in the admin are listed here.'
