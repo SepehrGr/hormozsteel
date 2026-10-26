@@ -17,6 +17,8 @@ const TONES: Record<string, PillTone> = {
   DELETE: 'danger',
   UNLOCK: 'warning',
   IMPORT: 'strong',
+  LOGIN: 'neutral',
+  LOGIN_FAILED: 'warning',
 }
 
 export const actionLabel = (action: string) =>

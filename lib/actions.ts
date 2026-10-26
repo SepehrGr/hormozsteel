@@ -5,11 +5,8 @@ import { headers } from 'next/headers'
 import { unstable_rethrow } from 'next/navigation'
 import { z } from 'zod'
 
-import {
-  logAdminAction,
-  requireAuth,
-  requireSuperAdmin,
-} from '@/lib/admin-auth'
+import { requireAuth, requireSuperAdmin } from '@/lib/admin-auth'
+import { logAdminAction } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 import {
   checkApiRateLimit,

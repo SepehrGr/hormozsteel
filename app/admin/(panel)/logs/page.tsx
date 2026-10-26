@@ -75,7 +75,7 @@ export default async function LogsPage({
   return (
     <div className='space-y-6'>
       <PageHeader
-        description='Every change made in the admin: who made it, to what, and when.'
+        description='Every change and sign-in in the admin: who, what, and when.'
         icon={History}
         title='Activity log'
       />
