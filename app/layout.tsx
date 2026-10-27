@@ -7,7 +7,7 @@ import clsx from 'clsx'
 import { Providers } from './providers'
 
 import { siteConfig } from '@/config/site'
-import { geistSans, geistMono } from '@/config/fonts'
+import { figtree, geistMono } from '@/config/fonts'
 import { ConditionalLayout } from '@/components/layout/conditional-layout'
 
 export const metadata: Metadata = {
@@ -36,14 +36,14 @@ export default function RootLayout({
   return (
     <html
       suppressHydrationWarning
-      className={clsx(geistSans.variable, geistMono.variable)}
+      className={clsx(figtree.variable, geistMono.variable)}
       lang='en'
     >
       <head />
       <body
         className={clsx(
           'min-h-screen bg-background font-sans text-foreground antialiased',
-          geistSans.className,
+          figtree.className,
         )}
       >
         <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>

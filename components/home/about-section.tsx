@@ -1,93 +1,52 @@
+import Image from 'next/image'
 import Link from 'next/link'
 
-const steps = [
-  {
-    code: '01',
-    title: 'Scan the board',
-    body: 'Open a product family — rebar, HRC/CRC, sections, pipe — and read unit rates with size and mill at a glance.',
-  },
-  {
-    code: '02',
-    title: 'Filter the line',
-    body: 'Narrow by diameter, section, stock, or mill so the table matches the takeoff, not the whole warehouse.',
-  },
-  {
-    code: '03',
-    title: 'Request a firm quote',
-    body: 'Send tonnage and specs to sales. Indicative catalog prices become a binding offer with delivery terms.',
-  },
-]
+import { ABOUT_FACTS, ABOUT_HERO } from '@/config/about'
 
 export default function AboutSection() {
   return (
-    <section className='w-full border-b border-border bg-muted/30'>
-      <div className='mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-15'>
-        <div className='grid gap-10 lg:grid-cols-12 lg:gap-12 lg:items-start'>
-          <div className='lg:col-span-5'>
-            <p className='mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground'>
-              Why Hormoz Steel
-            </p>
-            <h2 className='text-2xl font-semibold tracking-tight text-foreground sm:text-3xl lg:text-[2rem] lg:leading-tight'>
-              Built for engineers and buyers who live in spreadsheets
-            </h2>
-            <p className='mt-4 text-sm leading-relaxed text-muted-foreground md:text-base'>
-              We publish clear unit prices so procurement can compare lines
-              before the phone call. No marketing fog — just the sizes, mills,
-              and rates you need to estimate a job and move to a quote.
-            </p>
-            <p className='mt-3 text-sm leading-relaxed text-muted-foreground md:text-base'>
-              Catalog rates are USD, ex-works style. Final pricing follows
-              tonnage, grade, and logistics agreed with sales.
-            </p>
-          </div>
+    <section className='border-b border-border bg-background'>
+      <div className='mx-auto grid max-w-7xl gap-10 px-4 py-16 md:px-6 md:py-24 lg:grid-cols-2 lg:items-center lg:gap-16'>
+        <div className='relative aspect-[16/10] overflow-hidden border border-border bg-muted'>
+          <Image
+            fill
+            alt={ABOUT_HERO.alt}
+            blurDataURL={ABOUT_HERO.blur}
+            className='object-cover'
+            placeholder='blur'
+            sizes='(max-width: 1024px) 100vw, 640px'
+            src={ABOUT_HERO.src}
+          />
+        </div>
 
-          <div className='lg:col-span-7'>
-            <div className='overflow-hidden border border-border bg-border shadow-sm dark:shadow-none'>
-              <div className='flex items-center justify-between border-b border-border bg-card px-4 py-3'>
-                <h3 className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground'>
-                  How procurement works
-                </h3>
-                <span className='text-xs text-muted-foreground'>3 steps</span>
+        <div>
+          <h2 className='max-w-[18ch] text-3xl font-semibold tracking-tight text-foreground sm:text-4xl'>
+            We bought steel for our own sites before we sold it
+          </h2>
+          <p className='mt-4 max-w-[52ch] leading-relaxed text-muted-foreground'>
+            Building first, trading second. That order is why we quote the way
+            we wanted to be quoted: spec first, then price, then logistics.
+          </p>
+          <dl className='mt-8 grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-4'>
+            {ABOUT_FACTS.map(fact => (
+              <div key={fact.label}>
+                <dt className='text-sm text-muted-foreground'>{fact.label}</dt>
+                <dd className='mt-1 text-xl font-semibold tracking-tight text-foreground'>
+                  {fact.value}
+                </dd>
               </div>
-
-              <ol className='divide-y divide-border bg-card'>
-                {steps.map(step => (
-                  <li
-                    key={step.code}
-                    className='grid grid-cols-[auto_1fr] gap-4 px-4 py-5 transition-colors duration-200 ease-out sm:gap-6 sm:px-5 hover:bg-muted/60'
-                  >
-                    <span className='font-mono text-sm font-semibold tabular-nums text-amber-800 dark:text-amber-500'>
-                      {step.code}
-                    </span>
-                    <div className='min-w-0 max-w-[50ch]'>
-                      <h4 className='text-sm font-semibold tracking-tight text-foreground sm:text-base'>
-                        {step.title}
-                      </h4>
-                      <p className='mt-1.5 text-sm leading-relaxed text-muted-foreground'>
-                        {step.body}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-
-              <div className='border-t border-border bg-muted/50 px-4 py-3 sm:px-5'>
-                <div className='flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground'>
-                  <span>
-                    Coverage:{' '}
-                    <span className='text-foreground'>
-                      rebar · sheet · beams · pipe · billets
-                    </span>
-                  </span>
-                  <Link
-                    className='font-medium text-foreground underline-offset-4 transition-colors duration-200 ease-out hover:underline'
-                    href='/about'
-                  >
-                    Company overview →
-                  </Link>
-                </div>
-              </div>
-            </div>
+            ))}
+          </dl>
+          <div className='mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm'>
+            <Link
+              className='font-medium text-amber-800 underline-offset-4 hover:underline dark:text-amber-500'
+              href='/about'
+            >
+              Company overview
+            </Link>
+            <span className='text-muted-foreground'>
+              Demo company: the facts are illustrative.
+            </span>
           </div>
         </div>
       </div>
