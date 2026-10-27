@@ -1,7 +1,7 @@
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Figtree, Geist_Mono } from 'next/font/google'
 
 /** Primary UI font for the English portfolio demo. */
-export const geistSans = Geist({
+export const figtree = Figtree({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-sans',

@@ -54,3 +54,25 @@ export const getLatestPrices = cache(async () => {
 })
 
 export type LatestPrice = Awaited<ReturnType<typeof getLatestPrices>>[number]
+
+/** Today's ribbed rebar price per kg, keyed by diameter in mm; the cheapest mill wins a tie. */
+export const getRebarRates = cache(async () => {
+  const bars = await prisma.product.findMany({
+    where: { category: { slug: 'rebar' }, subcategory: 'Ribbed', unit: 'KG' },
+    select: { size: true, price: true },
+  })
+  const rates: Record<number, number> = {}
+
+  for (const bar of bars) {
+    const diameter = parseFloat(bar.size)
+    const price = bar.price.toNumber()
+
+    if (
+      diameter > 0 &&
+      (rates[diameter] === undefined || price < rates[diameter])
+    )
+      rates[diameter] = price
+  }
+
+  return rates
+})
